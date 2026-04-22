@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cases Performance — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Section dividers ──────────────────────────────────────── */
+    .section-divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 36px 0 20px;
+    }
+    .section-divider-bar {
+      width: 4px; height: 28px; border-radius: 2px;
+      background: var(--section-color, var(--color-primary));
+      flex-shrink: 0;
+    }
+    .section-divider h2 {
+      font-family: 'Bree Serif', serif; font-size: 1.2rem;
+      font-weight: 400; color: var(--text-primary);
+    }
+    .section-divider p {
+      font-family: 'Cambay', sans-serif; font-size: 0.8rem;
+      color: var(--text-muted); margin-top: 2px;
+    }
+
+    /* ── Executive summary hero strip ──────────────────────────── */
+    .exec-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .exec-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px 14px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+    .exec-card-accent {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--exec-colour, var(--color-primary));
+    }
+    .exec-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); margin-bottom: 8px;
+    }
+    .exec-value {
+      font-family: 'Bree Serif', serif;
+      font-size: 2rem; line-height: 1; color: var(--text-primary);
+    }
+    .exec-unit {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.8rem; color: var(--text-muted);
+      display: block; margin-top: 3px;
+    }
+    .trend-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px;
+      margin-top: 8px;
+    }
+    .trend-badge.improving { background: rgba(73,169,66,0.12); color: #2d7a27; }
+    .trend-badge.regressing { background: rgba(238,53,38,0.1); color: var(--color-primary); }
+    .trend-badge.stable { background: var(--surface-2); color: var(--text-muted); }
+
+    /* ── Priority metric cards ──────────────────────────────────── */
+    .pri-perf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .pri-perf-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--pri-col, #ccc);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .pri-perf-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); margin-bottom: 4px;
+    }
+    .pri-perf-value {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.6rem; color: var(--text-primary); line-height: 1;
+    }
+    .pri-perf-sub {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;
+    }
+    .sla-bar-wrap {
+      margin-top: 6px; height: 4px;
+      background: var(--border-subtle); border-radius: 2px; overflow: hidden;
+    }
+    .sla-bar-fill {
+      height: 100%; border-radius: 2px;
+      background: var(--pri-col, #ccc);
+      transition: width 0.6s ease;
+    }
+
+    /* ── Outcome cards ──────────────────────────────────────────── */
+    .outcome-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px; margin-bottom: 20px;
+    }
+    .outcome-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      border-top: 4px solid var(--outcome-col, #ccc);
+    }
+    .outcome-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); margin-bottom: 8px;
+    }
+    .outcome-value {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.8rem; color: var(--text-primary); line-height: 1;
+    }
+    .outcome-sub {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;
+    }
+
+    /* ── Backlog age table ──────────────────────────────────────── */
+    .backlog-age-grid {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 6px 16px;
+      align-items: center;
+    }
+    .backlog-band-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.82rem; color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .backlog-bar-wrap {
+      height: 10px; background: var(--surface-2);
+      border-radius: 4px; overflow: hidden;
+    }
+    .backlog-bar-fill {
+      height: 100%; border-radius: 4px;
+    }
+    .backlog-count {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.82rem; font-weight: 700;
+      color: var(--text-primary); text-align: right;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Cases Performance</h1>
+          <p>Response time, closure time, SLA compliance and backlog health — last 13 months.</p>
+        </div>
+        <div id="month-label" style="text-align:right;"></div>
+      </div>
+
+      <!-- ── EXECUTIVE SUMMARY ────────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-primary); margin-top:0;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Executive Summary</h2>
+          <p>Current month snapshot — based on cases created this month</p>
+        </div>
+      </div>
+      <div class="exec-strip" id="exec-strip">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- ── SECTION 1: FIRST RESPONSE TIME ───────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-blue);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>First Response Time</h2>
+          <p>Time from case creation to first genuine caseworker note — automated intake notes excluded</p>
+        </div>
+      </div>
+
+      <div class="pri-perf-grid" id="resp-pri-cards">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Median First Response — by Priority</div>
+              <div class="chart-card-subtitle">Hours from case creation to first caseworker action</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-resp-trend"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">SLA Compliance by Priority</div>
+              <div class="chart-card-subtitle">% of cases responded to within target window</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-sla"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: CLOSURE TIME ──────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-yellow);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Case Closure Time</h2>
+          <p>Time from case creation to closure — by outcome and by priority</p>
+        </div>
+      </div>
+
+      <!-- By outcome -->
+      <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px;">By Outcome</div>
+      <div class="outcome-grid" id="close-outcome-cards">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- By priority -->
+      <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin:16px 0 10px;">By Priority</div>
+      <div class="pri-perf-grid" id="close-pri-cards">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Median Closure Time — by Priority</div>
+              <div class="chart-card-subtitle">Days from creation to closure, monthly trend</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-close-pri-trend"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Median Closure Time — by Outcome</div>
+              <div class="chart-card-subtitle">Funded vs Not Funded vs No Response</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-close-outcome-trend"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3: THROUGHPUT & OUTCOMES ─────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-green);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Throughput &amp; Outcomes</h2>
+          <p>Are we closing as many cases as we open? Is funding rate improving?</p>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Case Intake vs Closure</div>
+              <div class="chart-card-subtitle">Monthly — if closures persistently lag intake, backlog is growing</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-throughput"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Funding Rate Trend</div>
+              <div class="chart-card-subtitle">% of closed cases resulting in Funded outcome</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-funding-rate"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 4: BACKLOG ────────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-primary);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Open Case Backlog</h2>
+          <p>All currently open cases — how old are they?</p>
+        </div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Backlog by Age Band</div>
+              <div class="chart-card-subtitle">Cases open and unresolved — cases over 30 days need attention</div>
+            </div>
+          </div>
+          <div id="backlog-age-bars" style="padding:20px 24px;">
+            <div class="loading-overlay"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Backlog by Priority</div>
+              <div class="chart-card-subtitle">Open case distribution across urgency levels</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-backlog-pri"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+
+// ── Constants ─────────────────────────────────────────────────────
+const C = {
+  red:    '#EE3526', redLight:  'rgba(238,53,38,0.08)',
+  blue:   '#0081C6', blueLight: 'rgba(0,129,198,0.08)',
+  yellow: '#FDB913', green:     '#49A942',
+  grey:   '#9F9393', dark:      '#231F1F',
+};
+const CHART_DEFAULTS = {
+  font: { family: 'Cambay', size: 11 },
+  grid: { color: '#F0EEEE' },
+};
+function sharedLineOpts(yLabel = '') {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { font: CHART_DEFAULTS.font, padding: 12, boxWidth: 24, boxHeight: 2 }
+      },
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+      y: {
+        ticks:  { font: CHART_DEFAULTS.font, precision: 0 },
+        grid:   CHART_DEFAULTS.grid,
+        beginAtZero: true,
+        title:  yLabel ? { display: true, text: yLabel, font: { ...CHART_DEFAULTS.font, size: 10 } } : undefined,
+      }
+    }
+  };
+}
+function monthLabels(months) {
+  return months.map(m => {
+    const [y, mo] = m.split('-');
+    return new Date(y, mo - 1, 1).toLocaleString('en-AU', { month: 'short', year: '2-digit' });
+  });
+}
+function fmt(n, dec = 0) {
+  if (n === null || n === undefined) return '—';
+  return Number(n).toLocaleString('en-AU',
+    { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+function friendlyMonth(ym) {
+  if (!ym) return '';
+  const [y, m] = ym.split('-');
+  return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'long', year: 'numeric' });
+}
+function trendBadge(direction) {
+  const map = {
+    improving:  { icon: '↓', label: 'Improving',  cls: 'improving'  },
+    regressing: { icon: '↑', label: 'Regressing', cls: 'regressing' },
+    stable:     { icon: '→', label: 'Stable',      cls: 'stable'     },
+  };
+  const t = map[direction] || map.stable;
+  return `<span class="trend-badge ${t.cls}">${t.icon} ${t.label}</span>`;
+}
+
+// ── Main ─────────────────────────────────────────────────────────
+(async () => {
+  await requireAuth();
+  renderNav("Cases Performance");
+
+  let data;
+  try {
+    const res = await fetch('/data/cases_perf.json');
+    data = await res.json();
+    window.__NZF_META = data.meta;
+  } catch(e) {
+    document.getElementById('exec-strip').innerHTML =
+      `<div style="padding:20px;font-family:'Cambay';color:var(--text-muted)">
+        ⚠ cases_perf.json not yet available. Run the data refresh action.
+       </div>`;
+    return;
+  }
+
+  renderMonthLabel(data);
+  renderExecStrip(data);
+  renderRespPriCards(data);
+  renderRespTrendChart(data);
+  renderSLAChart(data);
+  renderCloseOutcomeCards(data);
+  renderClosePriCards(data);
+  renderClosePriTrendChart(data);
+  renderCloseOutcomeTrendChart(data);
+  renderThroughputChart(data);
+  renderFundingRateChart(data);
+  renderBacklogAgeBars(data);
+  renderBacklogPriChart(data);
+})();
+
+// ── Month label ───────────────────────────────────────────────────
+function renderMonthLabel(data) {
+  document.getElementById('month-label').innerHTML = `
+    <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Current month</div>
+    <div style="font-family:'Bree Serif';font-size:1rem;color:var(--text-primary)">${friendlyMonth(data.meta.current_month)}</div>`;
+}
+
+// ── Executive summary strip ───────────────────────────────────────
+function renderExecStrip(data) {
+  const es = data.executive_summary;
+  const rt = data.response_time;
+  const ct = data.closure_time;
+  const bl = data.backlog;
+
+  const cards = [
+    {
+      label: 'Median First Response',
+      value: es.median_response_hours !== null ? fmt(es.median_response_hours, 0) : '—',
+      unit:  'hours (current month)',
+      colour: C.blue,
+      extra:  trendBadge(es.response_trend),
+    },
+    {
+      label: 'Median Closure Time',
+      value: es.median_closure_days !== null ? fmt(es.median_closure_days, 0) : '—',
+      unit:  'days (current month)',
+      colour: C.yellow,
+      extra:  trendBadge(es.closure_trend),
+    },
+    {
+      label: 'SLA Compliance',
+      value: es.sla_compliance_pct !== null ? fmt(es.sla_compliance_pct, 1) : '—',
+      unit:  '% of cases within target',
+      colour: es.sla_compliance_pct >= 80 ? C.green : es.sla_compliance_pct >= 60 ? C.yellow : C.red,
+      extra: '',
+    },
+    {
+      label: 'Funding Rate',
+      value: es.funding_rate_pct !== null ? fmt(es.funding_rate_pct, 1) : '—',
+      unit:  '% of closed cases funded (12m)',
+      colour: C.green,
+      extra: '',
+    },
+    {
+      label: 'Backlog > 30 Days',
+      value: fmt(es.backlog_over_30d),
+      unit:  'open cases over 30 days old',
+      colour: es.backlog_over_30d > 50 ? C.red : es.backlog_over_30d > 20 ? C.yellow : C.green,
+      extra: `<span style="font-family:'Cambay';font-size:0.75rem;color:var(--text-muted)">${fmt(bl.total_open)} total open</span>`,
+    },
+  ];
+
+  document.getElementById('exec-strip').innerHTML = cards.map(card => `
+    <div class="exec-card">
+      <div class="exec-card-accent" style="--exec-colour:${card.colour}"></div>
+      <div class="exec-label">${card.label}</div>
+      <div class="exec-value">${card.value}</div>
+      <span class="exec-unit">${card.unit}</span>
+      ${card.extra}
+    </div>`).join('');
+}
+
+// ── Response time priority cards ──────────────────────────────────
+function renderRespPriCards(data) {
+  const byPri  = data.response_time.by_priority;
+  const targets= data.response_time.sla_targets;
+  const order  = data.closure_time.by_priority; // same priority order
+  const priOrder = data.backlog.by_priority;     // just to get keys
+
+  // Get priority order from the response data keys
+  const priorities = Object.keys(byPri);
+  const priColours = {
+    P1:'#EE3526',P2:'#E8732A',P3:'#FDB913',P4:'#0081C6',P5:'#49A942','No Priority':'#9F9393'
+  };
+
+  document.getElementById('resp-pri-cards').innerHTML = priorities.map(p => {
+    const d      = byPri[p];
+    const target = targets[p];
+    const sla    = d.sla_compliance;
+    const val    = d.median_hours !== null ? `${fmt(d.median_hours, 0)}h` : '—';
+    const slaLine= target ? `SLA target: ${target}h` : 'No SLA target';
+    const colour = priColours[p] || '#9F9393';
+    const slaFill= sla !== null ? Math.min(sla, 100) : 0;
+    const slaColour = sla >= 80 ? C.green : sla >= 60 ? C.yellow : C.red;
+    return `
+      <div class="pri-perf-card" style="--pri-col:${colour}">
+        <div class="pri-perf-label">${p}</div>
+        <div class="pri-perf-value">${val}</div>
+        <div class="pri-perf-sub">median — n=${fmt(d.count)}</div>
+        ${sla !== null ? `
+          <div class="pri-perf-sub" style="margin-top:6px;color:${slaColour};font-weight:700">${fmt(sla,1)}% SLA</div>
+          <div class="sla-bar-wrap">
+            <div class="sla-bar-fill" style="width:${slaFill}%;background:${slaColour}"></div>
+          </div>` : `<div class="pri-perf-sub" style="margin-top:6px">${slaLine}</div>`}
+      </div>`;
+  }).join('');
+}
+
+// ── Response trend chart ──────────────────────────────────────────
+function renderRespTrendChart(data) {
+  const pt = data.response_time.priority_trend_series;
+  new Chart(document.getElementById('chart-resp-trend'), {
+    type: 'line',
+    data: {
+      labels: monthLabels(pt.months),
+      datasets: pt.series.map(s => ({
+        label:            s.priority,
+        data:             s.data,
+        borderColor:      s.colour,
+        backgroundColor:  s.colour,
+        borderWidth:      2,
+        pointRadius:      3,
+        pointHoverRadius: 5,
+        tension:          0.3,
+        fill:             false,
+        spanGaps:         true,
+      }))
+    },
+    options: sharedLineOpts('Hours')
+  });
+}
+
+// ── SLA compliance chart (horizontal bar) ────────────────────────
+function renderSLAChart(data) {
+  const sla     = data.response_time.sla_compliance_by_priority;
+  const targets = data.response_time.sla_targets;
+  const priColours = {
+    P1:'#EE3526',P2:'#E8732A',P3:'#FDB913',P4:'#0081C6',P5:'#49A942','No Priority':'#9F9393'
+  };
+  const labels  = Object.keys(sla).filter(p => sla[p] !== null && targets[p] !== null);
+  const values  = labels.map(p => sla[p] || 0);
+  const colours = labels.map(p => {
+    const v = sla[p] || 0;
+    return v >= 80 ? C.green : v >= 60 ? C.yellow : C.red;
+  });
+
+  new Chart(document.getElementById('chart-sla'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'SLA Compliance %',
+        data:  values,
+        backgroundColor: colours,
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.x.toFixed(1)}%  (target: ${targets[ctx.label]}h)`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: CHART_DEFAULTS.font, callback: v => v + '%' },
+          grid:  CHART_DEFAULTS.grid,
+          min: 0, max: 100,
+        },
+        y: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ── Closure outcome cards ─────────────────────────────────────────
+function renderCloseOutcomeCards(data) {
+  const byOutcome = data.closure_time.by_outcome;
+  document.getElementById('close-outcome-cards').innerHTML = Object.entries(byOutcome).map(([label, d]) => `
+    <div class="outcome-card" style="--outcome-col:${d.colour}">
+      <div class="outcome-label">${label}</div>
+      <div class="outcome-value">${d.median_days !== null ? fmt(d.median_days, 0) : '—'}</div>
+      <div class="outcome-sub">median days — n=${fmt(d.count)}</div>
+      <div class="outcome-sub" style="margin-top:2px">Avg: ${fmt(d.avg_days, 1)}d &nbsp; P75: ${fmt(d.p75_days, 1)}d</div>
+    </div>`).join('');
+}
+
+// ── Closure priority cards ────────────────────────────────────────
+function renderClosePriCards(data) {
+  const byPri = data.closure_time.by_priority;
+  const priColours = {
+    P1:'#EE3526',P2:'#E8732A',P3:'#FDB913',P4:'#0081C6',P5:'#49A942','No Priority':'#9F9393'
+  };
+  document.getElementById('close-pri-cards').innerHTML = Object.entries(byPri).map(([p, d]) => `
+    <div class="pri-perf-card" style="--pri-col:${priColours[p]||'#9F9393'}">
+      <div class="pri-perf-label">${p}</div>
+      <div class="pri-perf-value">${d.median_days !== null ? fmt(d.median_days,0)+'d' : '—'}</div>
+      <div class="pri-perf-sub">median — n=${fmt(d.count)}</div>
+      <div class="pri-perf-sub">Avg: ${fmt(d.avg_days,1)}d</div>
+    </div>`).join('');
+}
+
+// ── Closure priority trend ────────────────────────────────────────
+function renderClosePriTrendChart(data) {
+  const pt = data.closure_time.priority_trend_series;
+  new Chart(document.getElementById('chart-close-pri-trend'), {
+    type: 'line',
+    data: {
+      labels: monthLabels(pt.months),
+      datasets: pt.series.map(s => ({
+        label:            s.priority,
+        data:             s.data,
+        borderColor:      s.colour,
+        backgroundColor:  s.colour,
+        borderWidth:      2,
+        pointRadius:      3,
+        pointHoverRadius: 5,
+        tension:          0.3,
+        fill:             false,
+        spanGaps:         true,
+      }))
+    },
+    options: sharedLineOpts('Days')
+  });
+}
+
+// ── Closure outcome trend ─────────────────────────────────────────
+function renderCloseOutcomeTrendChart(data) {
+  const pt = data.closure_time.outcome_trend_series;
+  new Chart(document.getElementById('chart-close-outcome-trend'), {
+    type: 'line',
+    data: {
+      labels: monthLabels(pt.months),
+      datasets: pt.series.map(s => ({
+        label:            s.label,
+        data:             s.data,
+        borderColor:      s.colour,
+        backgroundColor:  s.colour,
+        borderWidth:      2,
+        pointRadius:      3,
+        pointHoverRadius: 5,
+        tension:          0.3,
+        fill:             false,
+        spanGaps:         true,
+      }))
+    },
+    options: sharedLineOpts('Days')
+  });
+}
+
+// ── Throughput chart ──────────────────────────────────────────────
+function renderThroughputChart(data) {
+  const monthly = data.throughput.monthly;
+  new Chart(document.getElementById('chart-throughput'), {
+    type: 'bar',
+    data: {
+      labels: monthLabels(monthly.map(t => t.month)),
+      datasets: [
+        {
+          label: 'Created',
+          data:  monthly.map(t => t.created),
+          backgroundColor: 'rgba(0,129,198,0.7)',
+          borderRadius: 3,
+          borderSkipped: false,
+        },
+        {
+          label: 'Closed',
+          data:  monthly.map(t => t.closed),
+          backgroundColor: 'rgba(73,169,66,0.7)',
+          borderRadius: 3,
+          borderSkipped: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: CHART_DEFAULTS.font, padding: 12, boxWidth: 12, boxHeight: 12 }
+        }
+      },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ── Funding rate trend ────────────────────────────────────────────
+function renderFundingRateChart(data) {
+  const months = data.meta.months_covered;
+  const rates  = data.throughput.funding_rate_monthly;
+  new Chart(document.getElementById('chart-funding-rate'), {
+    type: 'line',
+    data: {
+      labels: monthLabels(months),
+      datasets: [{
+        label: 'Funding Rate %',
+        data:  months.map(m => rates[m] ?? null),
+        borderColor:     C.green,
+        backgroundColor: 'rgba(73,169,66,0.08)',
+        fill:            true,
+        tension:         0.35,
+        pointBackgroundColor: C.green,
+        pointRadius:     3,
+        pointHoverRadius:5,
+        borderWidth:     2,
+        spanGaps:        true,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: {
+          ticks:  { font: CHART_DEFAULTS.font, callback: v => v + '%' },
+          grid:   CHART_DEFAULTS.grid,
+          min:    0, max: 100,
+        }
+      }
+    }
+  });
+}
+
+// ── Backlog age bars (custom visual) ─────────────────────────────
+function renderBacklogAgeBars(data) {
+  const bands = data.backlog.by_age;
+  const max   = Math.max(...bands.map(b => b.count), 1);
+  const colours = ['#49A942','#B5BD00','#FDB913','#E8732A','#EE3526'];
+
+  document.getElementById('backlog-age-bars').innerHTML =
+    '<div class="backlog-age-grid">' +
+    bands.map((b, i) => `
+      <div class="backlog-band-label">${b.band}</div>
+      <div class="backlog-bar-wrap">
+        <div class="backlog-bar-fill"
+          style="width:${b.count/max*100}%;background:${colours[i]||C.grey}">
+        </div>
+      </div>
+      <div class="backlog-count">${fmt(b.count)}</div>
+    `).join('') +
+    '</div>';
+}
+
+// ── Backlog priority chart ────────────────────────────────────────
+function renderBacklogPriChart(data) {
+  const byPri = data.backlog.by_priority;
+  const priColours = {
+    P1:'#EE3526',P2:'#E8732A',P3:'#FDB913',P4:'#0081C6',P5:'#49A942','No Priority':'#9F9393'
+  };
+  const labels = Object.keys(byPri);
+  new Chart(document.getElementById('chart-backlog-pri'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Open Cases',
+        data:  labels.map(p => byPri[p]),
+        backgroundColor: labels.map(p => priColours[p] || C.grey),
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
