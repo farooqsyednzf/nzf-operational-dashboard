@@ -1,22 +1,16 @@
 name: Refresh Zoho CRM Data
 
 on:
-  # ── Scheduled runs ──────────────────────────────────────────────
   schedule:
-    - cron: '0 */6 * * *'    # Every 6 hours
-
-  # ── Manual trigger from GitHub Actions UI ───────────────────────
+    - cron: '0 */6 * * *'   # Every 6 hours
   workflow_dispatch:
     inputs:
       report:
-        description: 'Which report to refresh (leave blank for all)'
+        description: 'Which report to refresh'
         required: false
         default: 'all'
         type: choice
-        options:
-          - all
-          - clients
-          - pipeline
+        options: [all, clients, pipeline]
 
 jobs:
   refresh-data:
@@ -25,31 +19,17 @@ jobs:
       contents: write
 
     steps:
-      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # 3. Dependencies
       - name: Install dependencies
         run: pip install requests
 
-      # 4. Shared environment
-      - name: Set Zoho environment
-        run: echo "Zoho environment configured"
-        env:
-          ZOHO_CLIENT_ID:     ${{ secrets.ZOHO_CLIENT_ID }}
-          ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
-          ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
-          ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
-          ZOHO_API_DOMAIN:    ${{ secrets.ZOHO_API_DOMAIN }}
-
-      # 5a. Client Report
       - name: Fetch client report data
         if: ${{ github.event.inputs.report == 'all' || github.event.inputs.report == 'clients' || github.event_name == 'schedule' }}
         env:
@@ -57,10 +37,9 @@ jobs:
           ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
           ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
           ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
-          ZOHO_API_DOMAIN:    ${{ secrets.ZOHO_API_DOMAIN }}
+          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/fetch_clients_data.py
 
-      # 5b. Pipeline Report
       - name: Fetch pipeline data
         if: ${{ github.event.inputs.report == 'all' || github.event.inputs.report == 'pipeline' || github.event_name == 'schedule' }}
         env:
@@ -68,44 +47,29 @@ jobs:
           ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
           ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
           ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
-          ZOHO_API_DOMAIN:    ${{ secrets.ZOHO_API_DOMAIN }}
         run: python scripts/fetch_zoho_data.py
 
-      # 6. Write meta.json aggregating all datasets
       - name: Write meta.json
         run: |
-          python3 - <<'EOF'
+          python3 - <<'PYEOF'
           import json, os
           from datetime import datetime, timezone
-
           data_dir = "data"
           datasets = []
-          files = {
-              "clients.json":  "Client Report",
-              "pipeline.json": "Case Pipeline",
-          }
-          for fname, label in files.items():
+          for fname, label in [("clients.json","Client Report"),("pipeline.json","Case Pipeline")]:
               path = os.path.join(data_dir, fname)
               if os.path.exists(path):
-                  with open(path) as f:
-                      d = json.load(f)
+                  with open(path) as f: d = json.load(f)
                   datasets.append({
-                      "name":         label,
-                      "file":         fname,
-                      "record_count": d.get("meta", {}).get("record_count", 0),
-                      "last_updated": d.get("meta", {}).get("last_updated", ""),
+                      "name": label, "file": fname,
+                      "record_count": d.get("meta",{}).get("record_count", 0),
+                      "last_updated": d.get("meta",{}).get("last_updated",""),
                   })
+          with open(os.path.join(data_dir,"meta.json"),"w") as f:
+              json.dump({"last_updated": datetime.now(timezone.utc).isoformat(), "datasets": datasets}, f, indent=2)
+          print(f"meta.json written with {len(datasets)} datasets")
+          PYEOF
 
-          meta = {
-              "last_updated": datetime.now(timezone.utc).isoformat(),
-              "datasets":     datasets,
-          }
-          with open(os.path.join(data_dir, "meta.json"), "w") as f:
-              json.dump(meta, f, indent=2)
-          print("meta.json written with", len(datasets), "datasets")
-          EOF
-
-      # 7. Commit and push
       - name: Commit updated data files
         run: |
           git config user.name  "github-actions[bot]"
