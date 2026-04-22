@@ -1,9 +1,17 @@
 {
-  "last_updated": "2026-04-22T00:00:00Z",
+  "last_updated": "2026-04-22T14:10:16.387011+00:00",
   "datasets": [
-    { "name": "Pipeline",   "record_count": 12 },
-    { "name": "Sales",      "record_count": 34 },
-    { "name": "Activities", "record_count": 87 },
-    { "name": "Leads",      "record_count": 56 }
+    {
+      "name": "Client Report",
+      "file": "clients.json",
+      "record_count": 3028,
+      "last_updated": "2026-04-22T14:10:10.290626+00:00"
+    },
+    {
+      "name": "Case Pipeline",
+      "file": "pipeline.json",
+      "record_count": 724,
+      "last_updated": "2026-04-22T14:10:16.189751+00:00"
+    }
   ]
 }
