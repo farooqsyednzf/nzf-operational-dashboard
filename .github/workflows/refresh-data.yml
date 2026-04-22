@@ -10,7 +10,7 @@ on:
         required: false
         default: 'all'
         type: choice
-        options: [all, clients, pipeline]
+        options: [all, clients, cases]
 
 jobs:
   refresh-data:
@@ -40,14 +40,14 @@ jobs:
           ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/fetch_clients_data.py
 
-      - name: Fetch pipeline data
-        if: ${{ github.event.inputs.report == 'all' || github.event.inputs.report == 'pipeline' || github.event_name == 'schedule' }}
+      - name: Fetch cases report data
+        if: ${{ github.event.inputs.report == 'all' || github.event.inputs.report == 'cases' || github.event_name == 'schedule' }}
         env:
           ZOHO_CLIENT_ID:     ${{ secrets.ZOHO_CLIENT_ID }}
           ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
           ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
           ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
-        run: python scripts/fetch_zoho_data.py
+        run: python scripts/fetch_cases_data.py
 
       - name: Write meta.json
         run: |
@@ -56,7 +56,7 @@ jobs:
           from datetime import datetime, timezone
           data_dir = "data"
           datasets = []
-          for fname, label in [("clients.json","Client Report"),("pipeline.json","Case Pipeline")]:
+          for fname, label in [("clients.json","Client Report"),("cases.json","Cases Report")]:
               path = os.path.join(data_dir, fname)
               if os.path.exists(path):
                   with open(path) as f: d = json.load(f)
