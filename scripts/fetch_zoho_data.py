@@ -1,8 +1,7 @@
 """
 fetch_zoho_data.py
 ──────────────────
-Builds /data/pipeline.json using Zoho Analytics SQL.
-One query, no pagination, no limits.
+Builds /data/pipeline.json using the Zoho Analytics view fetch approach.
 """
 
 import os, json, sys
@@ -15,61 +14,56 @@ import zoho_analytics_client as zac
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-CLOSED_STAGES = (
-    "'Closed - Funded'",
-    "'Closed - Not Funded'",
-    "'Closed - NO Response'",
-)
-
-PIPELINE_SQL = f"""
-SELECT
-    c.`CASE-ID`       AS case_id,
-    c.`Case Name`     AS case_name,
-    c.`Client Name`   AS client_id,
-    c.`Stage`         AS stage,
-    c.`Case Urgency`  AS priority,
-    c.`Case Type`     AS case_type,
-    c.`Created Time`  AS created,
-    c.`Caseworker`    AS caseworker,
-    c.`Internal Case Type` AS deal_type
-FROM `Cases` c
-WHERE c.`Created Time` >= DATE_SUB(NOW(), INTERVAL 13 MONTH)
-  AND c.`Stage` NOT IN ({', '.join(CLOSED_STAGES)})
-ORDER BY c.`Created Time` DESC
-"""
+CLOSED_STAGES = {
+    "Closed - Funded",
+    "Closed - Not Funded",
+    "Closed - NO Response",
+}
 
 def build_pipeline(token):
-    rows = zac.run_query(token, PIPELINE_SQL, label="Pipeline")
+    print("\n  Fetching Analytics views...")
+    all_cases = zac.fetch_view(token, zac.VIEW_CASES, label="Cases")
+
+    from datetime import timedelta
+    n = datetime.now(timezone.utc)
+    m, y = n.month - 12, n.year
+    while m <= 0: m += 12; y -= 1
+    cutoff = datetime(y, m, 1, tzinfo=timezone.utc)
 
     stage_map = defaultdict(int)
     cw_map    = defaultdict(int)
     cases     = []
 
-    for r in rows:
-        stage = r.get("stage", "Unknown")
-        cw    = r.get("caseworker", "Unassigned") or "Unassigned"
+    for c in all_cases:
+        dt = zac.parse_dt(c.get("created_time", ""))
+        if not dt or dt < cutoff:
+            continue
+        stage = c.get("stage", "").strip()
+        if stage in CLOSED_STAGES:
+            continue
 
+        cw = c.get("caseworker", "Unassigned") or "Unassigned"
         stage_map[stage] += 1
         cw_map[cw]       += 1
 
         cases.append({
-            "case_id":   r.get("case_id", ""),
-            "case_name": r.get("case_name", ""),
+            "case_id":   c.get("case_id") or c.get("case-id", ""),
+            "case_name": c.get("case_name", ""),
             "stage":     stage,
-            "priority":  r.get("priority", ""),
-            "case_type": r.get("case_type", ""),
+            "priority":  c.get("case_urgency", ""),
+            "case_type": c.get("case_type", ""),
             "caseworker":cw,
-            "created":   r.get("created", ""),
+            "created":   c.get("created_time", ""),
         })
+
+    print(f"  Open cases in window: {len(cases):,}")
 
     return {
         "meta": {
             "last_updated": datetime.now(timezone.utc).isoformat(),
-            "record_count": len(rows),
+            "record_count": len(cases),
         },
-        "summary": {
-            "total_open":    len(rows),
-        },
+        "summary": {"total_open": len(cases)},
         "by_stage": [
             {"stage": k, "count": v}
             for k, v in sorted(stage_map.items(), key=lambda x: -x[1])
@@ -88,8 +82,6 @@ def main():
     print("═" * 55)
 
     token = zac.get_access_token()
-
-    print("\n📊 Running Analytics query...")
     data  = build_pipeline(token)
 
     out = os.path.join(DATA_DIR, "pipeline.json")
@@ -101,4 +93,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
