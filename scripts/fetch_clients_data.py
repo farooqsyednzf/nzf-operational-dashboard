@@ -1,19 +1,15 @@
 """
 fetch_clients_data.py
 ─────────────────────
-Builds /data/clients.json using Zoho Analytics SQL.
+Builds /data/clients.json for the Client Report dashboard.
 
-Two queries total (vs 27+ API calls with the CRM approach):
+Fetches two full Analytics views, filters and joins in Python:
+  Cases         → filter to last 14 months, exclude ongoing stages
+  Distributions → filter to Paid/Extracted, build last-paid-date index
 
-  Query 1 — Cases + new/returning classification + last paid date
-    Source: Cases table + Distributions (correlated subquery)
-    Determines new vs returning purely from distribution history —
-    no reliance on the "New or existing" CRM field which is not
-    synced to Analytics.
-
-  Query 2 — Case notes for returning clients (qualitative analysis)
-    Source: pre-built "Cases x Distribution x Notes - All" table
-    Already has Cases, Distributions and Notes joined.
+New vs Returning is determined by distribution history:
+  New       = client has no paid/extracted distribution before this case
+  Returning = client has at least one prior paid/extracted distribution
 """
 
 import os, json, sys
@@ -34,80 +30,23 @@ ONGOING_STAGES = {
     "Phase 4: Monitoring & Impact",
 }
 
-ONGOING_SQL = ", ".join(f"'{s}'" for s in ONGOING_STAGES)
-
 BAND_ORDER = [
     "< 1 month", "1–3 months", "3–6 months",
     "6–12 months", "1–2 years", "2+ years", "Unknown",
 ]
 
-# ── Query 1: Cases with new/returning classification ──────────────
-# New      = client has NO paid/extracted distribution before this case
-# Returning= client HAS at least one paid/extracted distribution before this case
-#
-# effective_paid_date = COALESCE(Paid Date, Extracted Date, Created Time)
-# This handles old records where date fields were not filled in.
-
-CASES_SQL = f"""
-SELECT
-    c.`CASE-ID`        AS case_id,
-    c.`Created Time`   AS case_created,
-    c.`Stage`          AS stage,
-    c.`Description`    AS description,
-    c.`Client Name`    AS client_id,
-
-    CASE
-        WHEN (
-            SELECT COUNT(*)
-            FROM `Distributions` d
-            WHERE d.`Client Name` = c.`Client Name`
-              AND d.`Status` IN ('Paid', 'Extracted')
-              AND COALESCE(d.`Paid Date`, d.`Extracted Date`, d.`Created Time`)
-                  < c.`Created Time`
-        ) > 0 THEN 'Returning'
-        ELSE 'New'
-    END AS client_type,
-
-    (
-        SELECT MAX(COALESCE(d2.`Paid Date`, d2.`Extracted Date`, d2.`Created Time`))
-        FROM `Distributions` d2
-        WHERE d2.`Client Name`  = c.`Client Name`
-          AND d2.`Status`       IN ('Paid', 'Extracted')
-          AND COALESCE(d2.`Paid Date`, d2.`Extracted Date`, d2.`Created Time`)
-              < c.`Created Time`
-    ) AS last_paid_date
-
-FROM `Cases` c
-WHERE c.`Created Time` >= DATE_SUB(NOW(), INTERVAL 14 MONTH)
-  AND c.`Stage` NOT IN ({ONGOING_SQL})
-ORDER BY c.`Created Time` DESC
-"""
-
-# ── Query 2: Notes for qualitative analysis ───────────────────────
-# The pre-built table already has the JOIN done.
-# We grab all returning-window cases and aggregate notes in Python.
-
-NOTES_SQL = f"""
-SELECT DISTINCT
-    case_id,
-    description,
-    stage,
-    case_created_dt,
-    notes,
-    note_title,
-    client_id
-FROM `Cases x Distribution x Notes - All`
-WHERE case_created_dt >= DATE_SUB(NOW(), INTERVAL 14 MONTH)
-  AND stage NOT IN ({ONGOING_SQL})
-ORDER BY case_created_dt DESC
-"""
-
 # ── Helpers ───────────────────────────────────────────────────────
+def cutoff_14_months():
+    n = datetime.now(timezone.utc)
+    m, y = n.month - 13, n.year
+    while m <= 0: m += 12; y -= 1
+    return datetime(y, m, 1, tzinfo=timezone.utc)
+
 def last_13_months():
-    now = datetime.now(timezone.utc)
+    n = datetime.now(timezone.utc)
     result, seen = [], set()
     for i in range(14):
-        m, y = now.month - i, now.year
+        m, y = n.month - i, n.year
         while m <= 0: m += 12; y -= 1
         mk = f"{y}-{m:02d}"
         if mk not in seen:
@@ -128,11 +67,67 @@ def return_gap_band(days):
     if days < 730:    return "1–2 years"
     return "2+ years"
 
+# ── Build last-paid-date index ─────────────────────────────────────
+def build_last_paid_index(dist_rows):
+    """
+    Returns dict: client_id → latest effective paid date string.
+    effective_paid_date = paid_date or extracted_date or created_time
+    (handles old records where date fields were blank)
+    """
+    index = {}
+    for d in dist_rows:
+        status = d.get("status", "").strip()
+        if status not in ("Paid", "Extracted"):
+            continue
+
+        client_id = d.get("client_name", "").strip()
+        if not client_id:
+            continue
+
+        # Effective paid date: prefer specific date, fall back to created_time
+        paid_dt = (
+            d.get("paid_date") if status == "Paid"
+            else d.get("extracted_date")
+        )
+        if not paid_dt or not paid_dt.strip():
+            paid_dt = d.get("created_time", "")
+
+        if not paid_dt:
+            continue
+
+        existing = index.get(client_id)
+        if not existing or paid_dt > existing:
+            index[client_id] = paid_dt
+
+    print(f"  Last-paid index built: {len(index):,} clients with paid distributions")
+    return index
+
 # ── Build report ──────────────────────────────────────────────────
 def build_clients_report(token):
-    # ── Run both queries ──────────────────────────────────────────
-    cases_rows = zac.run_query(token, CASES_SQL, label="Cases")
-    notes_rows = zac.run_query(token, NOTES_SQL, label="Notes")
+    cutoff = cutoff_14_months()
+
+    # Fetch full views
+    print("\n  Fetching Analytics views...")
+    all_cases = zac.fetch_view(token, zac.VIEW_CASES, label="Cases")
+    all_dists = zac.fetch_view(token, zac.VIEW_DISTRIBUTIONS, label="Distributions")
+
+    # Filter cases to last 14 months, exclude ongoing stages
+    cases = []
+    for c in all_cases:
+        dt = zac.parse_dt(c.get("created_time", ""))
+        if not dt or dt < cutoff:
+            continue
+        stage = c.get("stage", "").strip()
+        if stage in ONGOING_STAGES:
+            continue
+        cases.append(c)
+
+    print(f"  Cases after filtering: {len(cases):,} "
+          f"(from {len(all_cases):,} total)")
+
+    # Build last-paid index from distributions
+    last_paid = build_last_paid_index(all_dists)
+    del all_dists   # free memory
 
     months         = last_13_months()
     current_month  = months[-1]
@@ -143,54 +138,50 @@ def build_clients_report(token):
     returning_cases    = []
     gap_bands          = defaultdict(int)
 
-    # ── Process case rows ─────────────────────────────────────────
-    for row in cases_rows:
-        created_dt = zac.parse_dt(row.get("case_created", ""))
+    for c in cases:
+        created_dt = zac.parse_dt(c.get("created_time", ""))
         mk         = zac.month_key(created_dt)
         if not mk or mk not in months:
             continue
 
-        client_type = row.get("client_type", "").strip()
+        client_id    = c.get("client_name", "").strip()
+        stage        = c.get("stage", "").strip()
+        description  = c.get("description", "").strip()
+        case_id      = c.get("case_id") or c.get("case-id", "")
 
-        if client_type == "New":
-            new_by_month[mk] += 1
+        # Determine new vs returning from distribution history
+        last_paid_dt  = last_paid.get(client_id)
+        is_returning  = False
 
-        elif client_type == "Returning":
+        if last_paid_dt:
+            # Only count as returning if last payment was BEFORE this case
+            lp_dt = zac.parse_dt(last_paid_dt)
+            if lp_dt and created_dt and lp_dt < created_dt:
+                is_returning = True
+
+        if is_returning:
             returning_by_month[mk] += 1
 
-            gap_days = days_between(
-                row.get("last_paid_date"),
-                row.get("case_created"),
-            )
-            band = return_gap_band(gap_days)
+            gap_days = days_between(last_paid_dt, c.get("created_time"))
+            band     = return_gap_band(gap_days)
             gap_bands[band] += 1
 
             returning_cases.append({
-                "case_id":         row.get("case_id", ""),
-                "client_id":       row.get("client_id", ""),
-                "created":         row.get("case_created", ""),
+                "case_id":         case_id,
+                "client_id":       client_id,
+                "created":         c.get("created_time", ""),
                 "month":           mk,
-                "stage":           row.get("stage", ""),
-                "description":     (row.get("description") or "")[:500],
-                "last_paid_date":  row.get("last_paid_date", ""),
+                "stage":           stage,
+                "description":     description[:500],
+                "last_paid_date":  last_paid_dt,
                 "return_gap_days": gap_days,
                 "return_gap_band": band,
+                "notes_summary":   "",  # populated below if notes available
             })
+        else:
+            new_by_month[mk] += 1
 
-    # ── Attach notes to returning cases ───────────────────────────
-    # Build a dict: case_id → list of note strings
-    notes_by_case = defaultdict(list)
-    for n in notes_rows:
-        cid  = n.get("case_id", "")
-        note = (n.get("notes") or "").strip()
-        if cid and note:
-            notes_by_case[cid].append(note)
-
-    for c in returning_cases:
-        notes = notes_by_case.get(c["case_id"], [])
-        c["notes_summary"] = " | ".join(notes[:3])[:500]  # First 3 notes
-
-    # ── Trend series ──────────────────────────────────────────────
+    # Trend series
     trend = [
         {
             "month":     m,
@@ -213,9 +204,8 @@ def build_clients_report(token):
                      if c["return_gap_days"] is not None]
     avg_gap = round(sum(gap_days_list) / len(gap_days_list)) if gap_days_list else 0
 
-    # Qual sample: most recent 50 returning cases with descriptions or notes
     qual_sample = sorted(
-        [c for c in returning_cases if c.get("description") or c.get("notes_summary")],
+        [c for c in returning_cases if c.get("description")],
         key=lambda x: x["created"] or "",
         reverse=True,
     )[:50]
@@ -223,7 +213,7 @@ def build_clients_report(token):
     return {
         "meta": {
             "last_updated":   datetime.now(timezone.utc).isoformat(),
-            "record_count":   len(cases_rows),
+            "record_count":   len(cases),
             "months_covered": months,
             "current_month":  current_month,
             "previous_month": previous_month,
@@ -254,8 +244,6 @@ def main():
     print("═" * 55)
 
     token = zac.get_access_token()
-
-    print("\n📊 Running Analytics queries...")
     data  = build_clients_report(token)
 
     out = os.path.join(DATA_DIR, "clients.json")
