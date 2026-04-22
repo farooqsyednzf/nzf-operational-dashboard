@@ -127,6 +127,27 @@
     }
   },
 
+  "case_priorities": {
+    "_description": "Normalisation rules for the Case Urgency field. Raw values in Zoho CRM are inconsistent — these prefix matches normalise them to clean labels for reporting.",
+    "prefix_map": [
+      { "prefix": "PRIORITY 1", "label": "P1", "display": "P1 — Same Day"     },
+      { "prefix": "PRIORITY 2", "label": "P2", "display": "P2 — 1–3 Days"     },
+      { "prefix": "PRIORITY 3", "label": "P3", "display": "P3 — 4–6 Days"     },
+      { "prefix": "PRIORITY 4", "label": "P4", "display": "P4 — 7–10 Days"    },
+      { "prefix": "PRIORITY 5", "label": "P5", "display": "P5 — 6–14 Days"    }
+    ],
+    "no_priority_label": "No Priority",
+    "order": ["P1","P2","P3","P4","P5","No Priority"],
+    "colours": {
+      "P1":          "#EE3526",
+      "P2":          "#E8732A",
+      "P3":          "#FDB913",
+      "P4":          "#0081C6",
+      "P5":          "#49A942",
+      "No Priority": "#9F9393"
+    }
+  },
+
   "case_stages": {
     "_description": "Zoho CRM case stage definitions and groupings for reporting",
 
