@@ -1,45 +1,34 @@
 """
 zoho_analytics_client.py
 ────────────────────────
-Shared client for all NZF dashboard data fetch scripts.
+Shared Zoho Analytics client — confirmed working approach.
 
-Uses the Zoho Analytics Bulk Export API:
-  1. POST  /bulk/workspaces/{ws}/exportjobs   → create job, receive job_id
-  2. GET   /bulk/workspaces/{ws}/exportjobs/{id} → poll until jobCode = 1004
-  3. GET   /bulk/workspaces/{ws}/exportjobs/{id}/data → download CSV
+Endpoint:  GET /workspaces/{ws}/views/{viewId}/data?CONFIG={responseFormat:csv}
+Base URL:  https://analyticsapi.zoho.com/restapi/v2
+Scope:     ZohoAnalytics.data.read
 
-Why this beats the Zoho CRM API for dashboards
-────────────────────────────────────────────────
-  CRM API   → 27+ paginated calls, 2,000-record limits, 400 errors at page 11
-  Analytics → 3 calls, no record limits, full MySQL SQL with JOINs
+This is the same pattern used in the NZF community map project which
+runs successfully in production. It fetches entire views as CSV and
+filters/joins in Python — no SQL, no async bulk-export jobs.
 
-Required GitHub Secrets:
-  ZOHO_CLIENT_ID       From Zoho API Console Self Client
-  ZOHO_CLIENT_SECRET   From Zoho API Console Self Client
-  ZOHO_REFRESH_TOKEN   Scope: ZohoAnalytics.data.read
-  ZOHO_ACCOUNTS_URL    https://accounts.zoho.com
-
-Hardcoded (not sensitive — just workspace identifiers):
-  ORG_ID         668395719
-  WORKSPACE_ID   1715382000001002475
+View IDs (from Zoho Analytics workspace 1715382000001002475):
+  Cases         1715382000001002494
+  Distributions 1715382000001002628
+  Case Notes    1715382000012507001
 """
 
-import os, time, json, csv, io, requests
+import os, csv, io, json, time, requests, urllib.parse
 from datetime import datetime, timezone
 
-# ── Org / workspace (hardcoded — not credentials) ─────────────────
+# ── Constants ─────────────────────────────────────────────────────
 ORG_ID       = "668395719"
 WORKSPACE_ID = "1715382000001002475"
+ANALYTICS_BASE = "https://analyticsapi.zoho.com/restapi/v2"
+ACCOUNTS_URL   = os.environ.get("ZOHO_ACCOUNTS_URL", "https://accounts.zoho.com")
 
-ACCOUNTS_URL = os.environ.get("ZOHO_ACCOUNTS_URL", "https://accounts.zoho.com")
-ANALYTICS_URL = "https://analytics.zoho.com/restapi/v2"
-
-# jobCode meanings
-JOB_NOT_INITIATED = "1001"
-JOB_IN_PROGRESS   = "1002"
-JOB_ERROR         = "1003"
-JOB_COMPLETED     = "1004"
-JOB_NOT_FOUND     = "1005"
+VIEW_CASES         = "1715382000001002494"
+VIEW_DISTRIBUTIONS = "1715382000001002628"
+VIEW_CASE_NOTES    = "1715382000012507001"
 
 # ── Auth ──────────────────────────────────────────────────────────
 def get_access_token():
@@ -57,88 +46,70 @@ def get_access_token():
     print("✓ Access token obtained")
     return token
 
-# ── Core export job ───────────────────────────────────────────────
-def run_query(token, sql, label="query", poll_interval=3, max_wait=120):
+# ── Core fetch ────────────────────────────────────────────────────
+def fetch_view(token, view_id, label="view"):
     """
-    Execute a MySQL-compatible SELECT query against Zoho Analytics
-    and return the result as a list of dicts (parsed from CSV).
+    Fetch an entire Analytics view/table as a list of dicts.
 
-    Args:
-        token:         OAuth access token (ZohoAnalytics.data.read scope)
-        sql:           MySQL SELECT statement
-        label:         Human-readable label for logging
-        poll_interval: Seconds between status polls
-        max_wait:      Max seconds to wait before timing out
-
-    Returns:
-        List of row dicts (column name → value)
+    Uses GET /workspaces/{ws}/views/{viewId}/data with responseFormat=csv.
+    This is the confirmed-working endpoint — same as NZF map project.
+    Column names are normalised to lowercase with spaces → underscores.
     """
+    config = urllib.parse.quote(json.dumps({"responseFormat": "csv"}))
+    url    = (f"{ANALYTICS_BASE}/workspaces/{WORKSPACE_ID}"
+              f"/views/{view_id}/data?CONFIG={config}")
+
     headers = {
-        "Authorization":   f"Zoho-oauthtoken {token}",
+        "Authorization":    f"Zoho-oauthtoken {token}",
         "ZANALYTICS-ORGID": ORG_ID,
     }
-    base = f"{ANALYTICS_URL}/bulk/workspaces/{WORKSPACE_ID}/exportjobs"
 
-    # ── Step 1: Create export job ─────────────────────────────────
-    config  = json.dumps({"sqlQuery": sql.strip(), "responseFormat": "csv"})
-    res     = requests.post(base, headers=headers, data={"CONFIG": config})
+    res = requests.get(url, headers=headers)
 
     if not res.ok:
         raise RuntimeError(
-            f"[{label}] Failed to create export job: "
-            f"HTTP {res.status_code} — {res.text}"
+            f"[{label}] Analytics view {view_id} "
+            f"HTTP {res.status_code}: {res.text[:300]}"
         )
 
-    job_id = res.json()["data"]["jobId"]
-    print(f"  [{label}] Export job created: {job_id}")
-
-    # ── Step 2: Poll until complete ───────────────────────────────
-    waited  = 0
-    status_url = f"{base}/{job_id}"
-
-    while waited < max_wait:
-        time.sleep(poll_interval)
-        waited += poll_interval
-
-        poll = requests.get(status_url, headers=headers)
-        poll.raise_for_status()
-        info     = poll.json()["data"]
-        job_code = info.get("jobCode", "")
-
-        if job_code == JOB_COMPLETED:
-            break
-        elif job_code == JOB_ERROR:
-            raise RuntimeError(f"[{label}] Export job failed: {info}")
-        elif job_code == JOB_NOT_FOUND:
-            raise RuntimeError(f"[{label}] Export job not found: {job_id}")
-        # JOB_NOT_INITIATED or JOB_IN_PROGRESS → keep polling
-    else:
-        raise TimeoutError(f"[{label}] Export job timed out after {max_wait}s")
-
-    # ── Step 3: Download CSV ──────────────────────────────────────
-    dl  = requests.get(f"{status_url}/data", headers=headers)
-    dl.raise_for_status()
-
-    # Parse CSV → list of dicts
-    reader = csv.DictReader(io.StringIO(dl.text))
-    rows   = list(reader)
-    print(f"  [{label}] {len(rows):,} rows downloaded")
+    rows = _parse_csv(res.text)
+    print(f"  [{label}] {len(rows):,} rows")
     return rows
 
-# ── Convenience: parse Analytics datetime strings ─────────────────
+# ── CSV parser ────────────────────────────────────────────────────
+def _parse_csv(text):
+    """Parse CSV text → list of dicts with normalised column names."""
+    text    = text.lstrip("\ufeff")                    # strip BOM
+    reader  = csv.DictReader(io.StringIO(text))
+    # Normalise headers: lowercase, spaces/hyphens/dots → underscores
+    def norm(h):
+        h = h.strip().lower()
+        for ch in (" ", "-", ".", "(", ")", "/"):
+            h = h.replace(ch, "_")
+        return h
+    rows = []
+    for raw in reader:
+        rows.append({norm(k): (v or "").strip() for k, v in raw.items()})
+    return rows
+
+# ── Datetime helpers ──────────────────────────────────────────────
 def parse_dt(s):
     """
-    Parse Analytics datetime formats:
-      'Feb 26, 2026 10:35 AM'   (Cases Created Time)
-      '21 Sep, 2023 00:00:00'   (Cases x Distribution x Notes)
-      'Oct 05, 2023 02:17 PM'   (Distributions Paid Date)
-    Returns datetime (UTC) or None.
+    Parse Analytics datetime strings into UTC datetime.
+    Handles formats seen in the NZF Analytics workspace:
+      'Feb 26, 2026 10:35 AM'
+      'Mar 02, 2026 02:48 PM'
+      'Oct 05, 2023 02:17 PM'
+      '21 Sep, 2023 00:00:00'
+    Returns None if unparseable.
     """
-    if not s or not s.strip():
+    if not s:
         return None
     for fmt in [
         "%b %d, %Y %I:%M %p",    # Feb 26, 2026 10:35 AM
+        "%b %d, %Y %H:%M:%S",    # Feb 26, 2026 00:00:00
         "%d %b, %Y %H:%M:%S",    # 21 Sep, 2023 00:00:00
+        "%d %b, %Y %I:%M %p",    # 21 Sep, 2023 02:17 PM
         "%b %d, %Y",              # Feb 26, 2026
     ]:
         try:
@@ -148,5 +119,4 @@ def parse_dt(s):
     return None
 
 def month_key(dt):
-    """datetime → 'YYYY-MM' string."""
     return dt.strftime("%Y-%m") if dt else None
