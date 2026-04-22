@@ -146,9 +146,9 @@ def build_last_paid_index(dist_rows):
 
 # ── State distribution helper ──────────────────────────────────────
 def state_counts_sorted(counter):
-    """Counter dict → sorted list of {state, count} dicts, descending."""
+    """Counter dict → sorted list of {state, count} dicts, descending. Excludes Other."""
     return sorted(
-        [{"state": s, "count": n} for s, n in counter.items() if s],
+        [{"state": s, "count": n} for s, n in counter.items() if s and s != "Other"],
         key=lambda x: -x["count"]
     )
 
@@ -208,6 +208,60 @@ Case data:
         print(f"  ⚠ AI analysis failed: {e}")
         return None
 
+# ── Per-case AI summaries ──────────────────────────────────────────
+def run_case_summaries(cases):
+    """
+    Generate a 1-2 sentence summary for each returning case in a single
+    batch API call. Returns dict: case_id → summary string.
+
+    Summary explains what the client needs and why they are returning,
+    written in a professional tone for caseworkers.
+    """
+    if not ANTHROPIC_API_KEY:
+        return {}
+
+    cases_with_desc = [c for c in cases if c.get("description")]
+    if not cases_with_desc:
+        return {}
+
+    case_lines = "\n".join(
+        f'ID:{c["case_id"]} GAP:{c.get("return_gap_band","?")} DESC:{c["description"][:300]}'
+        for c in cases_with_desc[:50]
+    )
+
+    prompt = f"""You are a caseworker assistant for NZF (National Zakat Foundation).
+For each case below, write a single concise sentence (max 20 words) summarising what the client needs and why they are returning. Write in third person, professional tone.
+
+Respond ONLY with valid JSON (no markdown):
+{{"ID1": "summary text", "ID2": "summary text", ...}}
+
+Cases:
+{case_lines}"""
+
+    try:
+        res = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model":      "claude-haiku-4-5-20251001",
+                "max_tokens": 2000,
+                "messages":   [{"role": "user", "content": prompt}],
+            },
+            timeout=60,
+        )
+        res.raise_for_status()
+        raw     = res.json()["content"][0]["text"]
+        parsed  = json.loads(raw.replace("```json","").replace("```","").strip())
+        print(f"  ✓ Case summaries — {len(parsed)} generated")
+        return parsed
+    except Exception as e:
+        print(f"  ⚠ Case summaries failed: {e}")
+        return {}
+
 # ── Monthly state series builder ──────────────────────────────────
 def _build_state_monthly_series(state_monthly, state_12m, months):
     """
@@ -225,9 +279,10 @@ def _build_state_monthly_series(state_monthly, state_12m, months):
     States ordered by 12-month total descending so the most significant
     states stack at the bottom of the chart.
     """
-    # States ranked by 12-month total, most active first
+    # States ranked by 12-month total, most active first — exclude Other/invalid
     ranked_states = [
         s for s, _ in sorted(state_12m.items(), key=lambda x: -x[1])
+        if s and s != "Other"
     ]
 
     series = []
@@ -361,8 +416,13 @@ def build_clients_report(token):
         reverse=True,
     )[:50]
 
-    print("\n  Running AI qualitative analysis...")
-    ai_analysis = run_ai_analysis(qual_sample)
+    print("\n  Running AI analysis...")
+    ai_analysis    = run_ai_analysis(qual_sample)
+    case_summaries = run_case_summaries(qual_sample)
+
+    # Attach per-case summary to each case dict
+    for c in qual_sample:
+        c["ai_case_summary"] = case_summaries.get(c["case_id"], "")
 
     return {
         "meta": {
