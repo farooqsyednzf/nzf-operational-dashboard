@@ -77,14 +77,37 @@ def is_same_instance(stage, description):
     desc_lower = (description or "").lower()
     return any(kw in desc_lower for kw in SAME_INSTANCE_KEYWORDS)
 
+# ── Australian state validation ────────────────────────────────────
+_AU_STATES = {'NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'}
+
+_AU_STATE_MAP = {
+    'NEW SOUTH WALES': 'NSW', 'VICTORIA': 'VIC', 'QUEENSLAND': 'QLD',
+    'WESTERN AUSTRALIA': 'WA', 'SOUTH AUSTRALIA': 'SA', 'TASMANIA': 'TAS',
+    'AUSTRALIAN CAPITAL TERRITORY': 'ACT', 'NORTHERN TERRITORY': 'NT',
+    'N.S.W': 'NSW', 'N.S.W.': 'NSW', 'V.I.C': 'VIC', 'V.I.C.': 'VIC',
+    'Q.L.D': 'QLD', 'Q.L.D.': 'QLD', 'W.A': 'WA', 'W.A.': 'WA',
+    'S.A': 'SA', 'S.A.': 'SA', 'T.A.S': 'TAS', 'T.A.S.': 'TAS',
+    'A.C.T': 'ACT', 'A.C.T.': 'ACT', 'N.T': 'NT', 'N.T.': 'NT',
+}
+
+def _normalise_state(raw):
+    """Normalise to standard AU state code or 'Other'."""
+    if not raw:
+        return 'Other'
+    s = raw.strip().upper()
+    if s in _AU_STATES:    return s
+    if s in _AU_STATE_MAP: return _AU_STATE_MAP[s]
+    return 'Other'
+
 # ── Client state index ─────────────────────────────────────────────
 def build_client_state_index(client_rows):
-    """client_id → Australian state abbreviation (e.g. 'NSW', 'VIC')."""
+    """client_id → validated Australian state code (or 'Other')."""
     index = {}
     for c in client_rows:
         client_id = c.get("id", "").strip()
-        state     = (c.get("mailing_state") or c.get("state", "")).strip().upper()
-        if client_id and state:
+        raw_state = c.get("mailing_state") or c.get("state", "")
+        state     = _normalise_state(raw_state)
+        if client_id:
             index[client_id] = state
     print(f"  State index: {len(index):,} clients with state data")
     return index
@@ -299,13 +322,13 @@ def build_clients_report(token):
             })
 
         # State counts — total clients (new + returning) per period
-        if state:
-            state_12m[state] += 1
-            state_monthly[mk][state] += 1
-            if mk == current_month:
-                state_current[state] += 1
-            elif mk == previous_month:
-                state_previous[state] += 1
+        state = client_states.get(client_id, 'Other')
+        state_12m[state] += 1
+        state_monthly[mk][state] += 1
+        if mk == current_month:
+            state_current[state] += 1
+        elif mk == previous_month:
+            state_previous[state] += 1
 
     print(f"  Same-instance excluded: {same_instance_count:,}")
     print(f"  New (in window):        {sum(new_by_month.values()):,}")
@@ -333,8 +356,9 @@ def build_clients_report(token):
     avg_gap = round(sum(gap_days_list) / len(gap_days_list)) if gap_days_list else 0
 
     qual_sample = sorted(
-        [c for c in returning_cases if c.get("description")],
-        key=lambda x: x["created"] or "", reverse=True
+        returning_cases,
+        key=lambda x: zac.parse_dt(x["created"]) or datetime.min.replace(tzinfo=timezone.utc),
+        reverse=True,
     )[:50]
 
     print("\n  Running AI qualitative analysis...")
