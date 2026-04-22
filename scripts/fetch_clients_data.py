@@ -10,16 +10,20 @@ Fetches two full Analytics views, filters and joins in Python:
 New vs Returning is determined by distribution history:
   New       = client has no paid/extracted distribution before this case
   Returning = client has at least one prior paid/extracted distribution
+
+AI qualitative analysis runs server-side here using ANTHROPIC_API_KEY,
+stores the result in clients.json — no API key needed in the browser.
 """
 
-import os, json, sys
+import os, json, sys, requests
 from datetime import datetime, timezone
 from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(__file__))
 import zoho_analytics_client as zac
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+DATA_DIR          = os.path.join(os.path.dirname(__file__), "..", "data")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 os.makedirs(DATA_DIR, exist_ok=True)
 
 ONGOING_STAGES = {
@@ -69,44 +73,97 @@ def return_gap_band(days):
 
 # ── Build last-paid-date index ─────────────────────────────────────
 def build_last_paid_index(dist_rows):
-    """
-    Returns dict: client_id → latest effective paid date string.
-    effective_paid_date = paid_date or extracted_date or created_time
-    (handles old records where date fields were blank)
-    """
     index = {}
     for d in dist_rows:
         status = d.get("status", "").strip()
         if status not in ("Paid", "Extracted"):
             continue
-
         client_id = d.get("client_name", "").strip()
         if not client_id:
             continue
-
-        # Effective paid date: prefer specific date, fall back to created_time
         paid_dt = (
             d.get("paid_date") if status == "Paid"
             else d.get("extracted_date")
         )
         if not paid_dt or not paid_dt.strip():
             paid_dt = d.get("created_time", "")
-
         if not paid_dt:
             continue
-
         existing = index.get(client_id)
         if not existing or paid_dt > existing:
             index[client_id] = paid_dt
-
-    print(f"  Last-paid index built: {len(index):,} clients with paid distributions")
+    print(f"  Last-paid index: {len(index):,} clients with paid distributions")
     return index
+
+# ── AI qualitative analysis (server-side) ─────────────────────────
+def run_ai_analysis(returning_cases):
+    """
+    Call Anthropic API server-side to analyse why clients are returning.
+    Returns a dict with 'summary' and 'themes', or None if unavailable.
+    Stored in clients.json — no browser API call needed.
+    """
+    if not ANTHROPIC_API_KEY:
+        print("  ⚠ ANTHROPIC_API_KEY not set — skipping AI analysis")
+        return None
+
+    # Build case text from descriptions
+    cases_with_text = [c for c in returning_cases if c.get("description")]
+    if not cases_with_text:
+        print("  ⚠ No case descriptions available for AI analysis")
+        return None
+
+    case_texts = "\n\n".join(
+        f"Case {i+1} (gap: {c.get('return_gap_band','unknown')}): {c['description']}"
+        for i, c in enumerate(cases_with_text[:50])
+    )
+
+    prompt = f"""You are an analyst reviewing returning client cases for NZF (National Zakat Foundation), a charity providing Zakat-based financial assistance to people in need in Australia.
+
+Below are {len(cases_with_text)} case descriptions where clients have returned for additional assistance after previously receiving help. Analyse these to understand WHY clients are returning.
+
+Respond ONLY with a valid JSON object in this exact format (no markdown, no preamble):
+{{
+  "summary": "2-3 sentence overall summary of why clients are returning",
+  "themes": [
+    {{"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "~40% of cases"}},
+    {{"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "~25% of cases"}},
+    {{"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "~20% of cases"}},
+    {{"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "~15% of cases"}}
+  ]
+}}
+
+Case data:
+{case_texts[:4000]}"""
+
+    try:
+        res = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key":         ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type":      "application/json",
+            },
+            json={
+                "model":      "claude-haiku-4-5-20251001",
+                "max_tokens": 1000,
+                "messages":   [{"role": "user", "content": prompt}],
+            },
+            timeout=30,
+        )
+        res.raise_for_status()
+        raw    = res.json()["content"][0]["text"]
+        parsed = json.loads(raw.replace("```json", "").replace("```", "").strip())
+        print(f"  ✓ AI analysis complete — {len(parsed.get('themes', []))} themes identified")
+        return {**parsed, "generated_at": datetime.now(timezone.utc).isoformat()}
+
+    except Exception as e:
+        print(f"  ⚠ AI analysis failed: {e}")
+        return None
 
 # ── Build report ──────────────────────────────────────────────────
 def build_clients_report(token):
     cutoff = cutoff_14_months()
 
-    # Fetch full views
     print("\n  Fetching Analytics views...")
     all_cases = zac.fetch_view(token, zac.VIEW_CASES, label="Cases")
     all_dists = zac.fetch_view(token, zac.VIEW_DISTRIBUTIONS, label="Distributions")
@@ -117,17 +174,13 @@ def build_clients_report(token):
         dt = zac.parse_dt(c.get("created_time", ""))
         if not dt or dt < cutoff:
             continue
-        stage = c.get("stage", "").strip()
-        if stage in ONGOING_STAGES:
+        if c.get("stage", "").strip() in ONGOING_STAGES:
             continue
         cases.append(c)
+    print(f"  Cases after filtering: {len(cases):,} (from {len(all_cases):,} total)")
 
-    print(f"  Cases after filtering: {len(cases):,} "
-          f"(from {len(all_cases):,} total)")
-
-    # Build last-paid index from distributions
     last_paid = build_last_paid_index(all_dists)
-    del all_dists   # free memory
+    del all_dists
 
     months         = last_13_months()
     current_month  = months[-1]
@@ -144,39 +197,32 @@ def build_clients_report(token):
         if not mk or mk not in months:
             continue
 
-        client_id    = c.get("client_name", "").strip()
-        stage        = c.get("stage", "").strip()
-        description  = c.get("description", "").strip()
-        case_id      = c.get("case_id") or c.get("case-id", "")
+        client_id   = c.get("client_name", "").strip()
+        description = c.get("description", "").strip()
+        case_id     = c.get("case_id") or c.get("case-id", "")
 
-        # Determine new vs returning from distribution history
-        last_paid_dt  = last_paid.get(client_id)
-        is_returning  = False
-
+        last_paid_dt = last_paid.get(client_id)
+        is_returning = False
         if last_paid_dt:
-            # Only count as returning if last payment was BEFORE this case
             lp_dt = zac.parse_dt(last_paid_dt)
             if lp_dt and created_dt and lp_dt < created_dt:
                 is_returning = True
 
         if is_returning:
             returning_by_month[mk] += 1
-
             gap_days = days_between(last_paid_dt, c.get("created_time"))
             band     = return_gap_band(gap_days)
             gap_bands[band] += 1
-
             returning_cases.append({
                 "case_id":         case_id,
                 "client_id":       client_id,
                 "created":         c.get("created_time", ""),
                 "month":           mk,
-                "stage":           stage,
+                "stage":           c.get("stage", "").strip(),
                 "description":     description[:500],
                 "last_paid_date":  last_paid_dt,
                 "return_gap_days": gap_days,
                 "return_gap_band": band,
-                "notes_summary":   "",  # populated below if notes available
             })
         else:
             new_by_month[mk] += 1
@@ -210,6 +256,10 @@ def build_clients_report(token):
         reverse=True,
     )[:50]
 
+    # AI analysis — runs server-side, stored in JSON
+    print("\n  Running AI qualitative analysis...")
+    ai_analysis = run_ai_analysis(qual_sample)
+
     return {
         "meta": {
             "last_updated":   datetime.now(timezone.utc).isoformat(),
@@ -234,6 +284,7 @@ def build_clients_report(token):
             for b in BAND_ORDER if gap_bands.get(b, 0) > 0
         ],
         "returning_cases": qual_sample,
+        "ai_analysis":     ai_analysis,   # None if key not set or call failed
     }
 
 # ── Main ──────────────────────────────────────────────────────────
@@ -241,6 +292,7 @@ def main():
     print("═" * 55)
     print("NZF — Client Report  |  Zoho Analytics")
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    print(f"AI analysis: {'enabled' if ANTHROPIC_API_KEY else 'disabled (no API key)'}")
     print("═" * 55)
 
     token = zac.get_access_token()
@@ -256,6 +308,7 @@ def main():
     print(f"   New this month:         {s['new_clients_current_month']}")
     print(f"   Returning this month:   {s['returning_clients_current_month']}")
     print(f"   Avg return gap:         {s['avg_return_gap_days']} days")
+    print(f"   AI analysis:            {'✓ included' if data['ai_analysis'] else '✗ not available'}")
     print("═" * 55)
 
 if __name__ == "__main__":
