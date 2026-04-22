@@ -10,7 +10,7 @@ on:
         required: false
         default: 'all'
         type: choice
-        options: [all, clients, cases]
+        options: [all, clients, cases, cases-perf, distributions]
 
 jobs:
   refresh-data:
@@ -49,6 +49,24 @@ jobs:
           ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
         run: python scripts/fetch_cases_data.py
 
+      - name: Fetch cases performance data
+        if: ${{ github.event.inputs.report == 'all' || github.event.inputs.report == 'cases-perf' || github.event_name == 'schedule' }}
+        env:
+          ZOHO_CLIENT_ID:     ${{ secrets.ZOHO_CLIENT_ID }}
+          ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
+          ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
+          ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
+        run: python scripts/fetch_cases_perf_data.py
+
+      - name: Fetch distributions data
+        if: ${{ github.event.inputs.report == 'all' || github.event.inputs.report == 'distributions' || github.event_name == 'schedule' }}
+        env:
+          ZOHO_CLIENT_ID:     ${{ secrets.ZOHO_CLIENT_ID }}
+          ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
+          ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
+          ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
+        run: python scripts/fetch_distributions_data.py
+
       - name: Write meta.json
         run: |
           python3 - <<'PYEOF'
@@ -56,7 +74,7 @@ jobs:
           from datetime import datetime, timezone
           data_dir = "data"
           datasets = []
-          for fname, label in [("clients.json","Client Report"),("cases.json","Cases Report")]:
+          for fname, label in [("clients.json","Client Report"),("cases.json","Cases Report"),("cases_perf.json","Cases Performance"),("distributions.json","Distributions")]:
               path = os.path.join(data_dir, fname)
               if os.path.exists(path):
                   with open(path) as f: d = json.load(f)
