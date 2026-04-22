@@ -1,119 +1,104 @@
 """
 fetch_zoho_data.py
 ──────────────────
-Builds /data/pipeline.json for the Case Pipeline dashboard.
-Uses the shared zoho_client layer (COQL with list-API fallback).
+Builds /data/pipeline.json using Zoho Analytics SQL.
+One query, no pagination, no limits.
 """
 
-import os, json
+import os, json, sys
 from datetime import datetime, timezone
 from collections import defaultdict
 
-import sys
 sys.path.insert(0, os.path.dirname(__file__))
-import zoho_client as zc
+import zoho_analytics_client as zac
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-CLOSED_STAGES = {"Closed - Funded", "Closed - Not Funded", "Closed - NO Response"}
+CLOSED_STAGES = (
+    "'Closed - Funded'",
+    "'Closed - Not Funded'",
+    "'Closed - NO Response'",
+)
 
-# ── Fetch open cases ──────────────────────────────────────────────
-def fetch_open_cases(token):
-    print("  Fetching open Cases...")
-    fields = [
-        "id", "Deal_Name", "Contact_Name", "Owner",
-        "Stage", "Priority", "Amount", "Closing_Date",
-        "Created_Time", "CASE_ID", "Case_Type1",
-    ]
+PIPELINE_SQL = f"""
+SELECT
+    c.`CASE-ID`       AS case_id,
+    c.`Case Name`     AS case_name,
+    c.`Client Name`   AS client_id,
+    c.`Stage`         AS stage,
+    c.`Case Urgency`  AS priority,
+    c.`Case Type`     AS case_type,
+    c.`Created Time`  AS created,
+    c.`Caseworker`    AS caseworker,
+    c.`Internal Case Type` AS deal_type
+FROM `Cases` c
+WHERE c.`Created Time` >= DATE_SUB(NOW(), INTERVAL 13 MONTH)
+  AND c.`Stage` NOT IN ({', '.join(CLOSED_STAGES)})
+ORDER BY c.`Created Time` DESC
+"""
 
-    # COQL: exclude closed stages using NOT IN
-    closed_list = ", ".join(f"'{s}'" for s in CLOSED_STAGES)
-    return zc.fetch(
-        token          = token,
-        coql_query_str = f"""
-            SELECT {', '.join(fields)}
-            FROM Deals
-            WHERE Stage NOT IN ({closed_list})
-        """.strip(),
-        fallback_module    = "Deals",
-        fallback_fields    = fields,
-        fallback_cutoff_dt = None,
-        label              = "Open Cases",
-        max_records        = 5000,
-    )
-
-# ── Build pipeline data ───────────────────────────────────────────
 def build_pipeline(token):
-    cases = fetch_open_cases(token)
+    rows = zac.run_query(token, PIPELINE_SQL, label="Pipeline")
 
-    stage_map = defaultdict(lambda: {"count": 0, "value": 0})
-    owner_map = defaultdict(lambda: {"deal_count": 0, "value": 0})
-    total_value = 0
+    stage_map = defaultdict(int)
+    cw_map    = defaultdict(int)
+    cases     = []
 
-    deals = []
-    for c in cases:
-        owner   = (c.get("Owner") or {}).get("name", "Unassigned")
-        stage   = c.get("Stage", "")
-        amount  = c.get("Amount") or 0
-        contact = (c.get("Contact_Name") or {}).get("name", "")
+    for r in rows:
+        stage = r.get("stage", "Unknown")
+        cw    = r.get("caseworker", "Unassigned") or "Unassigned"
 
-        total_value += amount
-        stage_map[stage]["count"]  += 1
-        stage_map[stage]["value"]  += amount
-        owner_map[owner]["deal_count"] += 1
-        owner_map[owner]["value"]      += amount
+        stage_map[stage] += 1
+        cw_map[cw]       += 1
 
-        deals.append({
-            "name":       c.get("Deal_Name", ""),
-            "case_id":    c.get("CASE_ID", ""),
-            "account":    contact,
-            "owner":      owner,
-            "stage":      stage,
-            "value":      round(amount, 2),
-            "close_date": c.get("Closing_Date", ""),
-            "priority":   c.get("Priority", ""),
+        cases.append({
+            "case_id":   r.get("case_id", ""),
+            "case_name": r.get("case_name", ""),
+            "stage":     stage,
+            "priority":  r.get("priority", ""),
+            "case_type": r.get("case_type", ""),
+            "caseworker":cw,
+            "created":   r.get("created", ""),
         })
 
     return {
         "meta": {
             "last_updated": datetime.now(timezone.utc).isoformat(),
-            "record_count": len(cases),
+            "record_count": len(rows),
         },
         "summary": {
-            "total_deals":    len(cases),
-            "total_value":    round(total_value, 2),
-            "avg_deal_size":  round(total_value / len(cases), 2) if cases else 0,
+            "total_open":    len(rows),
         },
         "by_stage": [
-            {"stage": k, "count": v["count"], "value": round(v["value"], 2)}
-            for k, v in sorted(stage_map.items(), key=lambda x: -x[1]["count"])
+            {"stage": k, "count": v}
+            for k, v in sorted(stage_map.items(), key=lambda x: -x[1])
         ],
-        "by_owner": [
-            {"owner": k, **v}
-            for k, v in sorted(owner_map.items(), key=lambda x: -x[1]["deal_count"])
+        "by_caseworker": [
+            {"caseworker": k, "count": v}
+            for k, v in sorted(cw_map.items(), key=lambda x: -x[1])
         ],
-        "deals": sorted(deals, key=lambda x: x["stage"]),
+        "cases": cases,
     }
 
-# ── Main ──────────────────────────────────────────────────────────
 def main():
     print("═" * 55)
-    print("NZF — Pipeline Data Refresh")
+    print("NZF — Pipeline Report  |  Zoho Analytics")
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print("═" * 55)
 
-    token = zc.get_access_token()
-    print("\n📥 Fetching from Zoho CRM...")
+    token = zac.get_access_token()
+
+    print("\n📊 Running Analytics query...")
     data  = build_pipeline(token)
 
     out = os.path.join(DATA_DIR, "pipeline.json")
     with open(out, "w") as f:
         json.dump(data, f, indent=2, default=str)
 
-    print(f"\n✅ pipeline.json written")
-    print(f"   Open cases: {data['meta']['record_count']}")
+    print(f"\n✅ pipeline.json written  ({data['meta']['record_count']:,} open cases)")
     print("═" * 55)
 
 if __name__ == "__main__":
     main()
+

@@ -1,33 +1,31 @@
 """
 fetch_clients_data.py
 ─────────────────────
-Builds /data/clients.json for the Client Report dashboard.
+Builds /data/clients.json using Zoho Analytics SQL.
 
-Data pulled from Zoho CRM:
-  Cases (Deals)               — last 14 months
-  Distributions (Purchase_Orders) — all paid/extracted, all time
+Two queries total (vs 27+ API calls with the CRM approach):
 
-New clients    = Cases where New_or_existing = "New"
-Returning      = Cases where New_or_existing = "Existing"
-                 AND Stage NOT IN ongoing funding stages
-Last assistance= Latest Paid_Date (Status=Paid)
-                 or Extracted_Date (Status=Extracted) per client
-Return gap     = Days between last paid distribution and new case
+  Query 1 — Cases + new/returning classification + last paid date
+    Source: Cases table + Distributions (correlated subquery)
+    Determines new vs returning purely from distribution history —
+    no reliance on the "New or existing" CRM field which is not
+    synced to Analytics.
+
+  Query 2 — Case notes for returning clients (qualitative analysis)
+    Source: pre-built "Cases x Distribution x Notes - All" table
+    Already has Cases, Distributions and Notes joined.
 """
 
-import os, json
-from datetime import datetime, timezone, timedelta
+import os, json, sys
+from datetime import datetime, timezone
 from collections import defaultdict
 
-# Add scripts dir to path so we can import zoho_client
-import sys
 sys.path.insert(0, os.path.dirname(__file__))
-import zoho_client as zc
+import zoho_analytics_client as zac
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# ── Stages that represent ongoing/ILA funding — NOT genuine new returns ──
 ONGOING_STAGES = {
     "Ongoing Funding",
     "Post Funding - Follow Up",
@@ -36,31 +34,89 @@ ONGOING_STAGES = {
     "Phase 4: Monitoring & Impact",
 }
 
-# ── Date helpers ──────────────────────────────────────────────────
-def cutoff_14_months():
-    now = datetime.now(timezone.utc)
-    m, y = now.month - 13, now.year
-    while m <= 0:
-        m += 12; y -= 1
-    return datetime(y, m, 1, tzinfo=timezone.utc)
+ONGOING_SQL = ", ".join(f"'{s}'" for s in ONGOING_STAGES)
 
+BAND_ORDER = [
+    "< 1 month", "1–3 months", "3–6 months",
+    "6–12 months", "1–2 years", "2+ years", "Unknown",
+]
+
+# ── Query 1: Cases with new/returning classification ──────────────
+# New      = client has NO paid/extracted distribution before this case
+# Returning= client HAS at least one paid/extracted distribution before this case
+#
+# effective_paid_date = COALESCE(Paid Date, Extracted Date, Created Time)
+# This handles old records where date fields were not filled in.
+
+CASES_SQL = f"""
+SELECT
+    c.`CASE-ID`        AS case_id,
+    c.`Created Time`   AS case_created,
+    c.`Stage`          AS stage,
+    c.`Description`    AS description,
+    c.`Client Name`    AS client_id,
+
+    CASE
+        WHEN (
+            SELECT COUNT(*)
+            FROM `Distributions` d
+            WHERE d.`Client Name` = c.`Client Name`
+              AND d.`Status` IN ('Paid', 'Extracted')
+              AND COALESCE(d.`Paid Date`, d.`Extracted Date`, d.`Created Time`)
+                  < c.`Created Time`
+        ) > 0 THEN 'Returning'
+        ELSE 'New'
+    END AS client_type,
+
+    (
+        SELECT MAX(COALESCE(d2.`Paid Date`, d2.`Extracted Date`, d2.`Created Time`))
+        FROM `Distributions` d2
+        WHERE d2.`Client Name`  = c.`Client Name`
+          AND d2.`Status`       IN ('Paid', 'Extracted')
+          AND COALESCE(d2.`Paid Date`, d2.`Extracted Date`, d2.`Created Time`)
+              < c.`Created Time`
+    ) AS last_paid_date
+
+FROM `Cases` c
+WHERE c.`Created Time` >= DATE_SUB(NOW(), INTERVAL 14 MONTH)
+  AND c.`Stage` NOT IN ({ONGOING_SQL})
+ORDER BY c.`Created Time` DESC
+"""
+
+# ── Query 2: Notes for qualitative analysis ───────────────────────
+# The pre-built table already has the JOIN done.
+# We grab all returning-window cases and aggregate notes in Python.
+
+NOTES_SQL = f"""
+SELECT DISTINCT
+    case_id,
+    description,
+    stage,
+    case_created_dt,
+    notes,
+    note_title,
+    client_id
+FROM `Cases x Distribution x Notes - All`
+WHERE case_created_dt >= DATE_SUB(NOW(), INTERVAL 14 MONTH)
+  AND stage NOT IN ({ONGOING_SQL})
+ORDER BY case_created_dt DESC
+"""
+
+# ── Helpers ───────────────────────────────────────────────────────
 def last_13_months():
-    now, result, seen = datetime.now(timezone.utc), [], set()
+    now = datetime.now(timezone.utc)
+    result, seen = [], set()
     for i in range(14):
         m, y = now.month - i, now.year
-        while m <= 0:
-            m += 12; y -= 1
+        while m <= 0: m += 12; y -= 1
         mk = f"{y}-{m:02d}"
         if mk not in seen:
             seen.add(mk); result.append(mk)
     result.reverse()
     return result[-13:]
 
-def month_key(dt_str):
-    return str(dt_str)[:7] if dt_str else None
-
 def days_between(s1, s2):
-    d1, d2 = zc.parse_dt(s1), zc.parse_dt(s2)
+    d1, d2 = zac.parse_dt(s1), zac.parse_dt(s2)
     return abs((d2 - d1).days) if d1 and d2 else None
 
 def return_gap_band(days):
@@ -72,115 +128,11 @@ def return_gap_band(days):
     if days < 730:    return "1–2 years"
     return "2+ years"
 
-BAND_ORDER = [
-    "< 1 month","1–3 months","3–6 months",
-    "6–12 months","1–2 years","2+ years","Unknown"
-]
-
-# ── Fetch Cases ───────────────────────────────────────────────────
-def fetch_cases(token):
-    cutoff = cutoff_14_months()
-    cutoff_str = cutoff.strftime("%Y-%m-%dT%H:%M:%S+00:00")
-    print(f"  Fetching Cases created since {cutoff.strftime('%Y-%m-%d')}...")
-
-    fields = [
-        "id", "Deal_Name", "Contact_Name", "Created_Time",
-        "Stage", "New_or_existing", "Description",
-        "Case_Notes_Summary", "CASE_ID",
-    ]
-
-    return zc.fetch(
-        token        = token,
-        coql_query_str = f"""
-            SELECT {', '.join(fields)}
-            FROM Deals
-            WHERE Created_Time >= '{cutoff_str}'
-        """.strip(),
-        fallback_module    = "Deals",
-        fallback_fields    = fields,
-        fallback_cutoff_dt = cutoff,
-        label              = "Cases",
-    )
-
-# ── Fetch paid Distributions ──────────────────────────────────────
-def fetch_paid_distributions(token):
-    """
-    Fetch all Paid + Extracted distributions.
-
-    COQL path:  Single query with WHERE Status IN ('Paid','Extracted')
-                ~9 API calls for typical NZF data volume.
-
-    Fallback:   Two separate list fetches (all distributions, no date
-                filter) filtered to Paid/Extracted in Python.
-                More calls, but guaranteed complete.
-
-    We need full history (not just 14 months) because return-gap
-    calculation looks back as far as the client's first ever payment.
-    """
-    print("  Fetching Distributions (Status: Paid or Extracted)...")
-
-    fields = [
-        "id", "Contact_Name", "Deal_Name", "Status",
-        "Paid_Date", "Extracted_Date", "Created_Time",
-    ]
-
-    # COQL can filter on Status directly — huge saving vs fetching all
-    records = zc.fetch(
-        token          = token,
-        coql_query_str = f"""
-            SELECT {', '.join(fields)}
-            FROM Purchase_Orders
-            WHERE Status = 'Paid' OR Status = 'Extracted'
-        """.strip(),
-        fallback_module    = "Purchase_Orders",
-        fallback_fields    = fields,
-        fallback_cutoff_dt = None,     # No date cutoff — need full history
-        label              = "Distributions",
-        max_records        = 50000,
-    )
-
-    # If we used the fallback (list API, no filter), filter here
-    paid = [r for r in records if r.get("Status") in ("Paid", "Extracted")]
-    if len(paid) < len(records):
-        print(f"  [Distributions] Filtered to {len(paid)} paid/extracted "
-              f"(from {len(records)} total fetched)")
-
-    return paid
-
-# ── Build last-paid-date index per client ─────────────────────────
-def build_last_paid_index(distributions):
-    """
-    Returns dict: contact_id → ISO string of their latest paid date.
-    - Status=Paid      → uses Paid_Date
-    - Status=Extracted → uses Extracted_Date
-    Both fall back to Created_Time if the specific date field is empty.
-    """
-    index = {}
-    for d in distributions:
-        contact    = d.get("Contact_Name") or {}
-        contact_id = contact.get("id") if isinstance(contact, dict) else None
-        if not contact_id:
-            continue
-
-        paid_dt = (
-            d.get("Paid_Date")      if d.get("Status") == "Paid"
-            else d.get("Extracted_Date")
-        ) or d.get("Created_Time")
-
-        if not paid_dt:
-            continue
-
-        existing = index.get(contact_id)
-        if not existing or paid_dt > existing:
-            index[contact_id] = paid_dt
-
-    return index
-
 # ── Build report ──────────────────────────────────────────────────
 def build_clients_report(token):
-    cases         = fetch_cases(token)
-    distributions = fetch_paid_distributions(token)
-    last_paid     = build_last_paid_index(distributions)
+    # ── Run both queries ──────────────────────────────────────────
+    cases_rows = zac.run_query(token, CASES_SQL, label="Cases")
+    notes_rows = zac.run_query(token, NOTES_SQL, label="Notes")
 
     months         = last_13_months()
     current_month  = months[-1]
@@ -191,43 +143,54 @@ def build_clients_report(token):
     returning_cases    = []
     gap_bands          = defaultdict(int)
 
-    for case in cases:
-        mk = month_key(case.get("Created_Time"))
+    # ── Process case rows ─────────────────────────────────────────
+    for row in cases_rows:
+        created_dt = zac.parse_dt(row.get("case_created", ""))
+        mk         = zac.month_key(created_dt)
         if not mk or mk not in months:
             continue
 
-        status     = (case.get("New_or_existing") or "").strip()
-        stage      = (case.get("Stage") or "").strip()
-        contact    = case.get("Contact_Name") or {}
-        contact_id = contact.get("id")   if isinstance(contact, dict) else None
-        contact_nm = contact.get("name") if isinstance(contact, dict) else ""
+        client_type = row.get("client_type", "").strip()
 
-        if status == "New":
+        if client_type == "New":
             new_by_month[mk] += 1
 
-        elif status == "Existing" and stage not in ONGOING_STAGES:
+        elif client_type == "Returning":
             returning_by_month[mk] += 1
 
-            last_dt      = last_paid.get(contact_id) if contact_id else None
-            case_created = case.get("Created_Time")
-            gap_days     = days_between(last_dt, case_created) if last_dt else None
-            band         = return_gap_band(gap_days)
+            gap_days = days_between(
+                row.get("last_paid_date"),
+                row.get("case_created"),
+            )
+            band = return_gap_band(gap_days)
             gap_bands[band] += 1
 
             returning_cases.append({
-                "case_id":         case.get("CASE_ID", ""),
-                "case_name":       case.get("Deal_Name", ""),
-                "client_name":     contact_nm,
-                "created":         case_created,
+                "case_id":         row.get("case_id", ""),
+                "client_id":       row.get("client_id", ""),
+                "created":         row.get("case_created", ""),
                 "month":           mk,
-                "stage":           stage,
-                "description":     (case.get("Description") or "")[:500],
-                "notes_summary":   (case.get("Case_Notes_Summary") or "")[:500],
-                "last_paid_date":  last_dt,
+                "stage":           row.get("stage", ""),
+                "description":     (row.get("description") or "")[:500],
+                "last_paid_date":  row.get("last_paid_date", ""),
                 "return_gap_days": gap_days,
                 "return_gap_band": band,
             })
 
+    # ── Attach notes to returning cases ───────────────────────────
+    # Build a dict: case_id → list of note strings
+    notes_by_case = defaultdict(list)
+    for n in notes_rows:
+        cid  = n.get("case_id", "")
+        note = (n.get("notes") or "").strip()
+        if cid and note:
+            notes_by_case[cid].append(note)
+
+    for c in returning_cases:
+        notes = notes_by_case.get(c["case_id"], [])
+        c["notes_summary"] = " | ".join(notes[:3])[:500]  # First 3 notes
+
+    # ── Trend series ──────────────────────────────────────────────
     trend = [
         {
             "month":     m,
@@ -250,10 +213,17 @@ def build_clients_report(token):
                      if c["return_gap_days"] is not None]
     avg_gap = round(sum(gap_days_list) / len(gap_days_list)) if gap_days_list else 0
 
+    # Qual sample: most recent 50 returning cases with descriptions or notes
+    qual_sample = sorted(
+        [c for c in returning_cases if c.get("description") or c.get("notes_summary")],
+        key=lambda x: x["created"] or "",
+        reverse=True,
+    )[:50]
+
     return {
         "meta": {
             "last_updated":   datetime.now(timezone.utc).isoformat(),
-            "record_count":   len(cases),
+            "record_count":   len(cases_rows),
             "months_covered": months,
             "current_month":  current_month,
             "previous_month": previous_month,
@@ -268,28 +238,25 @@ def build_clients_report(token):
             "total_returning_in_period":        sum(returning_by_month.values()),
             "avg_return_gap_days":              avg_gap,
         },
-        "trend":            trend,
+        "trend":  trend,
         "gap_distribution": [
             {"band": b, "count": gap_bands[b]}
             for b in BAND_ORDER if gap_bands.get(b, 0) > 0
         ],
-        "returning_cases":  sorted(
-            [c for c in returning_cases if c["description"] or c["notes_summary"]],
-            key=lambda x: x["created"] or "",
-            reverse=True,
-        )[:50],
+        "returning_cases": qual_sample,
     }
 
 # ── Main ──────────────────────────────────────────────────────────
 def main():
     print("═" * 55)
-    print("NZF — Client Report Data Refresh")
+    print("NZF — Client Report  |  Zoho Analytics")
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print("═" * 55)
 
-    token = zc.get_access_token()
-    print("\n📥 Fetching from Zoho CRM...")
-    data = build_clients_report(token)
+    token = zac.get_access_token()
+
+    print("\n📊 Running Analytics queries...")
+    data  = build_clients_report(token)
 
     out = os.path.join(DATA_DIR, "clients.json")
     with open(out, "w") as f:
@@ -297,7 +264,7 @@ def main():
 
     s = data["summary"]
     print(f"\n✅ clients.json written")
-    print(f"   Cases fetched:          {data['meta']['record_count']}")
+    print(f"   Cases in window:        {data['meta']['record_count']:,}")
     print(f"   New this month:         {s['new_clients_current_month']}")
     print(f"   Returning this month:   {s['returning_clients_current_month']}")
     print(f"   Avg return gap:         {s['avg_return_gap_days']} days")
