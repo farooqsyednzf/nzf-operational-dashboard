@@ -112,16 +112,27 @@ def build_client_state_index(client_rows):
     print(f"  State index: {len(index):,} clients with state data")
     return index
 
-# ── Client case history ────────────────────────────────────────────
+# ── Client case history — full detail index ───────────────────────
 def build_client_case_history(all_cases):
+    """
+    client_id → sorted list of case dicts, chronological.
+    Each entry: {dt, case_id, stage, description, created_time}
+    Used to determine first-ever case AND to look up previous case details.
+    """
     history = defaultdict(list)
     for c in all_cases:
         client_id = c.get("client_name", "").strip()
         dt        = zac.parse_dt(c.get("created_time", ""))
         if client_id and dt:
-            history[client_id].append(dt)
+            history[client_id].append({
+                "dt":           dt,
+                "case_id":      c.get("case_id") or c.get("case-id", ""),
+                "stage":        c.get("stage", "").strip(),
+                "description":  (c.get("description") or "").strip()[:300],
+                "created_time": c.get("created_time", ""),
+            })
     for cid in history:
-        history[cid].sort()
+        history[cid].sort(key=lambda x: x["dt"])
     return history
 
 # ── Last-paid-date index ───────────────────────────────────────────
@@ -211,29 +222,42 @@ Case data:
 # ── Per-case AI summaries ──────────────────────────────────────────
 def run_case_summaries(cases):
     """
-    Generate a 1-2 sentence summary for each returning case in a single
-    batch API call. Returns dict: case_id → summary string.
+    Generate a 2-sentence summary per returning case in a single batch call.
+    Sentence 1: what the previous case was about and its outcome.
+    Sentence 2: what the new case is requesting.
 
-    Summary explains what the client needs and why they are returning,
-    written in a professional tone for caseworkers.
+    Returns dict: case_id → summary string.
     """
     if not ANTHROPIC_API_KEY:
         return {}
 
-    cases_with_desc = [c for c in cases if c.get("description")]
-    if not cases_with_desc:
+    cases_with_data = [
+        c for c in cases
+        if c.get("description") or c.get("last_case_description")
+    ]
+    if not cases_with_data:
         return {}
 
     case_lines = "\n".join(
-        f'ID:{c["case_id"]} GAP:{c.get("return_gap_band","?")} DESC:{c["description"][:300]}'
-        for c in cases_with_desc[:50]
+        "ID:{id} | PREV_STAGE:{ps} | PREV_DESC:{pd} | NEW_DESC:{nd}".format(
+            id=c["case_id"],
+            ps=c.get("last_case_stage", "Unknown"),
+            pd=(c.get("last_case_description") or "Not available")[:200],
+            nd=(c.get("description") or "Not available")[:200],
+        )
+        for c in cases_with_data[:50]
     )
 
-    prompt = f"""You are a caseworker assistant for NZF (National Zakat Foundation).
-For each case below, write a single concise sentence (max 20 words) summarising what the client needs and why they are returning. Write in third person, professional tone.
+    prompt = f"""You are a caseworker assistant for NZF (National Zakat Foundation), an Australian Zakat charity.
 
-Respond ONLY with valid JSON (no markdown):
-{{"ID1": "summary text", "ID2": "summary text", ...}}
+For each case below, write exactly 2 sentences (max 30 words total):
+- Sentence 1: What their previous case was for and its outcome (use PREV_STAGE and PREV_DESC).
+- Sentence 2: What they are now requesting (use NEW_DESC).
+
+Write in third person, professional tone. If a field says "Not available", omit that part gracefully.
+
+Respond ONLY with valid JSON — no markdown, no extra text:
+{{"CASE_ID": "Two sentence summary.", ...}}
 
 Cases:
 {case_lines}"""
@@ -242,20 +266,20 @@ Cases:
         res = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
-                "x-api-key": ANTHROPIC_API_KEY,
+                "x-api-key":         ANTHROPIC_API_KEY,
                 "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
+                "content-type":      "application/json",
             },
             json={
-                "model":      "claude-haiku-4-5-20251001",
+                "model":    "claude-haiku-4-5-20251001",
                 "max_tokens": 2000,
-                "messages":   [{"role": "user", "content": prompt}],
+                "messages": [{"role": "user", "content": prompt}],
             },
             timeout=60,
         )
         res.raise_for_status()
-        raw     = res.json()["content"][0]["text"]
-        parsed  = json.loads(raw.replace("```json","").replace("```","").strip())
+        raw    = res.json()["content"][0]["text"]
+        parsed = json.loads(raw.replace("```json","").replace("```","").strip())
         print(f"  ✓ Case summaries — {len(parsed)} generated")
         return parsed
     except Exception as e:
@@ -348,8 +372,9 @@ def build_clients_report(token):
             continue
 
         # New vs returning
-        client_dates       = case_history.get(client_id, [])
-        is_first_ever_case = not client_dates or client_dates[0] == created_dt
+        client_cases       = case_history.get(client_id, [])
+        client_dates       = [e["dt"] for e in client_cases]
+        is_first_ever_case = not client_cases or client_cases[0]["dt"] == created_dt
 
         if is_first_ever_case:
             new_by_month[mk] += 1
@@ -359,21 +384,29 @@ def build_clients_report(token):
             gap_days        = days_between(last_paid_dt, c.get("created_time")) if last_paid_dt else None
             band            = return_gap_band(gap_days)
             gap_bands[band] += 1
-            prior_dates     = [d for d in client_dates if d < created_dt]
-            last_case_dt    = max(prior_dates) if prior_dates else None
+
+            # Most recent previous case (before this one)
+            prior_cases     = [e for e in client_cases if e["dt"] < created_dt]
+            last_case       = prior_cases[-1] if prior_cases else None
+            last_case_dt    = last_case["dt"] if last_case else None
             days_since_case = abs((created_dt - last_case_dt).days) if last_case_dt else None
+
             returning_cases.append({
-                "case_id":              case_id,
-                "client_id":            client_id,
-                "created":              c.get("created_time",""),
-                "month":                mk,
-                "stage":                stage,
-                "description":          description[:500],
-                "last_paid_date":       last_paid_dt,
-                "return_gap_days":      gap_days,
-                "return_gap_band":      band,
-                "days_since_last_case": days_since_case,
-                "prior_case_count":     len(prior_dates),
+                "case_id":               case_id,
+                "client_id":             client_id,
+                "created":               c.get("created_time",""),
+                "month":                 mk,
+                "stage":                 stage,
+                "description":           description[:500],
+                "last_paid_date":        last_paid_dt,
+                "return_gap_days":       gap_days,
+                "return_gap_band":       band,
+                "days_since_last_case":  days_since_case,
+                "prior_case_count":      len(prior_cases),
+                # Previous case detail — used for table display + AI summary
+                "last_case_date":        last_case["created_time"] if last_case else "",
+                "last_case_stage":       last_case["stage"]        if last_case else "",
+                "last_case_description": last_case["description"]  if last_case else "",
             })
 
         # State counts — total clients (new + returning) per period
