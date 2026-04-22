@@ -32,7 +32,7 @@ ORG_ID       = "668395719"
 WORKSPACE_ID = "1715382000001002475"
 
 ACCOUNTS_URL = os.environ.get("ZOHO_ACCOUNTS_URL", "https://accounts.zoho.com")
-ANALYTICS_URL = "https://analyticsapi.zoho.com/restapi/v2"
+ANALYTICS_URL = "https://analytics.zoho.com/restapi/v2"
 
 # jobCode meanings
 JOB_NOT_INITIATED = "1001"
