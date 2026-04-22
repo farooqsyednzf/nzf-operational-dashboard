@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-22T19:53:33.986684+00:00",
+    "last_updated": "2026-04-22T20:32:39.774651+00:00",
     "record_count": 3125,
     "months_covered": [
       "2025-04",
@@ -413,7 +413,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 50,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 02, 2026 12:15 PM",
+      "last_case_stage": "Closed - NO Response",
+      "last_case_description": "New Muslimah, single mother. Was homeless, helped by Vinnies. Seeking help with bond and advance rent.",
+      "ai_case_summary": "Previous case closed with no response; single mother sought bond and advance rent assistance. Now requesting two weeks advance rent and a washing machine and dryer."
     },
     {
       "case_id": "201730418",
@@ -427,7 +430,10 @@
       "return_gap_band": "1\u20133 months",
       "days_since_last_case": 6,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Apr 14, 2026 03:52 PM",
+      "last_case_stage": "Intake",
+      "last_case_description": "Help in paying for pharmacy board exam fee of $700",
+      "ai_case_summary": "Previous intake case for $700 pharmacy board exam fee assistance. Now requesting financial assistance for unspecified hardship."
     },
     {
       "case_id": "201730414",
@@ -441,7 +447,10 @@
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 628,
       "prior_case_count": 7,
-      "ai_case_summary": ""
+      "last_case_date": "Jul 31, 2024 08:01 AM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "To this wonderful organization I am in urgent need of cash I will forever be grateful I have multiple expenses I need to buy food for my diet plan I'm on I am running short in expenses I need in terms of medical and specialist appointments I urgently need to get petrol I have so much expenses I am a",
+      "ai_case_summary": "Previous case closed unfunded; applicant requested food and expense assistance. Now seeking help with post-operative recovery and specialist medical costs."
     },
     {
       "case_id": "201730411",
@@ -455,7 +464,10 @@
       "return_gap_band": "1\u20133 months",
       "days_since_last_case": 6,
       "prior_case_count": 4,
-      "ai_case_summary": ""
+      "last_case_date": "Apr 14, 2026 08:10 AM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "My husband went to lebanon with my son and decided to stay there not willing to come back ge put me in debt with no financial support i paid ny half rent from my centerlink pay and end up with money left for food,diesel, medication and cloth for my daughter as its getting cold and need to buy her a ",
+      "ai_case_summary": "Previous case closed unfunded; applicant abandoned by husband with debt and housing insecurity. Now requesting vehicle registration assistance for school transport."
     },
     {
       "case_id": "201730409",
@@ -469,7 +481,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 1053,
       "prior_case_count": 6,
-      "ai_case_summary": ""
+      "last_case_date": "Jun 01, 2023 01:54 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "Last ILA paid last month. Now asking for more food and rent assistance.",
+      "ai_case_summary": "Previous case closed and funded with food and rent assistance. Now requesting migration lawyer fees."
     },
     {
       "case_id": "201730406",
@@ -483,7 +498,10 @@
       "return_gap_band": "< 1 month",
       "days_since_last_case": 9,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Apr 08, 2026 11:46 AM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "Dear sir/madam\nI am a single mother of three children with no financial support and nowhere to go. I am at risk of being homeless aftet the 12th of this month due to my situation and pass domestic violamce.\n\nMy only fear is seeing my children without a safe place to sleep. I am asking for ypur help ",
+      "ai_case_summary": "Previous case closed unfunded; single mother of three at risk of homelessness due to domestic violence. Now requesting support with children's daily needs."
     },
     {
       "case_id": "201730404",
@@ -497,7 +515,10 @@
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 37,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 11, 2026 03:38 PM",
+      "last_case_stage": "Closed - NO Response",
+      "last_case_description": "Aselam aleykum i need help qith cost of living food vogues .car service pls .",
+      "ai_case_summary": "Previous case closed with no response; single mother requested cost of living assistance. Now seeking help after home burglary with emergency support."
     },
     {
       "case_id": "201730401",
@@ -511,7 +532,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 3554,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Jul 23, 2016 08:00 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "sister referred by the White Coats Struggling Sister program. Approved her for $90",
+      "ai_case_summary": "Previous case closed and funded with $90 approval. Now requesting food and petrol assistance until government support arrives."
     },
     {
       "case_id": "201730399",
@@ -525,7 +549,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 2544,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Apr 29, 2019 09:38 AM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "education assistance;tutoring for speech impaired son",
+      "ai_case_summary": "Previous case closed unfunded; tutoring assistance requested for speech-impaired son. Now seeking urgent help with food, bills, and daily living costs."
     },
     {
       "case_id": "201730398",
@@ -539,7 +566,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 1213,
       "prior_case_count": 4,
-      "ai_case_summary": ""
+      "last_case_date": "Dec 19, 2022 08:11 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "Existing client. Asking for help towards burial costs of mother in law in America. Not sure if it was an Islamic funeral",
+      "ai_case_summary": "Previous case closed unfunded; assistance sought for mother-in-law's burial costs overseas. Now requesting help purchasing accessible vehicle for disabled daughter."
     },
     {
       "case_id": "201730392",
@@ -553,7 +583,10 @@
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 121,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Dec 16, 2025 07:16 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "salam aleykum I am urgent need of food assistance as i don't have foods left and my my next centrelink payment is due on the 23rd of December. I would appreciate it kindly if could help with food voucher so i can buy foods. Thank you so much",
+      "ai_case_summary": "Previous case closed and funded for food assistance before Centrelink payment. Now requesting food assistance again until next payment."
     },
     {
       "case_id": "201730388",
@@ -567,7 +600,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 2158,
       "prior_case_count": 5,
-      "ai_case_summary": ""
+      "last_case_date": "May 17, 2020 01:24 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "",
+      "ai_case_summary": "Previous case closed and funded. Now requesting assistance with fines."
     },
     {
       "case_id": "201730386",
@@ -581,7 +617,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 419,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Feb 19, 2025 01:07 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "On December 2024 I just had a court hearing regarding my visa and lost the case. I have to pay certain amount to get my visa back. But at the moment while waiting for the visa return to normal, I have no work right and not able to support myself, rend and bill. I need help with financial support for",
+      "ai_case_summary": "Previous case closed unfunded; visa legal fees required after court hearing loss. Now requesting help with bills, rent, and medical costs due to knee injury and gout."
     },
     {
       "case_id": "201730382",
@@ -595,7 +634,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 1822,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Apr 18, 2021 01:30 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "i",
+      "ai_case_summary": "Previous case closed unfunded with minimal information. Now requesting help with rent and debt repayment."
     },
     {
       "case_id": "201730380",
@@ -609,7 +651,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 1468,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Apr 06, 2022 07:28 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "single mother; assistance",
+      "ai_case_summary": "Previous case closed unfunded; single mother seeking assistance. Now requesting support with daily living costs and bills."
     },
     {
       "case_id": "201730378",
@@ -623,7 +668,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 1776,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Jun 02, 2021 07:00 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "migrant assistance",
+      "ai_case_summary": "Previous case closed unfunded; migrant assistance requested. Now seeking help with daily living costs and bills due to unstable income."
     },
     {
       "case_id": "201730377",
@@ -637,7 +685,10 @@
       "return_gap_band": "1\u20133 months",
       "days_since_last_case": 146,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Nov 19, 2025 07:11 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "single Muslimah doing pharmacy internship; seeking rent and daily living assistance",
+      "ai_case_summary": "Previous case closed and funded; pharmacy intern sought rent and living assistance. Now requesting $700 pharmacy board exam fee help."
     },
     {
       "case_id": "201730376",
@@ -651,7 +702,10 @@
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 326,
       "prior_case_count": 5,
-      "ai_case_summary": ""
+      "last_case_date": "May 23, 2025 12:27 PM",
+      "last_case_stage": "Closed - NO Response",
+      "last_case_description": "household goods assistance",
+      "ai_case_summary": "Previous case closed with no response for household goods. Now requesting food assistance."
     },
     {
       "case_id": "201730375",
@@ -665,7 +719,10 @@
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 397,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 13, 2025 05:46 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "I'm coming from Gaza and I need your help.\n\nI have a family and children.\n\nMay God bless you.",
+      "ai_case_summary": "Previous case closed and funded; Gazan family sought general assistance. Now requesting help paying electricity bill as unemployed refugee."
     },
     {
       "case_id": "201730373",
@@ -679,7 +736,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 1597,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Nov 29, 2021 10:35 AM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "Single mother of 4. DV survivor. Seeking assistance with debt from Islamic school - Glenroy Private of $4200.",
+      "ai_case_summary": "Previous case closed unfunded; DV survivor seeking $4200 Islamic school debt assistance for four children. Now reapplying for financial hardship support."
     },
     {
       "case_id": "201730371",
@@ -693,7 +753,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 63,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Feb 09, 2026 12:57 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "I just need a one off assistance with a voucher to help me in Ramadan due to the overlap of overdue bills and arrears.",
+      "ai_case_summary": "Previous case closed and funded for Ramadan voucher assistance. Now requesting help with electricity bill after hand surgery and work restriction."
     },
     {
       "case_id": "201730370",
@@ -707,7 +770,10 @@
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 42,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 03, 2026 11:18 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "food assistance in Ramadan",
+      "ai_case_summary": "Previous case closed and funded for Ramadan food assistance. Now seeking help as Lebanese war refugee on bridging visa."
     },
     {
       "case_id": "201730369",
@@ -721,7 +787,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 487,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Dec 13, 2024 11:28 AM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "I'm a young single Muslim Mother to 4 children. Adam (5), Sami (4), Safiya (2) and Amelia (2 months old). We moved to Melbourne at the beginning of the year.\nMy ex-partner does not provide me with any financial support and I have fallen behind in rent. I'm really worried that my children and I will ",
+      "ai_case_summary": "Previous case closed unfunded; single mother of four with no paternal support seeking assistance. Now reapplying with social worker support for single mother of four."
     },
     {
       "case_id": "201730368",
@@ -735,7 +804,10 @@
       "return_gap_band": "3\u20136 months",
       "days_since_last_case": 215,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Sep 11, 2025 08:40 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "I need help with the rent I pay rent 900 per week and cake care of my 72 year old husband with disability and my 5 kids no is working just of Centrelink",
+      "ai_case_summary": "Previous case closed and funded for rent and care costs for five children and elderly husband. Now requesting further assistance with rent and food prices."
     },
     {
       "case_id": "201730367",
@@ -749,7 +821,10 @@
       "return_gap_band": "< 1 month",
       "days_since_last_case": 70,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Feb 03, 2026 07:08 AM",
+      "last_case_stage": "Ongoing Funding",
+      "last_case_description": "im currently preparing to do a registration to become a migration agents and my exam will cost around 2200$ i need to pay this by 9 of feb",
+      "ai_case_summary": "Previous case ongoing funded for $2200 migration agent exam fee by February. Now requesting help with rent after husband's abandonment."
     },
     {
       "case_id": "201730363",
@@ -763,7 +838,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 258,
       "prior_case_count": 10,
-      "ai_case_summary": ""
+      "last_case_date": "Jul 28, 2025 08:41 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "My children is all the time sponsored by nzf gor their MIA Liverpool Quran college and Madrasah studies \nSister Halimah informed me to now apply directly to nzf \nMy Children are as follows \nNurul Halimah Az Zakiah \nUmmi Atiyah Al Aaliyah \nAs\u2019ad Hammam Bin Ahmad Nassir \nShaima Binti Ahmad Nassir \nSaf",
+      "ai_case_summary": "Previous case closed and funded for children's Quran college sponsorship. Now seeking urgent help after job loss with seven children and wife."
     },
     {
       "case_id": "201730360",
@@ -777,7 +855,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 16,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 28, 2026 12:41 PM",
+      "last_case_stage": "Follow Up",
+      "last_case_description": "Housing rent bound and school enrolment year 1 for my son. My intention is when I capable I return back, In sha Allah.",
+      "ai_case_summary": "Previous case in follow-up for housing bond and school enrolment. Now requesting $6000 for bond, rent, and year one school fees with urgent deadline."
     },
     {
       "case_id": "201730359",
@@ -791,7 +872,10 @@
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 149,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Nov 14, 2025 01:22 PM",
+      "last_case_stage": "Closed - NO Response",
+      "last_case_description": "I have disability which limits me to finding work. I need help with food, utilities, medical, transportation.",
+      "ai_case_summary": "Previous case closed with no response; disabled applicant requested food, utilities, medical help. Now seeking money assistance as asylum seeker with disability."
     },
     {
       "case_id": "201730358",
@@ -805,7 +889,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 17,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 27, 2026 09:27 AM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "We are going through financial stress and we are in need of food vouchers and some help with paying phone and electricity bills",
+      "ai_case_summary": "Previous case closed unfunded for food vouchers and bills. Now requesting help with father's funeral debt as bridging visa holder."
     },
     {
       "case_id": "201730356",
@@ -819,7 +906,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 234,
       "prior_case_count": 14,
-      "ai_case_summary": ""
+      "last_case_date": "Aug 21, 2025 02:00 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "Alsalam alekoum ...I'm in need of talking to a case worker as I'm in a terrible family situation... taking that the risk of one of my kids could be taken away from me ... jazakoum Allah khair .",
+      "ai_case_summary": "Previous case closed and funded for family situation support. Now requesting accommodation assistance after leaving previous accommodation."
     },
     {
       "case_id": "201730355",
@@ -833,7 +923,10 @@
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 210,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Sep 15, 2025 10:30 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "reports to be victim-survivor of dv",
+      "ai_case_summary": "Previous case closed and funded; DV victim-survivor sought assistance. Now requesting food vouchers, electricity help, and household items with $6000 debt."
     },
     {
       "case_id": "201730354",
@@ -847,7 +940,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 2996,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Jan 28, 2018 12:36 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "I need funds to buy a washer and dryer my dad has severe dementia and he messes his clothes and wears nappy i cant afford to buy both",
+      "ai_case_summary": "Previous case closed unfunded for washer and dryer for father with dementia. Now requesting help with daily living costs pending Centrelink payments."
     },
     {
       "case_id": "201730350",
@@ -861,7 +957,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 1814,
       "prior_case_count": 15,
-      "ai_case_summary": ""
+      "last_case_date": "Apr 23, 2021 12:59 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "Client called 1300 requesting assistance with food and bills",
+      "ai_case_summary": "Previous case closed unfunded for food and bills. Now seeking assistance with domestic violence hardship and transportation."
     },
     {
       "case_id": "201730349",
@@ -875,7 +974,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 805,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Jan 27, 2024 06:46 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "in a complex legal battle for custody of her children; asking for help to pay her mortgage",
+      "ai_case_summary": "Previous case closed unfunded; custody legal battle applicant sought mortgage help. Now urgently requesting zakat to prevent homelessness and support children."
     },
     {
       "case_id": "201730346",
@@ -889,7 +991,10 @@
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 447,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Jan 18, 2025 03:47 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "I am currently facing a challenging period, as I have been unemployed since early December 2024. Despite actively applying for various positions and employment.I have unfortunately not received any responses or interviews to date.\nMy wife is employed full-time; however, her income is not sufficient ",
+      "ai_case_summary": "Previous case closed and funded; unemployed applicant sought assistance. Now requesting help as unemployed for one month with insufficient household income."
     },
     {
       "case_id": "201730345",
@@ -903,7 +1008,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 1024,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Jun 21, 2023 03:25 PM",
+      "last_case_stage": "Closed - NO Response",
+      "last_case_description": "1 have 8 month baby and currently not working,my husband lose job nearly 3 week and i have big fight with him about finances and now after big fight 3 week ago he havent come back and not giving me money even doest pay rent nearly 3 week,i also lost concant with now,today i got reminder arrear due d",
+      "ai_case_summary": "Previous case closed with no response; abandoned mother sought help. Now requesting assistance with food, rent, and bills after husband abandonment."
     },
     {
       "case_id": "201730344",
@@ -917,7 +1025,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 21,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 20, 2026 05:35 AM",
+      "last_case_stage": "Closed - NO Response",
+      "last_case_description": "New Muslim support",
+      "ai_case_summary": "Previous case closed with no response for new Muslim support. Now returning for new Muslim support assistance."
     },
     {
       "case_id": "201730342",
@@ -931,7 +1042,10 @@
       "return_gap_band": "3\u20136 months",
       "days_since_last_case": 45,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Feb 24, 2026 03:33 PM",
+      "last_case_stage": "Ongoing Funding",
+      "last_case_description": "Hi I\u2019m Yaser I\u2019m a father for 4 kids my hardship is the rent of the house and financial support",
+      "ai_case_summary": "Previous case ongoing funded for rent and family support. Now requesting help with rent as main need after five months in Australia."
     },
     {
       "case_id": "201730341",
@@ -945,7 +1059,10 @@
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 399,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 07, 2025 03:59 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "Urgent Financial Assistance Request for Rent \u2013 Small Muslim Family in Need\n\nAssalamu Alaikum wa Rahmatullahi wa Barakatuh,\n\nI hope you are doing well. My name is  maseera, and I am reaching out for urgent financial assistance. My husband recently lost his job, and we are struggling to pay our rent. ",
+      "ai_case_summary": "Previous case closed and funded for rent assistance for small Muslim family. Now requesting help after job loss."
     },
     {
       "case_id": "201730340",
@@ -959,7 +1076,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 319,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "May 25, 2025 06:47 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "new migrant support - debt",
+      "ai_case_summary": "Previous case closed unfunded for new migrant debt support. Now requesting help with hardship from domestic violence, workplace injury, and unemployment."
     },
     {
       "case_id": "201730338",
@@ -973,7 +1093,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 13,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Mar 27, 2026 01:41 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "I am a single mother of my 15 month daughter, Eva. I recently moved to Sydney after divorcing my husband due to domestic violence in Melbourne.",
+      "ai_case_summary": "Previous case closed unfunded; DV survivor single mother relocated to Sydney. Now requesting help with daily living costs as student visa holder."
     },
     {
       "case_id": "201730335",
@@ -987,7 +1110,10 @@
       "return_gap_band": "< 1 month",
       "days_since_last_case": 42,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "Feb 27, 2026 04:58 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "rent arrears, bills, food support",
+      "ai_case_summary": "Previous case closed and funded for rent arrears and bills. Now requesting bond and rent help due to work injury incapacity."
     },
     {
       "case_id": "201730333",
@@ -1001,7 +1127,10 @@
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 707,
       "prior_case_count": 2,
-      "ai_case_summary": ""
+      "last_case_date": "May 02, 2024 03:14 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "My sister and family came from GAZA with nothing I need all the support they can get please.",
+      "ai_case_summary": "Previous case closed unfunded for Gaza family support. Now requesting late Fitr 2026 payment assistance."
     },
     {
       "case_id": "201730332",
@@ -1015,7 +1144,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 1043,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Jun 02, 2023 12:47 AM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "I'm staying at the moment at a friend's house at 20 Aldridge Rd wyndvale with my friend we can only stay here for a short time there isn't another room I have three children Michael 16 Bailey 15 and renada 7 we have fleed my unit 10_64/74 Graham St broadmeadows my invervention is under my maiden nam",
+      "ai_case_summary": "Previous case closed unfunded; family in temporary housing sought assistance. Now requesting food vouchers and clothes for self-supporting household."
     },
     {
       "case_id": "201730331",
@@ -1029,7 +1161,10 @@
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 311,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Jun 02, 2025 06:02 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "Salam alaikum, my situation for applying is mainly for applying for divorce, and help with my children's islamic studies",
+      "ai_case_summary": "Previous case closed and funded for divorce and Islamic studies support. Now requesting help with two children's Islamic school costs."
     },
     {
       "case_id": "201730330",
@@ -1043,7 +1178,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 3362,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Jan 24, 2017 01:54 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "Client has 3 children.  2 in Secondary school and 1 in Primary school",
+      "ai_case_summary": "Previous case closed and funded for three school-aged children. Now seeking urgent help with overdue rent and bills after unemployment since March."
     },
     {
       "case_id": "201730329",
@@ -1057,7 +1195,10 @@
       "return_gap_band": "Unknown",
       "days_since_last_case": 2121,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Jun 18, 2020 01:00 PM",
+      "last_case_stage": "Closed - Not Funded",
+      "last_case_description": "Single mum, not currently working  and trying to buy furniture",
+      "ai_case_summary": "Previous case closed unfunded for furniture purchase. Now requesting support for medical condition expenses exceeding income and work capacity."
     },
     {
       "case_id": "201730328",
@@ -1071,7 +1212,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 122,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Dec 08, 2025 08:29 AM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "Limited Centrelink. Recieved a Notice to Vacate",
+      "ai_case_summary": "Previous case closed and funded for housing notice. Now requesting $700 Functional Capacity Assessment and $116.34 vehicle registration assistance."
     },
     {
       "case_id": "201730327",
@@ -1085,7 +1229,10 @@
       "return_gap_band": "2+ years",
       "days_since_last_case": 56,
       "prior_case_count": 3,
-      "ai_case_summary": ""
+      "last_case_date": "Feb 12, 2026 12:16 PM",
+      "last_case_stage": "Phase 4: Monitoring & Impact",
+      "last_case_description": "SCRIPTURE: A NSW Islamic public high schools and the urgent need for expansion to reach the thousands of Muslim students currently without spiritual guidance.",
+      "ai_case_summary": "Previous case phase 4 monitoring and impact for Islamic school expansion scripture project. Status update D96012."
     },
     {
       "case_id": "201730326",
@@ -1099,38 +1246,41 @@
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 672,
       "prior_case_count": 1,
-      "ai_case_summary": ""
+      "last_case_date": "Jun 05, 2024 06:44 PM",
+      "last_case_stage": "Closed - Funded",
+      "last_case_description": "I come from gaza then i went to egypt by pay 5000 american dollars and then i came to australia\nMy father doesn\u2019t has this cost so he sell his car and pay to me for travel \nHe still in gaza with my family becouse he doesn\u2019t has any money to come and he support me becouse i am fresh engineer so he ne",
+      "ai_case_summary": "Previous case closed and funded; Gaza refugee who paid $5000 to travel. Now seeking job assistance as engineering graduate currently unemployed."
     }
   ],
   "ai_analysis": {
-    "summary": "Returning clients predominantly seek assistance for recurring basic living expenses (food, utilities, rent) and unexpected hardships (medical costs, job loss, crime), indicating that initial support did not resolve underlying structural poverty or that new crises have emerged. The majority of cases reflect ongoing income instability, underemployment, or welfare dependency rather than one-time emergencies.",
+    "summary": "Returning clients are experiencing cyclical poverty driven by persistent unemployment, underemployment, and unexpected shocks rather than one-time crises. Most face recurring gaps in meeting basic living expenses (food, rent, utilities) between income payments, while others encounter new emergencies (health events, vehicle breakdowns, theft) that destabilise their already precarious financial situations.",
     "themes": [
       {
-        "label": "Chronic Food & Living Cost Insecurity",
-        "description": "Clients returning for assistance with food, utilities, rent, and daily living expenses, often citing insufficient Centrelink payments, underemployment, or income gaps. These cases suggest persistent inability to meet basic needs despite previous support.",
-        "count_estimate": "~36% of cases"
+        "label": "Recurring Basic Living Costs (Food, Rent, Utilities)",
+        "description": "Clients returning with gaps between income payments, unable to cover essential expenses like food, rent, electricity, and petrol. Often triggered by Centrelink delays, gaps in payment cycles, or insufficient benefit amounts.",
+        "count_estimate": "~42% of cases"
       },
       {
-        "label": "Health Crisis & Medical Hardship",
-        "description": "Clients facing new or ongoing medical expenses, post-operative recovery, specialist care costs, and chronic disease management (diabetes, disability) that create temporary or extended financial strain. Medical events appear to trigger cascading financial problems.",
-        "count_estimate": "~22% of cases"
+        "label": "Health-Related Financial Crises",
+        "description": "Unexpected medical events (surgery, specialist visits, chronic condition management) or disability-related needs creating acute financial strain. Includes both immediate medical costs and ongoing medication/dietary requirements.",
+        "count_estimate": "~18% of cases"
       },
       {
-        "label": "Employment Loss & Income Disruption",
-        "description": "Clients who have lost employment, suffered injury preventing work, or face unstable/zero income periods. Job loss appears to be a primary catalyst for return applications, often leading to debt accumulation and arrears.",
-        "count_estimate": "~20% of cases"
-      },
-      {
-        "label": "Housing Instability & Emergency Costs",
-        "description": "Clients experiencing homelessness, requiring bond/rent advances, facing eviction, or dealing with unexpected costs like vehicle registration, crime-related losses, or fines. Housing-related crises often occur alongside other hardships.",
+        "label": "Unemployment and Underemployment",
+        "description": "Loss of employment or inability to work due to injury/disability resulting in prolonged financial hardship. Clients have been struggling for extended periods (1-2+ years) with gaps between assistance requests.",
         "count_estimate": "~16% of cases"
       },
       {
-        "label": "Debt & Legal/Professional Obligations",
-        "description": "Clients seeking help with accumulated consumer debt (Afterpay, ZipPay), fines, legal fees, or professional exam costs. These represent both consequences of earlier poverty and barriers to economic mobility.",
-        "count_estimate": "~6% of cases"
+        "label": "Sudden Emergencies and Essential Expenses",
+        "description": "Unexpected crises (theft/burglary, vehicle breakdown, family relocation costs) requiring urgent one-off payments alongside ongoing hardship. Also includes legal/compliance costs and housing transitions.",
+        "count_estimate": "~14% of cases"
+      },
+      {
+        "label": "Single Parents with Dependent Children",
+        "description": "Single mothers (and occasionally fathers) managing multiple dependents on limited income, repeatedly returning for support with childcare-related costs, food, and basic living expenses.",
+        "count_estimate": "~10% of cases"
       }
     ],
-    "generated_at": "2026-04-22T19:53:22.696839+00:00"
+    "generated_at": "2026-04-22T20:32:21.990557+00:00"
   }
 }
