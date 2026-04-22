@@ -45,34 +45,44 @@ def get_access_token():
 
 # ── Generic paginated fetch ───────────────────────────────────────────────────
 def fetch_all_records(module, token, fields=None, criteria=None, max_records=5000):
-    """Fetch all records from a Zoho CRM module with pagination."""
-    headers   = {"Authorization": f"Zoho-oauthtoken {token}"}
-    records   = []
-    page      = 1
-    per_page  = 200
+    """Fetch all records from a Zoho CRM module with pagination.
+    Uses /search endpoint when criteria is supplied, plain list otherwise."""
+    headers  = {"Authorization": f"Zoho-oauthtoken {token}"}
+    records  = []
+    page     = 1
+    per_page = 200
+
+    # Choose endpoint based on whether we're filtering
+    base_url = (
+        f"{API_DOMAIN}/crm/v3/{module}/search"
+        if criteria
+        else f"{API_DOMAIN}/crm/v3/{module}"
+    )
 
     while len(records) < max_records:
         params = {"page": page, "per_page": per_page}
-        if fields:   params["fields"] = ",".join(fields)
+        if fields:   params["fields"]   = ",".join(fields)
         if criteria: params["criteria"] = criteria
 
-        res = requests.get(
-            f"{API_DOMAIN}/crm/v3/{module}",
-            headers=headers,
-            params=params
-        )
-        res.raise_for_status()
-        data = res.json()
+        res = requests.get(base_url, headers=headers, params=params)
 
+        # 204 = no content / no more records
+        if res.status_code == 204:
+            break
+
+        if res.status_code == 429:
+            import time; time.sleep(10)
+            continue
+
+        res.raise_for_status()
+        data  = res.json()
         batch = data.get("data", [])
         if not batch:
             break
 
         records.extend(batch)
 
-        # Check if more pages exist
-        info = data.get("info", {})
-        if not info.get("more_records", False):
+        if not data.get("info", {}).get("more_records", False):
             break
 
         page += 1
