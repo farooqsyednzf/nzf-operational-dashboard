@@ -136,13 +136,24 @@
 
     .kpi-grid-2col { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
-    .month-label {
+    .state-toggle-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius);
       font-family: 'Cambay', sans-serif;
-      font-size: 0.72rem;
-      color: var(--text-muted);
+      font-size: 0.78rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      cursor: pointer;
+      border: 2px solid var(--color-primary);
+      background: transparent;
+      color: var(--color-primary);
+      transition: all var(--transition);
+    }
+    .state-toggle-btn.active {
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .state-toggle-btn:hover:not(.active) {
+      background: var(--color-primary-bg);
     }
   </style>
 </head>
@@ -190,7 +201,52 @@
         </div>
       </div>
 
-      <!-- ── SECTION 2: Returning Clients ───────────────────────── -->
+      <!-- ── SECTION: Clients by State ──────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-green);margin-top:36px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Clients by State</h2>
+          <p>Total clients (new + returning) served per state</p>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <!-- State snapshot with period toggle -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title" id="state-chart-title">Clients by State</div>
+              <div class="chart-card-subtitle">All clients after same-instance exclusions</div>
+            </div>
+            <div id="state-toggle" style="display:flex;gap:6px;flex-shrink:0;">
+              <button class="state-toggle-btn active" data-period="current_month"
+                onclick="switchStatePeriod('current_month',this)">Current Month</button>
+              <button class="state-toggle-btn" data-period="previous_month"
+                onclick="switchStatePeriod('previous_month',this)">Previous Month</button>
+              <button class="state-toggle-btn" data-period="last_12_months"
+                onclick="switchStatePeriod('last_12_months',this)">Last 12 Months</button>
+            </div>
+          </div>
+          <div class="chart-container" style="height:280px;">
+            <canvas id="chart-state"></canvas>
+          </div>
+        </div>
+
+        <!-- Monthly state trend — stacked bar -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Monthly Client Trend by State</div>
+              <div class="chart-card-subtitle">Last 12 months — stacked by state</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:280px;">
+            <canvas id="chart-state-monthly"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION: Trend ────────────────────────────────────── -->
       <div class="section-divider" style="--section-color: var(--color-blue); margin-top:36px;">
         <div class="section-divider-bar"></div>
         <div>
@@ -337,6 +393,8 @@ const CHART_DEFAULTS = {
   renderMonthLabels(data);
   renderNewKPIs(data);
   renderRetKPIs(data);
+  renderStateChart(data);
+  renderStateMonthlyChart(data);
   renderNewTrendChart(data);
   renderRetTrendChart(data);
   renderCombinedChart(data);
@@ -555,6 +613,152 @@ function renderGapChart(data) {
   });
 }
 
+// ── State chart ───────────────────────────────────────────────────
+let _stateChartInstance = null;
+let _stateData          = null;
+
+function renderStateChart(data) {
+  _stateData = data.clients_by_state;
+  if (!_stateData) return;
+  switchStatePeriod('current_month',
+    document.querySelector('.state-toggle-btn[data-period="current_month"]'));
+}
+
+function switchStatePeriod(period, btn) {
+  // Update active toggle button
+  document.querySelectorAll('.state-toggle-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const rows  = (_stateData || {})[period] || [];
+  const label = { current_month: 'Current Month', previous_month: 'Previous Month', last_12_months: 'Last 12 Months' }[period] || '';
+
+  document.getElementById('state-chart-title').textContent = `Clients by State — ${label}`;
+
+  const labels = rows.map(r => r.state);
+  const counts = rows.map(r => r.count);
+
+  // Assign a colour per state from NZF brand palette, cycling if needed
+  const palette = [
+    C.red, C.blue, C.yellow, C.green, C.dark,
+    '#0099B4', '#9B2335', '#E8732A', '#4C6060', '#B5BD00',
+  ];
+  const bgColours = labels.map((_, i) => palette[i % palette.length]);
+
+  if (_stateChartInstance) {
+    _stateChartInstance.data.labels                    = labels;
+    _stateChartInstance.data.datasets[0].data          = counts;
+    _stateChartInstance.data.datasets[0].backgroundColor = bgColours;
+    _stateChartInstance.update();
+    return;
+  }
+
+  _stateChartInstance = new Chart(document.getElementById('chart-state'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label:           'Clients',
+        data:            counts,
+        backgroundColor: bgColours,
+        borderRadius:    5,
+        borderSkipped:   false,
+      }]
+    },
+    options: {
+      indexAxis:            'y',          // horizontal bars
+      responsive:           true,
+      maintainAspectRatio:  false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.x} client${ctx.parsed.x !== 1 ? 's' : ''}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: CHART_DEFAULTS.font, precision: 0 },
+          grid:  CHART_DEFAULTS.grid,
+          beginAtZero: true,
+        },
+        y: {
+          ticks: { font: { ...CHART_DEFAULTS.font, size: 12 } },
+          grid:  { display: false },
+        }
+      }
+    }
+  });
+}
+
+// ── Monthly state trend — stacked bar ─────────────────────────────
+function renderStateMonthlyChart(data) {
+  const monthly = data.clients_by_state_monthly;
+  if (!monthly || !monthly.series || !monthly.series.length) return;
+
+  const labels   = monthly.months.map(m => {
+    const [y, mo] = m.split('-');
+    return new Date(y, mo - 1, 1).toLocaleString('en-AU', { month: 'short', year: '2-digit' });
+  });
+
+  // Colour palette — one colour per state, cycling if needed
+  const palette = [
+    C.red, C.blue, C.yellow, C.green, C.dark,
+    '#0099B4', '#9B2335', '#E8732A', '#4C6060', '#B5BD00',
+  ];
+
+  const datasets = monthly.series.map((s, i) => ({
+    label:           s.state,
+    data:            s.data,
+    backgroundColor: palette[i % palette.length],
+    stack:           'states',
+    borderRadius:    i === monthly.series.length - 1 ? { topLeft: 4, topRight: 4 } : 0,
+    borderSkipped:   false,
+  }));
+
+  new Chart(document.getElementById('chart-state-monthly'), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive:          true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font:      CHART_DEFAULTS.font,
+            padding:   10,
+            boxWidth:  12,
+            boxHeight: 12,
+          }
+        },
+        tooltip: {
+          mode:      'index',
+          callbacks: {
+            footer: items => {
+              const total = items.reduce((s, i) => s + i.parsed.y, 0);
+              return `Total: ${total}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks:   { font: CHART_DEFAULTS.font },
+          grid:    { display: false },
+        },
+        y: {
+          stacked:     true,
+          ticks:       { font: CHART_DEFAULTS.font, precision: 0 },
+          grid:        CHART_DEFAULTS.grid,
+          beginAtZero: true,
+        }
+      }
+    }
+  });
+}
+
 // ── Gap stats panel ───────────────────────────────────────────────
 function renderGapStats(data) {
   const s   = data.summary;
@@ -590,7 +794,10 @@ function renderGapStats(data) {
 
 // ── Cases detail table ────────────────────────────────────────────
 function renderCasesTable(data) {
-  const cases = data.returning_cases;
+  // Latest 20 returning cases, descending by case creation date
+  const cases = (data.returning_cases || [])
+    .sort((a, b) => (b.created || '').localeCompare(a.created || ''))
+    .slice(0, 20);
   if (!cases || !cases.length) {
     document.getElementById('cases-table').innerHTML =
       '<div style="padding:20px;font-family:\'Cambay\';color:var(--text-muted)">No returning cases in this period.</div>';
