@@ -626,7 +626,7 @@ function renderCasesTable(data) {
         ${cases.map(c => `
           <tr>
             <td style="font-family:'Cambay';font-weight:700;color:var(--color-primary);white-space:nowrap">${c.case_id || '—'}</td>
-            <td style="white-space:nowrap">${c.client_name || '—'}</td>
+            <td style="white-space:nowrap">${c.client_name || c.client_id || '—'}</td>
             <td style="white-space:nowrap">${fmtDate(c.created)}</td>
             <td><span class="badge badge-grey">${c.stage || '—'}</span></td>
             <td style="white-space:nowrap">${fmtDate(c.last_paid_date)}</td>
@@ -639,76 +639,49 @@ function renderCasesTable(data) {
     </table>`;
 }
 
-// ── AI qualitative analysis via Anthropic API ─────────────────────
-async function runQualAnalysis(data) {
-  const cases = data.returning_cases;
-  if (!cases || !cases.length) {
-    document.getElementById('ai-summary').innerHTML =
-      '<em style="color:var(--text-muted)">No returning case data available for analysis.</em>';
-    document.getElementById('ai-summary').classList.remove('loading');
+// ── AI qualitative analysis — reads from pre-computed JSON ────────
+// Analysis is generated server-side during the GitHub Actions refresh
+// using ANTHROPIC_API_KEY. No API call needed in the browser.
+function runQualAnalysis(data) {
+  const summaryEl = document.getElementById('ai-summary');
+  const themesEl  = document.getElementById('ai-themes');
+  const analysis  = data.ai_analysis;
+
+  summaryEl.classList.remove('loading');
+
+  if (!analysis || !analysis.summary) {
+    summaryEl.innerHTML = `
+      <em style="color:var(--text-muted)">
+        AI analysis not yet available — it will appear after the next
+        scheduled data refresh, or you can add
+        <code style="font-size:0.8rem">ANTHROPIC_API_KEY</code>
+        to your GitHub secrets and re-run the workflow.
+      </em>`;
     return;
   }
 
-  // Build a compact text of descriptions for analysis
-  const caseTexts = cases
-    .filter(c => c.description || c.notes_summary)
-    .map((c, i) => `Case ${i+1} (gap: ${c.return_gap_band || 'unknown'}): ${(c.description || '') + ' ' + (c.notes_summary || '')}`.trim())
-    .join('\n\n');
+  summaryEl.innerHTML = `
+    <strong style="font-family:'Bree Serif';font-size:1rem;font-weight:400;">Summary</strong>
+    <br><br>${analysis.summary}
+    ${analysis.generated_at
+      ? `<div style="margin-top:10px;font-size:0.75rem;color:var(--text-muted);">
+           Analysis generated: ${new Date(analysis.generated_at).toLocaleString('en-AU',
+             {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+         </div>`
+      : ''}`;
 
-  const prompt = `You are an analyst reviewing returning client cases for NZF (National Zakat Foundation), a charity that provides financial assistance to people in need.
-
-Below are descriptions and notes from ${cases.length} cases where clients have returned for additional assistance after previously receiving help. Analyse these to understand WHY clients are returning.
-
-Please respond ONLY with a valid JSON object in this exact format (no markdown, no preamble):
-{
-  "summary": "2-3 sentence overall summary of why clients are returning",
-  "themes": [
-    {"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "e.g. ~40% of cases"},
-    {"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "e.g. ~25% of cases"},
-    {"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "e.g. ~20% of cases"},
-    {"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "e.g. ~15% of cases"}
-  ]
-}
-
-Case data:
-${caseTexts.substring(0, 4000)}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }],
-      })
-    });
-
-    const apiData = await res.json();
-    const raw = apiData.content?.[0]?.text || '';
-    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
-
-    // Render summary
-    const summaryEl = document.getElementById('ai-summary');
-    summaryEl.classList.remove('loading');
-    summaryEl.innerHTML = `<strong style="font-family:'Bree Serif';font-size:1rem;font-weight:400;">Summary</strong><br><br>${parsed.summary}`;
-
-    // Render themes
-    const themesEl = document.getElementById('ai-themes');
-    themesEl.innerHTML = parsed.themes.map(t => `
+  if (analysis.themes && analysis.themes.length) {
+    themesEl.innerHTML = analysis.themes.map(t => `
       <div class="ai-theme-chip">
-        <div class="ai-theme-chip-label">${t.label} <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0">${t.count_estimate}</span></div>
+        <div class="ai-theme-chip-label">
+          ${t.label}
+          <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0">
+            ${t.count_estimate}
+          </span>
+        </div>
         <div class="ai-theme-chip-desc">${t.description}</div>
       </div>
     `).join('');
-
-  } catch(e) {
-    const summaryEl = document.getElementById('ai-summary');
-    summaryEl.classList.remove('loading');
-    summaryEl.innerHTML = `
-      <em style="color:var(--text-muted)">
-        AI analysis unavailable — case descriptions and notes are available in the table below for manual review.
-      </em>`;
   }
 }
 
