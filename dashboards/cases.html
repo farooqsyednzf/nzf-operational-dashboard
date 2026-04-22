@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cases Report — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!--
+    ENTRA ID — When enabling auth, uncomment:
+    <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
+  -->
+  <style>
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 32px 0 20px;
+    }
+    .section-divider-bar {
+      width: 4px;
+      height: 28px;
+      border-radius: 2px;
+      background: var(--section-color, var(--color-primary));
+      flex-shrink: 0;
+    }
+    .section-divider h2 {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text-primary);
+    }
+    .section-divider p {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Priority pill badges */
+    .pri-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    /* Priority KPI grid — 6 cards (P1–P5 + No Priority) */
+    .priority-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .pri-kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--pri-colour, var(--color-primary));
+    }
+    .pri-kpi-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .pri-kpi-value {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.8rem;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .pri-kpi-sub {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+
+  <div class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Cases Report</h1>
+          <p>Cases created — volume, trends and priority breakdown.</p>
+        </div>
+        <div id="month-label" style="text-align:right;"></div>
+      </div>
+
+      <!-- ── SECTION 1: Cases Created ──────────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-primary);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Cases Created</h2>
+          <p>All cases created, regardless of stage or outcome</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-2col" id="total-kpis">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns:1fr;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Cases Created — 12 Month Trend</div>
+              <div class="chart-card-subtitle">Total cases created per month</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:240px;">
+            <canvas id="chart-total-trend"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: Priority Breakdown ────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-yellow); margin-top:36px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Priority Breakdown</h2>
+          <p>Cases by urgency level (Case Urgency field) — P1 is highest priority</p>
+        </div>
+      </div>
+
+      <!-- Current month priority cards -->
+      <div class="section-divider" style="margin:0 0 12px; --section-color:transparent;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">
+          Current Month — <span id="current-month-label"></span>
+        </div>
+      </div>
+      <div class="priority-kpi-grid" id="pri-kpis-current">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Previous month priority cards -->
+      <div class="section-divider" style="margin:16px 0 12px; --section-color:transparent;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">
+          Previous Month — <span id="previous-month-label"></span>
+        </div>
+      </div>
+      <div class="priority-kpi-grid" id="pri-kpis-previous">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- 12-month priority cards -->
+      <div class="section-divider" style="margin:16px 0 12px; --section-color:transparent;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">
+          Last 12 Months — Total &amp; Monthly Avg
+        </div>
+      </div>
+      <div class="priority-kpi-grid" id="pri-kpis-12m">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Priority trend chart -->
+      <div class="chart-grid" style="grid-template-columns:1fr; margin-top:24px;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Monthly Cases by Priority — 12 Month Trend</div>
+              <div class="chart-card-subtitle">One line per priority level — hover to compare</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:300px;">
+            <canvas id="chart-priority-trend"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+
+// ── Brand palette & chart defaults ────────────────────────────────
+const C = {
+  red:    '#EE3526', redLight:  'rgba(238,53,38,0.08)',
+  blue:   '#0081C6', blueLight: 'rgba(0,129,198,0.08)',
+  yellow: '#FDB913', green:     '#49A942',
+  grey:   '#9F9393', dark:      '#231F1F',
+};
+
+const CHART_DEFAULTS = {
+  font: { family: 'Cambay', size: 11 },
+  grid: { color: '#F0EEEE' },
+};
+
+// ── Main ─────────────────────────────────────────────────────────
+(async () => {
+  await requireAuth();
+  renderNav("Cases Report");
+
+  let data;
+  try {
+    const res = await fetch('/data/cases.json');
+    data = await res.json();
+    window.__NZF_META = data.meta;
+  } catch(e) {
+    document.getElementById('total-kpis').innerHTML =
+      `<div style="padding:20px;font-family:'Cambay';color:var(--text-muted);">
+        ⚠ cases.json not yet available. Run the data refresh action.
+       </div>`;
+    return;
+  }
+
+  renderMonthLabel(data);
+  renderTotalKPIs(data);
+  renderTotalTrendChart(data);
+  renderPriorityKPIs(data);
+  renderPriorityTrendChart(data);
+})();
+
+// ── Helpers ───────────────────────────────────────────────────────
+function fmt(n)   { return (n ?? 0).toLocaleString('en-AU'); }
+function fmtDec(n){ return (n ?? 0).toLocaleString('en-AU', {minimumFractionDigits:1, maximumFractionDigits:1}); }
+
+function friendlyMonth(ym) {
+  if (!ym) return '';
+  const [y, m] = ym.split('-');
+  return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'long', year: 'numeric' });
+}
+
+function changeBadge(pct) {
+  if (pct === null || pct === undefined) return '';
+  const cls   = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+  const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '—';
+  return `<div class="kpi-change ${cls}">${arrow} ${Math.abs(pct)}% vs prev month</div>`;
+}
+
+function renderMonthLabel(data) {
+  const m = data.meta;
+  document.getElementById('month-label').innerHTML = `
+    <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">Current month</div>
+    <div style="font-family:'Bree Serif';font-size:1rem;color:var(--text-primary)">${friendlyMonth(m.current_month)}</div>`;
+  document.getElementById('current-month-label').textContent  = friendlyMonth(m.current_month);
+  document.getElementById('previous-month-label').textContent = friendlyMonth(m.previous_month);
+}
+
+// ── Total Cases KPIs ──────────────────────────────────────────────
+function renderTotalKPIs(data) {
+  const s = data.summary;
+  document.getElementById('total-kpis').innerHTML = `
+    <div class="kpi-card accent-red">
+      <div class="kpi-label">Cases Created — ${friendlyMonth(data.meta.current_month)}</div>
+      <div class="kpi-value">${fmt(s.current_month)}</div>
+      ${changeBadge(s.pct_change)}
+    </div>
+    <div class="kpi-card accent-red" style="--kpi-color:var(--color-mid-grey)">
+      <div class="kpi-label">Cases Created — ${friendlyMonth(data.meta.previous_month)}</div>
+      <div class="kpi-value">${fmt(s.previous_month)}</div>
+    </div>
+    <div class="kpi-card accent-yellow">
+      <div class="kpi-label">12-Month Total</div>
+      <div class="kpi-value">${fmt(s.total_12m)}</div>
+    </div>
+    <div class="kpi-card accent-green">
+      <div class="kpi-label">Monthly Average</div>
+      <div class="kpi-value">${fmtDec(s.monthly_avg)}</div>
+    </div>`;
+}
+
+// ── Total trend line ──────────────────────────────────────────────
+function renderTotalTrendChart(data) {
+  const labels = data.trend.map(t => {
+    const [y, m] = t.month.split('-');
+    return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'short', year: '2-digit' });
+  });
+  new Chart(document.getElementById('chart-total-trend'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label:                'Cases Created',
+        data:                 data.trend.map(t => t.count),
+        borderColor:          C.red,
+        backgroundColor:      C.redLight,
+        fill:                 true,
+        tension:              0.35,
+        pointBackgroundColor: C.red,
+        pointRadius:          3,
+        pointHoverRadius:     5,
+        borderWidth:          2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true },
+      }
+    }
+  });
+}
+
+// ── Priority KPI cards ────────────────────────────────────────────
+function renderPriorityKPIs(data) {
+  const p      = data.priority;
+  const order  = p.order;
+  const colours = p.colours;
+
+  function priCards(countMap, subFn) {
+    return order.map(pri => `
+      <div class="pri-kpi-card" style="--pri-colour:${colours[pri] || '#9F9393'}">
+        <div class="pri-kpi-label">${pri}</div>
+        <div class="pri-kpi-value">${fmt(countMap[pri] ?? 0)}</div>
+        <div class="pri-kpi-sub">${subFn ? subFn(pri) : ''}</div>
+      </div>`).join('');
+  }
+
+  document.getElementById('pri-kpis-current').innerHTML =
+    priCards(p.current_month, pri => {
+      const prev = p.previous_month[pri] ?? 0;
+      const curr = p.current_month[pri]  ?? 0;
+      if (!prev) return '';
+      const diff = curr - prev;
+      const cls  = diff > 0 ? 'color:var(--color-alert)' : diff < 0 ? 'color:var(--color-success)' : 'color:var(--text-muted)';
+      const arrow= diff > 0 ? '▲' : diff < 0 ? '▼' : '—';
+      return `<span style="${cls}">${arrow} ${Math.abs(diff)} vs prev month</span>`;
+    });
+
+  document.getElementById('pri-kpis-previous').innerHTML =
+    priCards(p.previous_month);
+
+  document.getElementById('pri-kpis-12m').innerHTML =
+    priCards(p.total_12m, pri =>
+      `Avg ${fmtDec(p.monthly_avg[pri] ?? 0)} / month`
+    );
+}
+
+// ── Priority trend — multi-line ────────────────────────────────────
+function renderPriorityTrendChart(data) {
+  const pt = data.priority_trend;
+  const labels = pt.months.map(m => {
+    const [y, mo] = m.split('-');
+    return new Date(y, mo - 1, 1).toLocaleString('en-AU', { month: 'short', year: '2-digit' });
+  });
+
+  const datasets = pt.series.map(s => ({
+    label:                s.priority,
+    data:                 s.data,
+    borderColor:          s.colour,
+    backgroundColor:      s.colour,
+    borderWidth:          2,
+    pointRadius:          3,
+    pointHoverRadius:     5,
+    tension:              0.3,
+    fill:                 false,
+  }));
+
+  new Chart(document.getElementById('chart-priority-trend'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive:          true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font:          CHART_DEFAULTS.font,
+            padding:       14,
+            boxWidth:      24,
+            boxHeight:     2,
+            usePointStyle: false,
+          }
+        },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true },
+      }
+    }
+  });
+}
+
+</script>
+</body>
+</html>
