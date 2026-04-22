@@ -380,16 +380,16 @@ def build_clients_report(token):
             new_by_month[mk] += 1
         else:
             returning_by_month[mk] += 1
-            last_paid_dt    = last_paid.get(client_id)
-            gap_days        = days_between(last_paid_dt, c.get("created_time")) if last_paid_dt else None
-            band            = return_gap_band(gap_days)
-            gap_bands[band] += 1
-
             # Most recent previous case (before this one)
             prior_cases     = [e for e in client_cases if e["dt"] < created_dt]
             last_case       = prior_cases[-1] if prior_cases else None
             last_case_dt    = last_case["dt"] if last_case else None
             days_since_case = abs((created_dt - last_case_dt).days) if last_case_dt else None
+
+            # Return gap = days between last case and this case (not last distribution)
+            gap_days        = days_since_case
+            band            = return_gap_band(gap_days)
+            gap_bands[band] += 1
 
             returning_cases.append({
                 "case_id":               case_id,
