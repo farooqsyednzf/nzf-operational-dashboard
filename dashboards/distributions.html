@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Distributions — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .section-divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 36px 0 20px;
+    }
+    .section-divider-bar {
+      width: 4px; height: 28px; border-radius: 2px;
+      background: var(--section-color, var(--color-primary)); flex-shrink: 0;
+    }
+    .section-divider h2 {
+      font-family: 'Bree Serif', serif; font-size: 1.2rem;
+      font-weight: 400; color: var(--text-primary);
+    }
+    .section-divider p {
+      font-family: 'Cambay', sans-serif; font-size: 0.8rem;
+      color: var(--text-muted); margin-top: 2px;
+    }
+
+    /* Toggle pill (amount / count) */
+    .toggle-pill {
+      display: inline-flex; border-radius: 20px;
+      border: 2px solid var(--color-primary);
+      overflow: hidden; flex-shrink: 0;
+    }
+    .toggle-pill button {
+      padding: 5px 14px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.75rem; font-weight: 700;
+      border: none; cursor: pointer;
+      background: transparent; color: var(--color-primary);
+      transition: all 0.15s;
+    }
+    .toggle-pill button.active {
+      background: var(--color-primary); color: #fff;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Distributions</h1>
+          <p>Zakat and other financial assistance paid to clients — amount and volume trends.</p>
+        </div>
+        <div id="month-label" style="text-align:right;"></div>
+      </div>
+
+      <!-- ── SECTION 1: KPIs ───────────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-primary);margin-top:0;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Overview</h2>
+          <p>Paid and Extracted distributions — last 12 months</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-2col" id="total-kpis">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- ── SECTION 2: TREND ──────────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-blue);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Monthly Trend</h2>
+          <p>Total amount distributed and number of distributions per month</p>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Monthly Distribution Amount</div>
+              <div class="chart-card-subtitle">Total AUD distributed per month</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:240px;">
+            <canvas id="chart-amount-trend"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Monthly Distribution Count</div>
+              <div class="chart-card-subtitle">Number of individual distributions per month</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:240px;">
+            <canvas id="chart-count-trend"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3: BY TYPE ────────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-yellow);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>By Distribution Type</h2>
+          <p>Zakat vs other distribution types — monthly trend and breakdown</p>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Amount by Distribution Type — Monthly</div>
+              <div class="chart-card-subtitle">Last 12 months, one line per type</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-type-trend"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title" id="type-breakdown-title">Distribution Type Breakdown</div>
+              <div class="chart-card-subtitle">12-month total</div>
+            </div>
+            <div class="toggle-pill">
+              <button class="active" onclick="switchTypeBreakdown('amount',this)">Amount</button>
+              <button onclick="switchTypeBreakdown('count',this)">Count</button>
+            </div>
+          </div>
+          <div class="chart-container" style="height:260px;">
+            <canvas id="chart-type-breakdown"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 4: BY PROGRAM ─────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-green);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>By Program</h2>
+          <p>Which programs are receiving the most assistance?</p>
+        </div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns:1fr;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title" id="program-chart-title">Top Programs — by Amount</div>
+              <div class="chart-card-subtitle">12-month total AUD distributed</div>
+            </div>
+            <div class="toggle-pill">
+              <button class="active" onclick="switchProgramChart('amount',this)">Amount</button>
+              <button onclick="switchProgramChart('count',this)">Count</button>
+            </div>
+          </div>
+          <div class="chart-container" style="height:320px;">
+            <canvas id="chart-program"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 5: BY STATE ───────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-blue);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>By State</h2>
+          <p>Geographic distribution of assistance</p>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Amount Distributed by State</div>
+              <div class="chart-card-subtitle">12-month total AUD</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:280px;">
+            <canvas id="chart-state-amount"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Distribution Count by State</div>
+              <div class="chart-card-subtitle">12-month total count</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:280px;">
+            <canvas id="chart-state-count"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 6: BY SUBJECT ─────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-primary);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>By Category</h2>
+          <p>What are clients being assisted with? (from distribution Subject field)</p>
+        </div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns:1fr;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title" id="subject-chart-title">Top Categories — by Amount</div>
+              <div class="chart-card-subtitle">12-month total AUD distributed</div>
+            </div>
+            <div class="toggle-pill">
+              <button class="active" onclick="switchSubjectChart('amount',this)">Amount</button>
+              <button onclick="switchSubjectChart('count',this)">Count</button>
+            </div>
+          </div>
+          <div class="chart-container" style="height:320px;">
+            <canvas id="chart-subject"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+const C = {
+  red:    '#EE3526', redLight:  'rgba(238,53,38,0.08)',
+  blue:   '#0081C6', blueLight: 'rgba(0,129,198,0.08)',
+  yellow: '#FDB913', green:     '#49A942',
+  grey:   '#9F9393', dark:      '#231F1F',
+};
+const CHART_DEFAULTS = {
+  font: { family: 'Cambay', size: 11 },
+  grid: { color: '#F0EEEE' },
+};
+const PALETTE = [
+  C.red, C.blue, C.yellow, C.green, C.dark,
+  '#0099B4','#9B2335','#E8732A','#4C6060','#B5BD00','#9F9393',
+];
+
+function fmt(n)    { return (n??0).toLocaleString('en-AU'); }
+function fmtAUD(n) {
+  if (n===null||n===undefined) return '—';
+  return '$' + Number(n).toLocaleString('en-AU', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+function fmtAUDfull(n) {
+  return '$' + Number(n||0).toLocaleString('en-AU', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function friendlyMonth(ym) {
+  if (!ym) return '';
+  const [y,m] = ym.split('-');
+  return new Date(y,m-1,1).toLocaleString('en-AU',{month:'long',year:'numeric'});
+}
+function changeBadge(pct) {
+  if (pct===null||pct===undefined) return '';
+  const cls   = pct>0?'up':pct<0?'down':'flat';
+  const arrow = pct>0?'▲':pct<0?'▼':'—';
+  return `<div class="kpi-change ${cls}">${arrow} ${Math.abs(pct)}% vs prev month</div>`;
+}
+function monthLabels(months) {
+  return months.map(m=>{
+    const [y,mo]=m.split('-');
+    return new Date(y,mo-1,1).toLocaleString('en-AU',{month:'short',year:'2-digit'});
+  });
+}
+
+(async()=>{
+  await requireAuth();
+  renderNav("Distributions");
+
+  let data;
+  try {
+    const res = await fetch('/data/distributions.json');
+    data = await res.json();
+    window.__NZF_META = data.meta;
+  } catch(e) {
+    document.getElementById('total-kpis').innerHTML =
+      `<div style="padding:20px;font-family:'Cambay';color:var(--text-muted)">
+        ⚠ distributions.json not yet available. Run the data refresh action.
+       </div>`;
+    return;
+  }
+
+  // Month label
+  document.getElementById('month-label').innerHTML = `
+    <div style="font-family:'Cambay';font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Current month</div>
+    <div style="font-family:'Bree Serif';font-size:1rem;color:var(--text-primary)">${friendlyMonth(data.meta.current_month)}</div>`;
+
+  renderKPIs(data);
+  renderAmountTrend(data);
+  renderCountTrend(data);
+  renderTypeTrend(data);
+  initTypeBreakdown(data);
+  initProgramChart(data);
+  renderStateCharts(data);
+  initSubjectChart(data);
+})();
+
+// ── KPIs ──────────────────────────────────────────────────────────
+function renderKPIs(data) {
+  const s = data.summary;
+  document.getElementById('total-kpis').innerHTML = `
+    <div class="kpi-card accent-red">
+      <div class="kpi-label">Distributed — ${friendlyMonth(data.meta.current_month)}</div>
+      <div class="kpi-value" style="font-size:1.6rem">${fmtAUD(s.current_month_amount)}</div>
+      ${changeBadge(s.amount_pct_change)}
+    </div>
+    <div class="kpi-card accent-red" style="--kpi-color:var(--color-mid-grey)">
+      <div class="kpi-label">Distributed — ${friendlyMonth(data.meta.previous_month)}</div>
+      <div class="kpi-value" style="font-size:1.6rem">${fmtAUD(s.previous_month_amount)}</div>
+    </div>
+    <div class="kpi-card accent-yellow">
+      <div class="kpi-label">12-Month Total</div>
+      <div class="kpi-value" style="font-size:1.6rem">${fmtAUD(s.total_12m_amount)}</div>
+    </div>
+    <div class="kpi-card accent-yellow" style="--kpi-color:var(--color-blue)">
+      <div class="kpi-label">Monthly Average</div>
+      <div class="kpi-value" style="font-size:1.6rem">${fmtAUD(s.monthly_avg_amount)}</div>
+    </div>
+    <div class="kpi-card accent-blue">
+      <div class="kpi-label">Distributions — ${friendlyMonth(data.meta.current_month)}</div>
+      <div class="kpi-value">${fmt(s.current_month_count)}</div>
+      ${changeBadge(s.count_pct_change)}
+    </div>
+    <div class="kpi-card accent-blue" style="--kpi-color:var(--color-mid-grey)">
+      <div class="kpi-label">12-Month Count</div>
+      <div class="kpi-value">${fmt(s.total_12m_count)}</div>
+    </div>
+    <div class="kpi-card accent-green">
+      <div class="kpi-label">Avg Distribution Amount</div>
+      <div class="kpi-value" style="font-size:1.6rem">${fmtAUD(s.avg_distribution_amount)}</div>
+    </div>
+    <div class="kpi-card accent-green" style="--kpi-color:var(--color-blue)">
+      <div class="kpi-label">Clients Assisted (12m)</div>
+      <div class="kpi-value">${fmt(s.unique_clients_assisted)}</div>
+    </div>`;
+}
+
+// ── Amount trend line ──────────────────────────────────────────────
+function renderAmountTrend(data) {
+  new Chart(document.getElementById('chart-amount-trend'), {
+    type: 'line',
+    data: {
+      labels: monthLabels(data.trend.map(t=>t.month)),
+      datasets: [{
+        label: 'Amount (AUD)',
+        data:  data.trend.map(t=>t.amount),
+        borderColor: C.red, backgroundColor: 'rgba(238,53,38,0.08)',
+        fill: true, tension: 0.35,
+        pointBackgroundColor: C.red, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${fmtAUDfull(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, callback: v => fmtAUD(v) }, grid: CHART_DEFAULTS.grid, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ── Count trend line ───────────────────────────────────────────────
+function renderCountTrend(data) {
+  new Chart(document.getElementById('chart-count-trend'), {
+    type: 'line',
+    data: {
+      labels: monthLabels(data.trend.map(t=>t.month)),
+      datasets: [{
+        label: 'Count',
+        data:  data.trend.map(t=>t.count),
+        borderColor: C.blue, backgroundColor: 'rgba(0,129,198,0.08)',
+        fill: true, tension: 0.35,
+        pointBackgroundColor: C.blue, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ── Type trend lines ───────────────────────────────────────────────
+function renderTypeTrend(data) {
+  const pt = data.type_trend_series;
+  new Chart(document.getElementById('chart-type-trend'), {
+    type: 'line',
+    data: {
+      labels: monthLabels(pt.months),
+      datasets: pt.series.map(s => ({
+        label: s.type, data: s.data,
+        borderColor: s.colour, backgroundColor: s.colour,
+        borderWidth: 2, pointRadius: 3, pointHoverRadius: 5,
+        tension: 0.3, fill: false, spanGaps: true,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { font: CHART_DEFAULTS.font, padding: 12, boxWidth: 24, boxHeight: 2 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtAUDfull(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, callback: v => fmtAUD(v) }, grid: CHART_DEFAULTS.grid, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ── Type breakdown (toggleable) ────────────────────────────────────
+let _typeBreakdownChart = null;
+let _typeData = null;
+function initTypeBreakdown(data) {
+  _typeData = data.by_type;
+  renderTypeBreakdown('amount');
+}
+function switchTypeBreakdown(mode, btn) {
+  document.querySelectorAll('.toggle-pill button').forEach(b => {
+    if (b.closest('[id]')?.id === undefined) return;
+  });
+  btn.closest('.toggle-pill').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTypeBreakdown(mode);
+}
+function renderTypeBreakdown(mode) {
+  const items  = _typeData[mode] || [];
+  const labels = items.map(i => i.label);
+  const values = items.map(i => i.value);
+  const colours= labels.map((_,i) => PALETTE[i % PALETTE.length]);
+
+  if (_typeBreakdownChart) { _typeBreakdownChart.destroy(); }
+
+  _typeBreakdownChart = new Chart(document.getElementById('chart-type-breakdown'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: colours, borderWidth: 1, borderColor: '#fff', hoverOffset: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: CHART_DEFAULTS.font, padding: 10, boxWidth: 12, boxHeight: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed;
+              const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+              const pct = ((v/total)*100).toFixed(1);
+              return mode==='amount' ? ` ${fmtAUDfull(v)} (${pct}%)` : ` ${fmt(v)} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── Program chart (toggleable horizontal bar) ──────────────────────
+let _programChart = null;
+let _programData  = null;
+function initProgramChart(data) {
+  _programData = data.by_program;
+  renderProgramChart('amount');
+}
+function switchProgramChart(mode, btn) {
+  btn.closest('.toggle-pill').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('program-chart-title').textContent =
+    mode==='amount' ? 'Top Programs — by Amount' : 'Top Programs — by Count';
+  renderProgramChart(mode);
+}
+function renderProgramChart(mode) {
+  const items   = _programData[mode] || [];
+  const labels  = items.map(i => i.label);
+  const values  = items.map(i => i.value);
+  const colours = labels.map((_,i) => PALETTE[i % PALETTE.length]);
+  if (_programChart) { _programChart.destroy(); }
+  _programChart = new Chart(document.getElementById('chart-program'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: mode==='amount'?'AUD':'Count', data: values, backgroundColor: colours, borderRadius: 4, borderSkipped: false }] },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => mode==='amount' ? ` ${fmtAUDfull(ctx.parsed.x)}` : ` ${fmt(ctx.parsed.x)}` } }
+      },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font, callback: v => mode==='amount' ? fmtAUD(v) : fmt(v) }, grid: CHART_DEFAULTS.grid, beginAtZero: true },
+        y: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ── State charts ───────────────────────────────────────────────────
+function renderStateCharts(data) {
+  const byState = data.by_state;
+
+  // Amount chart
+  const amountItems = byState.amount || [];
+  new Chart(document.getElementById('chart-state-amount'), {
+    type: 'bar',
+    data: {
+      labels: amountItems.map(i=>i.state),
+      datasets: [{ label:'AUD', data: amountItems.map(i=>i.amount),
+        backgroundColor: amountItems.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${fmtAUDfull(ctx.parsed.x)}` } }
+      },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font, callback: v => fmtAUD(v) }, grid: CHART_DEFAULTS.grid, beginAtZero: true },
+        y: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Count chart
+  const countItems = byState.count || [];
+  new Chart(document.getElementById('chart-state-count'), {
+    type: 'bar',
+    data: {
+      labels: countItems.map(i=>i.state),
+      datasets: [{ label:'Count', data: countItems.map(i=>i.count),
+        backgroundColor: countItems.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true },
+        y: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ── Subject chart (toggleable horizontal bar) ──────────────────────
+let _subjectChart = null;
+let _subjectData  = null;
+function initSubjectChart(data) {
+  _subjectData = data.by_subject;
+  renderSubjectChart('amount');
+}
+function switchSubjectChart(mode, btn) {
+  btn.closest('.toggle-pill').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('subject-chart-title').textContent =
+    mode==='amount' ? 'Top Categories — by Amount' : 'Top Categories — by Count';
+  renderSubjectChart(mode);
+}
+function renderSubjectChart(mode) {
+  const items  = _subjectData[mode] || [];
+  const labels = items.map(i=>i.label);
+  const values = items.map(i=>i.value);
+  const colours= labels.map((_,i)=>PALETTE[i%PALETTE.length]);
+  if (_subjectChart) { _subjectChart.destroy(); }
+  _subjectChart = new Chart(document.getElementById('chart-subject'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: mode==='amount'?'AUD':'Count', data: values, backgroundColor: colours, borderRadius: 4, borderSkipped: false }] },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => mode==='amount' ? ` ${fmtAUDfull(ctx.parsed.x)}` : ` ${fmt(ctx.parsed.x)}` } }
+      },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font, callback: v => mode==='amount' ? fmtAUD(v) : fmt(v) }, grid: CHART_DEFAULTS.grid, beginAtZero: true },
+        y: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
