@@ -81,7 +81,7 @@ def run_query(token, sql, label="query", poll_interval=3, max_wait=120):
 
     # ── Step 1: Create export job ─────────────────────────────────
     config  = json.dumps({"sqlQuery": sql.strip(), "responseFormat": "csv"})
-    res     = requests.post(base, headers=headers, params={"CONFIG": config})
+    res     = requests.post(base, headers=headers, data={"CONFIG": config})
 
     if not res.ok:
         raise RuntimeError(
