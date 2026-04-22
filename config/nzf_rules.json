@@ -127,6 +127,88 @@
     }
   },
 
+  "distributions": {
+    "_description": "Rules for how distributions (payments to clients) are classified",
+
+    "paid_statuses": ["Paid", "Extracted"],
+
+    "paid_date_logic": {
+      "definition": "The effective payment date for a distribution.",
+      "rules": [
+        "If Status = 'Paid'      → use Paid Date field",
+        "If Status = 'Extracted' → use Extracted Date field",
+        "If the specific date field is blank → fall back to Created Time"
+      ]
+    },
+
+    "amount_field": "grand_total",
+    "_amount_note": "Grand Total field — contains AU$ prefix that must be stripped before parsing as float",
+
+    "return_gap_bands": {
+      "definition": "How time-since-last-assistance is grouped for reporting",
+      "bands": [
+        { "label": "< 1 month",   "days_from": 0,   "days_to": 29   },
+        { "label": "1–3 months",  "days_from": 30,  "days_to": 89   },
+        { "label": "3–6 months",  "days_from": 90,  "days_to": 179  },
+        { "label": "6–12 months", "days_from": 180, "days_to": 364  },
+        { "label": "1–2 years",   "days_from": 365, "days_to": 729  },
+        { "label": "2+ years",    "days_from": 730, "days_to": null  }
+      ]
+    }
+  },
+
+  "case_performance": {
+    "_description": "Rules for the Cases Performance dashboard — response time, closure time, SLA targets, automated note exclusions.",
+
+    "sla_targets_hours": {
+      "_description": "Target first-response time in hours by priority. Used to calculate SLA compliance rate.",
+      "P1":          24,
+      "P2":          72,
+      "P3":          144,
+      "P4":          240,
+      "P5":          336,
+      "No Priority": null
+    },
+
+    "automated_note_titles": {
+      "_description": "Note titles that represent system-generated or intake admin notes — NOT genuine caseworker actions. These are excluded from first-response time calculations. Add new patterns here as they are identified.",
+      "exact_match": [
+        "Case Allocation Notes",
+        "Online Application",
+        "Application:",
+        "Application",
+        "CCNR",
+        "CCUFR",
+        "CCF",
+        "RFA"
+      ],
+      "prefix_match": [
+        "Application:"
+      ]
+    },
+
+    "closed_stages": [
+      "Closed - Funded",
+      "Closed - Not Funded",
+      "Closed - NO Response"
+    ],
+
+    "closure_outcome_colours": {
+      "Closed - Funded":      "#49A942",
+      "Closed - Not Funded":  "#EE3526",
+      "Closed - NO Response": "#FDB913"
+    },
+
+    "closure_outcome_short": {
+      "Closed - Funded":      "Funded",
+      "Closed - Not Funded":  "Not Funded",
+      "Closed - NO Response": "No Response"
+    },
+
+    "trend_comparison_months": 3,
+    "_trend_note": "Number of months used for trend comparison (last N vs prior N months)"
+  },
+
   "case_priorities": {
     "_description": "Normalisation rules for the Case Urgency field. Raw values in Zoho CRM are inconsistent — these prefix matches normalise them to clean labels for reporting.",
     "prefix_map": [
