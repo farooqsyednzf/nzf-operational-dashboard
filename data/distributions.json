@@ -1,0 +1,429 @@
+{
+  "meta": {
+    "last_updated": "2026-04-22T23:36:26.080742+00:00",
+    "record_count": 2448,
+    "months_covered": [
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04"
+    ],
+    "current_month": "2026-04",
+    "previous_month": "2026-03"
+  },
+  "summary": {
+    "current_month_amount": 525221.43,
+    "previous_month_amount": 922204.98,
+    "amount_pct_change": -43.0,
+    "total_12m_amount": 4327659.19,
+    "monthly_avg_amount": 332896.86,
+    "current_month_count": 216,
+    "previous_month_count": 366,
+    "count_pct_change": -41.0,
+    "total_12m_count": 2276,
+    "avg_distribution_amount": 1901.43,
+    "unique_cases_assisted": 1088,
+    "unique_clients_assisted": 989
+  },
+  "trend": [
+    {
+      "month": "2025-04",
+      "amount": 318214.43,
+      "count": 139
+    },
+    {
+      "month": "2025-05",
+      "amount": 108188.15,
+      "count": 151
+    },
+    {
+      "month": "2025-06",
+      "amount": 139713.79,
+      "count": 123
+    },
+    {
+      "month": "2025-07",
+      "amount": 297861.56,
+      "count": 162
+    },
+    {
+      "month": "2025-08",
+      "amount": 185417.79,
+      "count": 166
+    },
+    {
+      "month": "2025-09",
+      "amount": 205326.12,
+      "count": 164
+    },
+    {
+      "month": "2025-10",
+      "amount": 254364.94,
+      "count": 176
+    },
+    {
+      "month": "2025-11",
+      "amount": 621625.23,
+      "count": 108
+    },
+    {
+      "month": "2025-12",
+      "amount": 124596.26,
+      "count": 103
+    },
+    {
+      "month": "2026-01",
+      "amount": 340895.62,
+      "count": 178
+    },
+    {
+      "month": "2026-02",
+      "amount": 284028.89,
+      "count": 224
+    },
+    {
+      "month": "2026-03",
+      "amount": 922204.98,
+      "count": 366
+    },
+    {
+      "month": "2026-04",
+      "amount": 525221.43,
+      "count": 216
+    }
+  ],
+  "by_type": {
+    "amount": [
+      {
+        "label": "Zakat",
+        "value": 3117310.54
+      },
+      {
+        "label": "Sadaqah",
+        "value": 804157.15
+      },
+      {
+        "label": "Zakat ul Fitr",
+        "value": 276154.0
+      },
+      {
+        "label": "Fidya",
+        "value": 130037.5
+      }
+    ],
+    "count": [
+      {
+        "label": "Zakat",
+        "value": 1955
+      },
+      {
+        "label": "Fidya",
+        "value": 228
+      },
+      {
+        "label": "Sadaqah",
+        "value": 53
+      },
+      {
+        "label": "Zakat ul Fitr",
+        "value": 40
+      }
+    ]
+  },
+  "type_trend_series": {
+    "months": [
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04"
+    ],
+    "series": [
+      {
+        "type": "Zakat",
+        "colour": "#EE3526",
+        "data": [
+          228090.43,
+          97678.15,
+          93013.79,
+          220150.92,
+          158801.0,
+          193685.72,
+          231139.94,
+          119252.75,
+          122866.26,
+          261382.52,
+          280408.89,
+          691832.67,
+          419007.5
+        ]
+      },
+      {
+        "type": "Sadaqah",
+        "colour": "#0081C6",
+        "data": [
+          27350.0,
+          1970.0,
+          39000.0,
+          65230.64,
+          2874.29,
+          4790.4,
+          1300.0,
+          499472.48,
+          100.0,
+          77913.1,
+          1120.0,
+          8672.31,
+          74363.93
+        ]
+      },
+      {
+        "type": "Zakat ul Fitr",
+        "colour": "#FDB913",
+        "data": [
+          58094.0,
+          0,
+          600.0,
+          280.0,
+          120.0,
+          0,
+          80.0,
+          0,
+          80.0,
+          200.0,
+          0,
+          216700.0,
+          0
+        ]
+      },
+      {
+        "type": "Fidya",
+        "colour": "#49A942",
+        "data": [
+          4680.0,
+          8540.0,
+          7100.0,
+          12200.0,
+          23622.5,
+          6850.0,
+          21845.0,
+          2900.0,
+          1550.0,
+          1400.0,
+          2500.0,
+          5000.0,
+          31850.0
+        ]
+      }
+    ]
+  },
+  "by_program": {
+    "amount": [
+      {
+        "label": "981539000139861240",
+        "value": 1565656.46
+      },
+      {
+        "label": "981539000139861258",
+        "value": 458080.48
+      },
+      {
+        "label": "981539000147035242",
+        "value": 320193.3
+      },
+      {
+        "label": "981539000177652418",
+        "value": 315455.9
+      },
+      {
+        "label": "981539000139861249",
+        "value": 248371.0
+      },
+      {
+        "label": "981539000139861245",
+        "value": 241900.86
+      },
+      {
+        "label": "981539000139861248",
+        "value": 230823.6
+      },
+      {
+        "label": "981539000172474281",
+        "value": 227480.75
+      },
+      {
+        "label": "981539000199508104",
+        "value": 178526.5
+      },
+      {
+        "label": "981539000272882021",
+        "value": 114918.93
+      },
+      {
+        "label": "Other",
+        "value": 426251.41
+      }
+    ],
+    "count": [
+      {
+        "label": "981539000139861240",
+        "value": 505
+      },
+      {
+        "label": "981539000147035242",
+        "value": 328
+      },
+      {
+        "label": "981539000177652418",
+        "value": 306
+      },
+      {
+        "label": "981539000139861249",
+        "value": 240
+      },
+      {
+        "label": "981539000199508104",
+        "value": 207
+      },
+      {
+        "label": "981539000139861245",
+        "value": 188
+      },
+      {
+        "label": "981539000172474281",
+        "value": 124
+      },
+      {
+        "label": "981539000139861261",
+        "value": 72
+      },
+      {
+        "label": "981539000139861248",
+        "value": 35
+      },
+      {
+        "label": "981539000139861259",
+        "value": 30
+      },
+      {
+        "label": "Other",
+        "value": 241
+      }
+    ]
+  },
+  "by_state": {
+    "amount": [],
+    "count": []
+  },
+  "by_subject": {
+    "amount": [
+      {
+        "label": "Quran School Program - final payment",
+        "value": 424040.48
+      },
+      {
+        "label": "Funeral Assistance",
+        "value": 200001.1
+      },
+      {
+        "label": "Benevolence Australia collection",
+        "value": 126742.0
+      },
+      {
+        "label": "Perth Islamic\u00a0center collection - 2025",
+        "value": 123381.0
+      },
+      {
+        "label": "Perth Islamic\u00a0center collection - 2026",
+        "value": 100000.0
+      },
+      {
+        "label": "Rent arrears",
+        "value": 95307.0
+      },
+      {
+        "label": "Zakat to iCharity",
+        "value": 95000.0
+      },
+      {
+        "label": "Muslim Connect - MOU",
+        "value": 80000.0
+      },
+      {
+        "label": "Coles Vouchers",
+        "value": 74812.5
+      },
+      {
+        "label": "Debt",
+        "value": 62000.0
+      },
+      {
+        "label": "Other",
+        "value": 2946375.11
+      }
+    ],
+    "count": [
+      {
+        "label": "Coles Voucher",
+        "value": 164
+      },
+      {
+        "label": "Coles voucher",
+        "value": 77
+      },
+      {
+        "label": "Ramadan 2026 assistance",
+        "value": 47
+      },
+      {
+        "label": "Ramadan Support 2026",
+        "value": 46
+      },
+      {
+        "label": "Gaza Settlement Payment",
+        "value": 45
+      },
+      {
+        "label": "CV",
+        "value": 45
+      },
+      {
+        "label": "Rent arrears",
+        "value": 43
+      },
+      {
+        "label": "Fidya",
+        "value": 42
+      },
+      {
+        "label": "Cost of living payment",
+        "value": 35
+      },
+      {
+        "label": "Gaza Settlement payment",
+        "value": 33
+      },
+      {
+        "label": "Other",
+        "value": 1699
+      }
+    ]
+  }
+}

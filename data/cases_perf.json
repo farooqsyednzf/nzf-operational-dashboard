@@ -1,0 +1,725 @@
+{
+  "meta": {
+    "last_updated": "2026-04-22T23:36:13.176024+00:00",
+    "months_covered": [
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04"
+    ],
+    "current_month": "2026-04",
+    "cases_analysed": 28818,
+    "notes_analysed": 190667,
+    "automated_excluded": 27930
+  },
+  "executive_summary": {
+    "median_response_hours": 157.3,
+    "median_closure_days": 340.9,
+    "sla_compliance_pct": 58.4,
+    "funding_rate_pct": 48.6,
+    "backlog_over_30d": 637,
+    "response_trend": "regressing",
+    "closure_trend": "regressing"
+  },
+  "response_time": {
+    "overall": {
+      "median_hours": 117.0,
+      "avg_hours": 165.0,
+      "p75_hours": 190.0,
+      "count": 2589,
+      "trend": {
+        "recent_avg": 208.4,
+        "prior_avg": 82.1,
+        "direction": "regressing"
+      }
+    },
+    "by_priority": {
+      "P1": {
+        "median_hours": 21.8,
+        "avg_hours": 51.6,
+        "count": 61,
+        "sla_target_hours": 24,
+        "sla_compliance": 54.1
+      },
+      "P2": {
+        "median_hours": 49.4,
+        "avg_hours": 119.9,
+        "count": 116,
+        "sla_target_hours": 72,
+        "sla_compliance": 56.9
+      },
+      "P3": {
+        "median_hours": 139.9,
+        "avg_hours": 177.7,
+        "count": 1153,
+        "sla_target_hours": 144,
+        "sla_compliance": 52.3
+      },
+      "P4": {
+        "median_hours": 69.8,
+        "avg_hours": 208.9,
+        "count": 295,
+        "sla_target_hours": 240,
+        "sla_compliance": 83.7
+      },
+      "P5": {
+        "median_hours": null,
+        "avg_hours": null,
+        "count": 0,
+        "sla_target_hours": 336,
+        "sla_compliance": null
+      },
+      "No Priority": {
+        "median_hours": 117.4,
+        "avg_hours": 149.1,
+        "count": 964,
+        "sla_target_hours": null,
+        "sla_compliance": null
+      }
+    },
+    "monthly_trend": {
+      "2025-04": 85.3,
+      "2025-05": 95.9,
+      "2025-06": 183.7,
+      "2025-07": 143.2,
+      "2025-08": 70.8,
+      "2025-09": 51.1,
+      "2025-10": 88.9,
+      "2025-11": 142.3,
+      "2025-12": 41.7,
+      "2026-01": 62.2,
+      "2026-02": 157.9,
+      "2026-03": 310.1,
+      "2026-04": 157.3
+    },
+    "priority_trend_series": {
+      "months": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04"
+      ],
+      "series": [
+        {
+          "priority": "P1",
+          "colour": "#EE3526",
+          "data": [
+            0.4,
+            49.8,
+            5.4,
+            43.9,
+            64.8,
+            24.9,
+            14.2,
+            107.6,
+            1.9,
+            21.3,
+            47.6,
+            15.3,
+            0.7
+          ]
+        },
+        {
+          "priority": "P2",
+          "colour": "#E8732A",
+          "data": [
+            135.4,
+            22.4,
+            102.5,
+            73.6,
+            46.7,
+            27.1,
+            66.1,
+            137.8,
+            22.6,
+            49.5,
+            19.3,
+            87.9,
+            0.1
+          ]
+        },
+        {
+          "priority": "P3",
+          "colour": "#FDB913",
+          "data": [
+            89.6,
+            117.0,
+            186.9,
+            171.9,
+            91.8,
+            62.8,
+            92.0,
+            141.9,
+            48.1,
+            68.5,
+            168.5,
+            337.8,
+            164.9
+          ]
+        },
+        {
+          "priority": "P4",
+          "colour": "#0081C6",
+          "data": [
+            68.8,
+            95.6,
+            253.4,
+            19.1,
+            67.5,
+            46.4,
+            85.2,
+            141.4,
+            12.4,
+            55.5,
+            110.9,
+            0.7,
+            178.9
+          ]
+        },
+        {
+          "priority": "P5",
+          "colour": "#49A942",
+          "data": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "priority": "No Priority",
+          "colour": "#9F9393",
+          "data": [
+            86.4,
+            92.9,
+            195.2,
+            140.7,
+            98.5,
+            64.0,
+            95.0,
+            145.6,
+            44.5,
+            49.7,
+            159.2,
+            286.7,
+            155.5
+          ]
+        }
+      ]
+    },
+    "sla_targets": {
+      "_description": "Target first-response time in hours by priority. Used to calculate SLA compliance rate.",
+      "P1": 24,
+      "P2": 72,
+      "P3": 144,
+      "P4": 240,
+      "P5": 336,
+      "No Priority": null
+    },
+    "sla_compliance_by_priority": {
+      "P1": 54.1,
+      "P2": 56.9,
+      "P3": 52.3,
+      "P4": 83.7,
+      "P5": null,
+      "No Priority": null
+    }
+  },
+  "closure_time": {
+    "overall": {
+      "median_days": 393.7,
+      "avg_days": 810.9,
+      "p75_days": 1320.3,
+      "count": 5694,
+      "trend": {
+        "recent_avg": 526.5,
+        "prior_avg": 415.3,
+        "direction": "regressing"
+      }
+    },
+    "by_outcome": {
+      "Funded": {
+        "stage": "Closed - Funded",
+        "median_days": 796.7,
+        "avg_days": 1093.9,
+        "p75_days": 1807.8,
+        "count": 2766,
+        "colour": "#49A942"
+      },
+      "Not Funded": {
+        "stage": "Closed - Not Funded",
+        "median_days": 411.0,
+        "avg_days": 760.8,
+        "p75_days": 1227.8,
+        "count": 1871,
+        "colour": "#EE3526"
+      },
+      "No Response": {
+        "stage": "Closed - NO Response",
+        "median_days": 52.3,
+        "avg_days": 158.7,
+        "p75_days": 192.6,
+        "count": 1057,
+        "colour": "#FDB913"
+      }
+    },
+    "by_priority": {
+      "P1": {
+        "median_days": 1913.0,
+        "avg_days": 1566.2,
+        "count": 299
+      },
+      "P2": {
+        "median_days": 1510.1,
+        "avg_days": 1339.6,
+        "count": 431
+      },
+      "P3": {
+        "median_days": 154.0,
+        "avg_days": 733.3,
+        "count": 1393
+      },
+      "P4": {
+        "median_days": 717.0,
+        "avg_days": 812.1,
+        "count": 956
+      },
+      "P5": {
+        "median_days": 3457.5,
+        "avg_days": 3462.6,
+        "count": 216
+      },
+      "No Priority": {
+        "median_days": 229.1,
+        "avg_days": 427.5,
+        "count": 2399
+      }
+    },
+    "monthly_trend": {
+      "2025-04": 757.4,
+      "2025-05": 294.3,
+      "2025-06": 204.6,
+      "2025-07": 136.6,
+      "2025-08": 313.1,
+      "2025-09": 216.0,
+      "2025-10": 133.6,
+      "2025-11": 326.5,
+      "2025-12": 284.8,
+      "2026-01": 634.6,
+      "2026-02": 711.9,
+      "2026-03": 526.7,
+      "2026-04": 340.9
+    },
+    "priority_trend_series": {
+      "months": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04"
+      ],
+      "series": [
+        {
+          "priority": "P1",
+          "colour": "#EE3526",
+          "data": [
+            1186.1,
+            1764.2,
+            1844.6,
+            630.4,
+            1914.9,
+            1926.9,
+            1979.0,
+            2001.5,
+            1893.4,
+            1757.0,
+            2101.8,
+            2116.0,
+            2210.2
+          ]
+        },
+        {
+          "priority": "P2",
+          "colour": "#E8732A",
+          "data": [
+            1254.4,
+            1275.2,
+            1503.5,
+            120.9,
+            1266.4,
+            172.5,
+            1489.9,
+            1774.8,
+            1694.0,
+            1675.9,
+            1789.9,
+            1739.2,
+            1606.3
+          ]
+        },
+        {
+          "priority": "P3",
+          "colour": "#FDB913",
+          "data": [
+            1261.8,
+            936.8,
+            1159.0,
+            129.8,
+            373.0,
+            130.2,
+            108.0,
+            156.8,
+            167.8,
+            146.8,
+            254.8,
+            141.9,
+            23.7
+          ]
+        },
+        {
+          "priority": "P4",
+          "colour": "#0081C6",
+          "data": [
+            824.8,
+            294.3,
+            517.2,
+            475.5,
+            492.1,
+            174.4,
+            157.4,
+            780.0,
+            707.0,
+            1095.9,
+            894.4,
+            682.9,
+            959.5
+          ]
+        },
+        {
+          "priority": "P5",
+          "colour": "#49A942",
+          "data": [
+            3160.8,
+            3223.8,
+            3448.2,
+            3672.3,
+            3341.6,
+            3407.7,
+            3434.1,
+            3415.8,
+            3375.4,
+            3808.2,
+            3655.4,
+            3672.1,
+            3834.8
+          ]
+        },
+        {
+          "priority": "No Priority",
+          "colour": "#9F9393",
+          "data": [
+            112.5,
+            148.2,
+            103.9,
+            130.4,
+            197.1,
+            238.1,
+            87.2,
+            256.8,
+            158.8,
+            306.2,
+            439.9,
+            496.1,
+            503.1
+          ]
+        }
+      ]
+    },
+    "outcome_trend_series": {
+      "months": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04"
+      ],
+      "series": [
+        {
+          "stage": "Closed - Funded",
+          "label": "Funded",
+          "colour": "#49A942",
+          "data": [
+            824.9,
+            431.2,
+            872.7,
+            271.9,
+            665.0,
+            427.1,
+            287.6,
+            648.0,
+            798.2,
+            1162.8,
+            1075.0,
+            819.1,
+            748.2
+          ]
+        },
+        {
+          "stage": "Closed - Not Funded",
+          "label": "Not Funded",
+          "colour": "#EE3526",
+          "data": [
+            331.3,
+            226.9,
+            160.5,
+            135.3,
+            316.8,
+            262.1,
+            107.0,
+            489.9,
+            284.8,
+            569.0,
+            828.9,
+            451.2,
+            706.5
+          ]
+        },
+        {
+          "stage": "Closed - NO Response",
+          "label": "No Response",
+          "colour": "#FDB913",
+          "data": [
+            39.8,
+            14.8,
+            80.7,
+            13.9,
+            110.6,
+            118.2,
+            11.9,
+            77.8,
+            104.9,
+            56.1,
+            124.5,
+            91.7,
+            20.1
+          ]
+        }
+      ]
+    }
+  },
+  "throughput": {
+    "monthly": [
+      {
+        "month": "2025-04",
+        "created": 199,
+        "closed": 600,
+        "net": -401
+      },
+      {
+        "month": "2025-05",
+        "created": 228,
+        "closed": 365,
+        "net": -137
+      },
+      {
+        "month": "2025-06",
+        "created": 171,
+        "closed": 262,
+        "net": -91
+      },
+      {
+        "month": "2025-07",
+        "created": 174,
+        "closed": 314,
+        "net": -140
+      },
+      {
+        "month": "2025-08",
+        "created": 156,
+        "closed": 342,
+        "net": -186
+      },
+      {
+        "month": "2025-09",
+        "created": 176,
+        "closed": 363,
+        "net": -187
+      },
+      {
+        "month": "2025-10",
+        "created": 190,
+        "closed": 278,
+        "net": -88
+      },
+      {
+        "month": "2025-11",
+        "created": 184,
+        "closed": 381,
+        "net": -197
+      },
+      {
+        "month": "2025-12",
+        "created": 189,
+        "closed": 381,
+        "net": -192
+      },
+      {
+        "month": "2026-01",
+        "created": 199,
+        "closed": 500,
+        "net": -301
+      },
+      {
+        "month": "2026-02",
+        "created": 332,
+        "closed": 569,
+        "net": -237
+      },
+      {
+        "month": "2026-03",
+        "created": 421,
+        "closed": 821,
+        "net": -400
+      },
+      {
+        "month": "2026-04",
+        "created": 164,
+        "closed": 518,
+        "net": -354
+      }
+    ],
+    "funding_rate_monthly": {
+      "2025-04": 58.8,
+      "2025-05": 47.4,
+      "2025-06": 49.6,
+      "2025-07": 48.1,
+      "2025-08": 44.2,
+      "2025-09": 48.8,
+      "2025-10": 43.9,
+      "2025-11": 43.6,
+      "2025-12": 44.4,
+      "2026-01": 53.0,
+      "2026-02": 52.4,
+      "2026-03": 48.0,
+      "2026-04": 41.9
+    },
+    "funding_rate_12m": 48.6
+  },
+  "backlog": {
+    "total_open": 809,
+    "over_30d": 637,
+    "by_age": [
+      {
+        "band": "0\u20137 days",
+        "count": 44,
+        "by_priority": {
+          "P1": 2,
+          "P2": 1,
+          "P3": 3,
+          "P4": 0,
+          "P5": 0,
+          "No Priority": 38
+        }
+      },
+      {
+        "band": "8\u201314 days",
+        "count": 55,
+        "by_priority": {
+          "P1": 2,
+          "P2": 0,
+          "P3": 27,
+          "P4": 4,
+          "P5": 0,
+          "No Priority": 22
+        }
+      },
+      {
+        "band": "15\u201330 days",
+        "count": 73,
+        "by_priority": {
+          "P1": 1,
+          "P2": 2,
+          "P3": 44,
+          "P4": 3,
+          "P5": 0,
+          "No Priority": 23
+        }
+      },
+      {
+        "band": "31\u201360 days",
+        "count": 240,
+        "by_priority": {
+          "P1": 2,
+          "P2": 12,
+          "P3": 147,
+          "P4": 26,
+          "P5": 0,
+          "No Priority": 53
+        }
+      },
+      {
+        "band": "60+ days",
+        "count": 397,
+        "by_priority": {
+          "P1": 9,
+          "P2": 12,
+          "P3": 171,
+          "P4": 54,
+          "P5": 1,
+          "No Priority": 150
+        }
+      }
+    ],
+    "by_priority": {
+      "P1": 16,
+      "P2": 27,
+      "P3": 392,
+      "P4": 87,
+      "P5": 1,
+      "No Priority": 286
+    }
+  }
+}
