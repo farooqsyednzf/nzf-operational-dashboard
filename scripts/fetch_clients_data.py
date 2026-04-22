@@ -1,40 +1,33 @@
 """
 fetch_clients_data.py
 ─────────────────────
-Pulls client report data from Zoho CRM using the standard REST API.
-No COQL — works with scope: ZohoCRM.modules.ALL
+Builds /data/clients.json for the Client Report dashboard.
 
-Module mapping (NZF renames standard Zoho modules):
-  Clients       = Contacts        (api_name: Contacts)
-  Cases         = Deals           (api_name: Deals)
-  Distributions = Purchase_Orders (api_name: Purchase_Orders)
+Data pulled from Zoho CRM:
+  Cases (Deals)               — last 14 months
+  Distributions (Purchase_Orders) — all paid/extracted, all time
 
 New clients    = Cases where New_or_existing = "New"
 Returning      = Cases where New_or_existing = "Existing"
-                 EXCLUDING ongoing funding stages (ILA / recurring)
-Paid dist      = Status in ("Paid", "Extracted")
-Last assistance= Latest Paid_Date or Extracted_Date per client contact
-
-Required GitHub Secrets:
-  ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN
-  ZOHO_ACCOUNTS_URL  (https://accounts.zoho.com)
-  ZOHO_API_DOMAIN    (https://www.zohoapis.com)
+                 AND Stage NOT IN ongoing funding stages
+Last assistance= Latest Paid_Date (Status=Paid)
+                 or Extracted_Date (Status=Extracted) per client
+Return gap     = Days between last paid distribution and new case
 """
 
-import os, json, requests, time
+import os, json
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
-CLIENT_ID      = os.environ["ZOHO_CLIENT_ID"]
-CLIENT_SECRET  = os.environ["ZOHO_CLIENT_SECRET"]
-REFRESH_TOKEN  = os.environ["ZOHO_REFRESH_TOKEN"]
-ACCOUNTS_URL   = os.environ.get("ZOHO_ACCOUNTS_URL", "https://accounts.zoho.com")
-API_DOMAIN     = os.environ.get("ZOHO_API_DOMAIN",   "https://www.zohoapis.com")
+# Add scripts dir to path so we can import zoho_client
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
+import zoho_client as zc
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# Stages considered "ongoing funding" — excluded from returning client counts
+# ── Stages that represent ongoing/ILA funding — NOT genuine new returns ──
 ONGOING_STAGES = {
     "Ongoing Funding",
     "Post Funding - Follow Up",
@@ -43,264 +36,136 @@ ONGOING_STAGES = {
     "Phase 4: Monitoring & Impact",
 }
 
-# ─────────────────────────────────────────────────────────────────
-# Auth
-# ─────────────────────────────────────────────────────────────────
-def get_access_token():
-    res = requests.post(f"{ACCOUNTS_URL}/oauth/v2/token", params={
-        "refresh_token": REFRESH_TOKEN,
-        "client_id":     CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "grant_type":    "refresh_token",
-    })
-    res.raise_for_status()
-    data = res.json()
-    token = data.get("access_token")
-    if not token:
-        raise ValueError(f"Failed to get access token: {data}")
-    print("✓ Access token obtained")
-    return token
-
-# ─────────────────────────────────────────────────────────────────
-# Standard REST API — search with criteria (no COQL needed)
-# ─────────────────────────────────────────────────────────────────
-def search_records(token, module, criteria, fields, max_records=5000):
-    """
-    Use Zoho CRM search API with criteria string.
-    e.g. criteria="(Created_Time:greater_than:2025-01-01T00:00:00+00:00)"
-    Works with ZohoCRM.modules.ALL scope.
-    """
-    headers = {"Authorization": f"Zoho-oauthtoken {token}"}
-    records = []
-    page    = 1
-
-    while len(records) < max_records:
-        params = {
-            "criteria": criteria,
-            "fields":   ",".join(fields),
-            "page":     page,
-            "per_page": 200,
-        }
-        res = requests.get(
-            f"{API_DOMAIN}/crm/v3/{module}/search",
-            headers=headers,
-            params=params,
-        )
-
-        # 204 = no records found
-        if res.status_code == 204:
-            break
-
-        if res.status_code == 429:
-            # Rate limited — wait and retry
-            print("  Rate limited, waiting 10s...")
-            time.sleep(10)
-            continue
-
-        res.raise_for_status()
-        data  = res.json()
-        batch = data.get("data", [])
-        if not batch:
-            break
-
-        records.extend(batch)
-
-        if not data.get("info", {}).get("more_records", False):
-            break
-
-        page += 1
-        time.sleep(0.2)   # be polite to the API
-
-    return records
-
-
-def get_all_records(token, module, fields, max_records=5000):
-    """
-    Fetch ALL records from a module using standard pagination.
-    Used for distributions where we need everything.
-    """
-    headers = {"Authorization": f"Zoho-oauthtoken {token}"}
-    records = []
-    page    = 1
-
-    while len(records) < max_records:
-        params = {
-            "fields":     ",".join(fields),
-            "page":       page,
-            "per_page":   200,
-            "sort_by":    "id",
-            "sort_order": "desc",
-        }
-        res = requests.get(
-            f"{API_DOMAIN}/crm/v3/{module}",
-            headers=headers,
-            params=params,
-        )
-
-        if res.status_code == 204:
-            break
-
-        if res.status_code == 429:
-            print("  Rate limited, waiting 10s...")
-            time.sleep(10)
-            continue
-
-        res.raise_for_status()
-        data  = res.json()
-        batch = data.get("data", [])
-        if not batch:
-            break
-
-        records.extend(batch)
-
-        if not data.get("info", {}).get("more_records", False):
-            break
-
-        page += 1
-        time.sleep(0.2)
-
-    return records
-
-# ─────────────────────────────────────────────────────────────────
-# Helpers
-# ─────────────────────────────────────────────────────────────────
-def month_key(dt_str):
-    if not dt_str:
-        return None
-    return str(dt_str)[:7]   # "YYYY-MM"
+# ── Date helpers ──────────────────────────────────────────────────
+def cutoff_14_months():
+    now = datetime.now(timezone.utc)
+    m, y = now.month - 13, now.year
+    while m <= 0:
+        m += 12; y -= 1
+    return datetime(y, m, 1, tzinfo=timezone.utc)
 
 def last_13_months():
-    now    = datetime.now(timezone.utc)
-    seen   = set()
-    result = []
-    for i in range(14, -1, -1):
-        d  = now.replace(day=1) - timedelta(days=1)
-        d  = (now.replace(day=1) - timedelta(days=30 * i))
-        mk = f"{d.year}-{d.month:02d}"
+    now, result, seen = datetime.now(timezone.utc), [], set()
+    for i in range(14):
+        m, y = now.month - i, now.year
+        while m <= 0:
+            m += 12; y -= 1
+        mk = f"{y}-{m:02d}"
         if mk not in seen:
-            seen.add(mk)
-            result.append(mk)
+            seen.add(mk); result.append(mk)
+    result.reverse()
     return result[-13:]
 
-def start_of_14_months_ago():
-    now   = datetime.now(timezone.utc)
-    month = now.month - 13
-    year  = now.year
-    while month <= 0:
-        month += 12
-        year  -= 1
-    return f"{year}-{month:02d}-01"
+def month_key(dt_str):
+    return str(dt_str)[:7] if dt_str else None
 
-def parse_dt(s):
-    if not s:
-        return None
-    for fmt in ["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%d"]:
-        try:
-            dt = datetime.strptime(s, fmt)
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            return dt
-        except ValueError:
-            continue
-    return None
-
-def days_between(dt1_str, dt2_str):
-    d1 = parse_dt(dt1_str)
-    d2 = parse_dt(dt2_str)
-    if d1 and d2:
-        return abs((d2 - d1).days)
-    return None
+def days_between(s1, s2):
+    d1, d2 = zc.parse_dt(s1), zc.parse_dt(s2)
+    return abs((d2 - d1).days) if d1 and d2 else None
 
 def return_gap_band(days):
-    if days is None:         return "Unknown"
-    if days < 30:            return "< 1 month"
-    if days < 90:            return "1–3 months"
-    if days < 180:           return "3–6 months"
-    if days < 365:           return "6–12 months"
-    if days < 730:           return "1–2 years"
+    if days is None:  return "Unknown"
+    if days < 30:     return "< 1 month"
+    if days < 90:     return "1–3 months"
+    if days < 180:    return "3–6 months"
+    if days < 365:    return "6–12 months"
+    if days < 730:    return "1–2 years"
     return "2+ years"
 
-BAND_ORDER = ["< 1 month","1–3 months","3–6 months",
-              "6–12 months","1–2 years","2+ years","Unknown"]
+BAND_ORDER = [
+    "< 1 month","1–3 months","3–6 months",
+    "6–12 months","1–2 years","2+ years","Unknown"
+]
 
-# ─────────────────────────────────────────────────────────────────
-# Fetch Cases using search API (no COQL)
-# ─────────────────────────────────────────────────────────────────
+# ── Fetch Cases ───────────────────────────────────────────────────
 def fetch_cases(token):
-    since = start_of_14_months_ago()
-    print(f"  Fetching Cases created since {since}...")
+    cutoff = cutoff_14_months()
+    cutoff_str = cutoff.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+    print(f"  Fetching Cases created since {cutoff.strftime('%Y-%m-%d')}...")
 
-    # Standard search criteria — supported by ZohoCRM.modules.ALL
-    criteria = f"(Created_Time:greater_than:{since}T00:00:00+00:00)"
+    fields = [
+        "id", "Deal_Name", "Contact_Name", "Created_Time",
+        "Stage", "New_or_existing", "Description",
+        "Case_Notes_Summary", "CASE_ID",
+    ]
 
-    records = search_records(
-        token    = token,
-        module   = "Deals",
-        criteria = criteria,
-        fields   = [
-            "id", "Deal_Name", "Contact_Name", "Created_Time",
-            "Stage", "New_or_existing", "Description",
-            "Case_Notes_Summary", "CASE_ID",
-        ],
+    return zc.fetch(
+        token        = token,
+        coql_query_str = f"""
+            SELECT {', '.join(fields)}
+            FROM Deals
+            WHERE Created_Time >= '{cutoff_str}'
+        """.strip(),
+        fallback_module    = "Deals",
+        fallback_fields    = fields,
+        fallback_cutoff_dt = cutoff,
+        label              = "Cases",
     )
-    print(f"  → {len(records)} cases fetched")
-    return records
 
-# ─────────────────────────────────────────────────────────────────
-# Fetch paid Distributions using search API (no COQL)
-# ─────────────────────────────────────────────────────────────────
+# ── Fetch paid Distributions ──────────────────────────────────────
 def fetch_paid_distributions(token):
-    print("  Fetching paid Distributions (Status: Extracted)...")
+    """
+    Fetch all Paid + Extracted distributions.
 
-    # Fetch Extracted first
-    extracted = search_records(
-        token    = token,
-        module   = "Purchase_Orders",
-        criteria = "(Status:equals:Extracted)",
-        fields   = [
-            "id", "Contact_Name", "Deal_Name", "Status",
-            "Paid_Date", "Extracted_Date", "Created_Time",
-        ],
-        max_records = 20000,
+    COQL path:  Single query with WHERE Status IN ('Paid','Extracted')
+                ~9 API calls for typical NZF data volume.
+
+    Fallback:   Two separate list fetches (all distributions, no date
+                filter) filtered to Paid/Extracted in Python.
+                More calls, but guaranteed complete.
+
+    We need full history (not just 14 months) because return-gap
+    calculation looks back as far as the client's first ever payment.
+    """
+    print("  Fetching Distributions (Status: Paid or Extracted)...")
+
+    fields = [
+        "id", "Contact_Name", "Deal_Name", "Status",
+        "Paid_Date", "Extracted_Date", "Created_Time",
+    ]
+
+    # COQL can filter on Status directly — huge saving vs fetching all
+    records = zc.fetch(
+        token          = token,
+        coql_query_str = f"""
+            SELECT {', '.join(fields)}
+            FROM Purchase_Orders
+            WHERE Status = 'Paid' OR Status = 'Extracted'
+        """.strip(),
+        fallback_module    = "Purchase_Orders",
+        fallback_fields    = fields,
+        fallback_cutoff_dt = None,     # No date cutoff — need full history
+        label              = "Distributions",
+        max_records        = 50000,
     )
-    print(f"    → {len(extracted)} extracted")
 
-    print("  Fetching paid Distributions (Status: Paid)...")
-    paid = search_records(
-        token    = token,
-        module   = "Purchase_Orders",
-        criteria = "(Status:equals:Paid)",
-        fields   = [
-            "id", "Contact_Name", "Deal_Name", "Status",
-            "Paid_Date", "Extracted_Date", "Created_Time",
-        ],
-        max_records = 20000,
-    )
-    print(f"    → {len(paid)} paid")
+    # If we used the fallback (list API, no filter), filter here
+    paid = [r for r in records if r.get("Status") in ("Paid", "Extracted")]
+    if len(paid) < len(records):
+        print(f"  [Distributions] Filtered to {len(paid)} paid/extracted "
+              f"(from {len(records)} total fetched)")
 
-    all_dists = extracted + paid
-    print(f"  → {len(all_dists)} total paid distributions")
-    return all_dists
+    return paid
 
-# ─────────────────────────────────────────────────────────────────
-# Build last-paid-date index: contact_id → latest paid date string
-# ─────────────────────────────────────────────────────────────────
+# ── Build last-paid-date index per client ─────────────────────────
 def build_last_paid_index(distributions):
+    """
+    Returns dict: contact_id → ISO string of their latest paid date.
+    - Status=Paid      → uses Paid_Date
+    - Status=Extracted → uses Extracted_Date
+    Both fall back to Created_Time if the specific date field is empty.
+    """
     index = {}
-
     for d in distributions:
         contact    = d.get("Contact_Name") or {}
         contact_id = contact.get("id") if isinstance(contact, dict) else None
         if not contact_id:
             continue
 
-        status = d.get("Status", "")
-        if status == "Paid":
-            paid_dt = d.get("Paid_Date") or d.get("Created_Time")
-        elif status == "Extracted":
-            paid_dt = d.get("Extracted_Date") or d.get("Created_Time")
-        else:
-            paid_dt = d.get("Created_Time")
+        paid_dt = (
+            d.get("Paid_Date")      if d.get("Status") == "Paid"
+            else d.get("Extracted_Date")
+        ) or d.get("Created_Time")
 
         if not paid_dt:
             continue
@@ -311,9 +176,7 @@ def build_last_paid_index(distributions):
 
     return index
 
-# ─────────────────────────────────────────────────────────────────
-# Build report
-# ─────────────────────────────────────────────────────────────────
+# ── Build report ──────────────────────────────────────────────────
 def build_clients_report(token):
     cases         = fetch_cases(token)
     distributions = fetch_paid_distributions(token)
@@ -345,67 +208,47 @@ def build_clients_report(token):
         elif status == "Existing" and stage not in ONGOING_STAGES:
             returning_by_month[mk] += 1
 
-            last_paid_dt = last_paid.get(contact_id) if contact_id else None
+            last_dt      = last_paid.get(contact_id) if contact_id else None
             case_created = case.get("Created_Time")
-            gap_days     = days_between(last_paid_dt, case_created) if last_paid_dt else None
+            gap_days     = days_between(last_dt, case_created) if last_dt else None
             band         = return_gap_band(gap_days)
             gap_bands[band] += 1
 
             returning_cases.append({
-                "case_id":        case.get("CASE_ID", ""),
-                "case_name":      case.get("Deal_Name", ""),
-                "client_name":    contact_nm,
-                "created":        case_created,
-                "month":          mk,
-                "stage":          stage,
-                "description":    (case.get("Description") or "")[:500],
-                "notes_summary":  (case.get("Case_Notes_Summary") or "")[:500],
-                "last_paid_date": last_paid_dt,
-                "return_gap_days":gap_days,
-                "return_gap_band":band,
+                "case_id":         case.get("CASE_ID", ""),
+                "case_name":       case.get("Deal_Name", ""),
+                "client_name":     contact_nm,
+                "created":         case_created,
+                "month":           mk,
+                "stage":           stage,
+                "description":     (case.get("Description") or "")[:500],
+                "notes_summary":   (case.get("Case_Notes_Summary") or "")[:500],
+                "last_paid_date":  last_dt,
+                "return_gap_days": gap_days,
+                "return_gap_band": band,
             })
 
-    # Monthly trend series
-    trend = []
-    for m in months:
-        trend.append({
+    trend = [
+        {
             "month":     m,
             "new":       new_by_month.get(m, 0),
             "returning": returning_by_month.get(m, 0),
             "total":     new_by_month.get(m, 0) + returning_by_month.get(m, 0),
-        })
+        }
+        for m in months
+    ]
 
-    # KPI summary
-    def pct_change(curr, prev):
-        if not prev:
-            return None
-        return round(((curr - prev) / prev) * 100, 1)
+    def pct(c, p):
+        return round(((c - p) / p) * 100, 1) if p else None
 
     new_curr = new_by_month.get(current_month, 0)
     new_prev = new_by_month.get(previous_month, 0)
     ret_curr = returning_by_month.get(current_month, 0)
     ret_prev = returning_by_month.get(previous_month, 0)
 
-    gap_with_days = [c for c in returning_cases if c["return_gap_days"] is not None]
-    avg_gap = (
-        round(sum(c["return_gap_days"] for c in gap_with_days) / len(gap_with_days))
-        if gap_with_days else 0
-    )
-
-    gap_distribution = [
-        {"band": b, "count": gap_bands.get(b, 0)}
-        for b in BAND_ORDER
-        if gap_bands.get(b, 0) > 0
-    ]
-
-    qual_sample = [
-        c for c in sorted(
-            returning_cases,
-            key=lambda x: x["created"] or "",
-            reverse=True
-        )
-        if c["description"] or c["notes_summary"]
-    ][:50]
+    gap_days_list = [c["return_gap_days"] for c in returning_cases
+                     if c["return_gap_days"] is not None]
+    avg_gap = round(sum(gap_days_list) / len(gap_days_list)) if gap_days_list else 0
 
     return {
         "meta": {
@@ -418,40 +261,46 @@ def build_clients_report(token):
         "summary": {
             "new_clients_current_month":        new_curr,
             "new_clients_previous_month":       new_prev,
-            "new_clients_pct_change":           pct_change(new_curr, new_prev),
+            "new_clients_pct_change":           pct(new_curr, new_prev),
             "returning_clients_current_month":  ret_curr,
             "returning_clients_previous_month": ret_prev,
-            "returning_clients_pct_change":     pct_change(ret_curr, ret_prev),
+            "returning_clients_pct_change":     pct(ret_curr, ret_prev),
             "total_returning_in_period":        sum(returning_by_month.values()),
             "avg_return_gap_days":              avg_gap,
         },
         "trend":            trend,
-        "gap_distribution": gap_distribution,
-        "returning_cases":  qual_sample,
+        "gap_distribution": [
+            {"band": b, "count": gap_bands[b]}
+            for b in BAND_ORDER if gap_bands.get(b, 0) > 0
+        ],
+        "returning_cases":  sorted(
+            [c for c in returning_cases if c["description"] or c["notes_summary"]],
+            key=lambda x: x["created"] or "",
+            reverse=True,
+        )[:50],
     }
 
-# ─────────────────────────────────────────────────────────────────
-# Main
-# ─────────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────
 def main():
     print("═" * 55)
-    print("NZF Dashboard — Client Report Data Refresh")
-    print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("NZF — Client Report Data Refresh")
+    print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print("═" * 55)
 
-    token = get_access_token()
+    token = zc.get_access_token()
+    print("\n📥 Fetching from Zoho CRM...")
+    data = build_clients_report(token)
 
-    print("\n📥 Fetching data from Zoho CRM...")
-    data  = build_clients_report(token)
-
-    path = os.path.join(DATA_DIR, "clients.json")
-    with open(path, "w") as f:
+    out = os.path.join(DATA_DIR, "clients.json")
+    with open(out, "w") as f:
         json.dump(data, f, indent=2, default=str)
 
-    print(f"\n✅ Written: clients.json")
-    print(f"   New clients     (this month): {data['summary']['new_clients_current_month']}")
-    print(f"   Returning       (this month): {data['summary']['returning_clients_current_month']}")
-    print(f"   Total cases fetched:          {data['meta']['record_count']}")
+    s = data["summary"]
+    print(f"\n✅ clients.json written")
+    print(f"   Cases fetched:          {data['meta']['record_count']}")
+    print(f"   New this month:         {s['new_clients_current_month']}")
+    print(f"   Returning this month:   {s['returning_clients_current_month']}")
+    print(f"   Avg return gap:         {s['avg_return_gap_days']} days")
     print("═" * 55)
 
 if __name__ == "__main__":
