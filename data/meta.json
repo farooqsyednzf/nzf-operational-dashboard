@@ -1,17 +1,17 @@
 {
-  "last_updated": "2026-04-22T20:32:45.733137+00:00",
+  "last_updated": "2026-04-22T20:42:52.832273+00:00",
   "datasets": [
     {
       "name": "Client Report",
       "file": "clients.json",
       "record_count": 3125,
-      "last_updated": "2026-04-22T20:32:39.774651+00:00"
+      "last_updated": "2026-04-22T20:42:46.597599+00:00"
     },
     {
       "name": "Case Pipeline",
       "file": "pipeline.json",
       "record_count": 726,
-      "last_updated": "2026-04-22T20:32:45.595638+00:00"
+      "last_updated": "2026-04-22T20:42:52.683410+00:00"
     }
   ]
 }
