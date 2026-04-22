@@ -1,0 +1,47 @@
+# netlify.toml — NZF Dashboard Hosting Config
+
+[build]
+  publish = "."
+
+# ── Redirect root to dashboard home ──────────────────────────────
+[[redirects]]
+  from = "/"
+  to   = "/dashboards/index.html"
+  status = 200
+
+# ─────────────────────────────────────────────────────────────────
+#  ENTRA ID AUTH — Uncomment this block when enabling authentication
+# ─────────────────────────────────────────────────────────────────
+#
+# [[redirects]]
+#   from   = "/dashboards/*"
+#   to     = "/login.html"
+#   status = 302
+#   conditions = { Role = ["authenticated"] }
+#
+# [[redirects]]
+#   from   = "/data/*"
+#   to     = "/login.html"
+#   status = 302
+#   conditions = { Role = ["authenticated"] }
+#
+
+# ── Security headers ──────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "camera=(), microphone=(), geolocation=()"
+
+# ── Cache: long TTL for static assets, no-cache for live data ────
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

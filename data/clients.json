@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "last_updated": "2026-04-22T00:00:00Z",
+    "record_count": 680,
+    "months_covered": [
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04"
+    ],
+    "current_month": "2026-04",
+    "previous_month": "2026-03"
+  },
+  "summary": {
+    "new_clients_current_month": 56,
+    "new_clients_previous_month": 60,
+    "new_clients_pct_change": -6.7,
+    "returning_clients_current_month": 23,
+    "returning_clients_previous_month": 27,
+    "returning_clients_pct_change": -14.8,
+    "total_returning_in_period": 270,
+    "avg_return_gap_days": 198
+  },
+  "trend": [
+    {
+      "month": "2025-04",
+      "new": 50,
+      "returning": 16,
+      "total": 66
+    },
+    {
+      "month": "2025-05",
+      "new": 40,
+      "returning": 19,
+      "total": 59
+    },
+    {
+      "month": "2025-06",
+      "new": 44,
+      "returning": 18,
+      "total": 62
+    },
+    {
+      "month": "2025-07",
+      "new": 44,
+      "returning": 17,
+      "total": 61
+    },
+    {
+      "month": "2025-08",
+      "new": 53,
+      "returning": 24,
+      "total": 77
+    },
+    {
+      "month": "2025-09",
+      "new": 45,
+      "returning": 23,
+      "total": 68
+    },
+    {
+      "month": "2025-10",
+      "new": 45,
+      "returning": 17,
+      "total": 62
+    },
+    {
+      "month": "2025-11",
+      "new": 46,
+      "returning": 20,
+      "total": 66
+    },
+    {
+      "month": "2025-12",
+      "new": 49,
+      "returning": 26,
+      "total": 75
+    },
+    {
+      "month": "2026-01",
+      "new": 56,
+      "returning": 18,
+      "total": 74
+    },
+    {
+      "month": "2026-02",
+      "new": 56,
+      "returning": 22,
+      "total": 78
+    },
+    {
+      "month": "2026-03",
+      "new": 60,
+      "returning": 27,
+      "total": 87
+    },
+    {
+      "month": "2026-04",
+      "new": 56,
+      "returning": 23,
+      "total": 79
+    }
+  ],
+  "gap_distribution": [
+    {
+      "band": "< 1 month",
+      "count": 8
+    },
+    {
+      "band": "1\u20133 months",
+      "count": 22
+    },
+    {
+      "band": "3\u20136 months",
+      "count": 35
+    },
+    {
+      "band": "6\u201312 months",
+      "count": 28
+    },
+    {
+      "band": "1\u20132 years",
+      "count": 15
+    },
+    {
+      "band": "2+ years",
+      "count": 6
+    }
+  ],
+  "returning_cases": [
+    {
+      "case_id": "C-001",
+      "client_name": "Sample Client A",
+      "created": "2026-04-10T09:00:00+00:00",
+      "month": "2026-04",
+      "stage": "Assessment",
+      "description": "Client returning after 4 months. Previously assisted with rental arrears. Now facing new utility debt and medical expenses following illness.",
+      "notes_summary": "Client has three dependants. Has been managing well but unexpected hospital bills have caused financial stress.",
+      "return_gap_days": 125,
+      "return_gap_band": "3\u20136 months",
+      "last_paid_date": "2025-12-06T00:00:00+00:00"
+    },
+    {
+      "case_id": "C-002",
+      "client_name": "Sample Client B",
+      "created": "2026-04-08T11:00:00+00:00",
+      "month": "2026-04",
+      "stage": "Allocated",
+      "description": "Returning client. First assisted 8 months ago with food and essentials. Now presenting with housing instability due to landlord issuing notice to vacate.",
+      "notes_summary": "Single parent household. Was working casually but lost hours. Seeking rental bond assistance.",
+      "return_gap_days": 240,
+      "return_gap_band": "6\u201312 months",
+      "last_paid_date": "2025-08-10T00:00:00+00:00"
+    },
+    {
+      "case_id": "C-003",
+      "client_name": "Sample Client C",
+      "created": "2026-04-05T14:00:00+00:00",
+      "month": "2026-04",
+      "stage": "TL Approval",
+      "description": "Client previously assisted with debts 6 months ago. Returning due to job loss. Needs help with essential food and utility bills while seeking new employment.",
+      "notes_summary": "Lost employment 3 weeks ago. Centrelink has been applied for. Immediate need is food and electricity bill overdue.",
+      "return_gap_days": 182,
+      "return_gap_band": "6\u201312 months",
+      "last_paid_date": "2025-10-05T00:00:00+00:00"
+    },
+    {
+      "case_id": "C-004",
+      "client_name": "Sample Client D",
+      "created": "2026-03-22T09:30:00+00:00",
+      "month": "2026-03",
+      "stage": "Funding",
+      "description": "Client returning after 14 months. Previous assistance was for funeral debt. Now has new housing crisis \u2014 family evicted from private rental.",
+      "notes_summary": "Family of 5. Currently staying with relatives temporarily. Need urgent bond and first month rent support.",
+      "return_gap_days": 425,
+      "return_gap_band": "1\u20132 years",
+      "last_paid_date": "2025-01-26T00:00:00+00:00"
+    }
+  ]
+}

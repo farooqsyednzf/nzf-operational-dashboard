@@ -1,0 +1,9 @@
+{
+  "last_updated": "2026-04-22T00:00:00Z",
+  "datasets": [
+    { "name": "Pipeline",   "record_count": 12 },
+    { "name": "Sales",      "record_count": 34 },
+    { "name": "Activities", "record_count": 87 },
+    { "name": "Leads",      "record_count": 56 }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "last_updated": "2026-04-22T00:00:00Z",
+    "record_count": 12
+  },
+  "summary": {
+    "total_deals": 12,
+    "total_value": 485000,
+    "avg_deal_size": 40416,
+    "weighted_value": 231750
+  },
+  "by_stage": [
+    { "stage": "Proposal",      "value": 185000 },
+    { "stage": "Qualification", "value": 120000 },
+    { "stage": "Negotiation",   "value": 95000  },
+    { "stage": "Prospecting",   "value": 85000  }
+  ],
+  "by_owner": [
+    { "owner": "Sarah Kim",    "deal_count": 4, "value": 190000 },
+    { "owner": "James Patel",  "deal_count": 3, "value": 145000 },
+    { "owner": "Emma Wilson",  "deal_count": 3, "value": 95000  },
+    { "owner": "Tom Nguyen",   "deal_count": 2, "value": 55000  }
+  ],
+  "deals": [
+    { "name": "Enterprise Subscription", "account": "Acme Corp",       "owner": "Sarah Kim",   "stage": "Negotiation",   "value": 95000, "close_date": "2026-05-15", "probability": 75 },
+    { "name": "Platform Upgrade",        "account": "Bright Solutions", "owner": "James Patel", "stage": "Proposal",      "value": 75000, "close_date": "2026-05-30", "probability": 60 },
+    { "name": "Annual Licence",          "account": "TechFlow Ltd",     "owner": "Sarah Kim",   "stage": "Proposal",      "value": 65000, "close_date": "2026-06-10", "probability": 50 },
+    { "name": "Support Contract",        "account": "Nova Industries",  "owner": "Emma Wilson", "stage": "Qualification", "value": 55000, "close_date": "2026-06-20", "probability": 40 },
+    { "name": "Consulting Package",      "account": "Meridian Group",   "owner": "James Patel", "stage": "Proposal",      "value": 45000, "close_date": "2026-07-01", "probability": 55 }
+  ]
+}

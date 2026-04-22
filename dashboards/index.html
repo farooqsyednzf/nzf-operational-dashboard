@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <!--
+    ENTRA ID — When enabling auth, uncomment:
+    <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
+  -->
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+
+  <div class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>NZF Dashboards</h1>
+          <p>Live reports sourced from Zoho CRM — refreshed automatically every 6 hours.</p>
+        </div>
+      </div>
+
+      <!-- Dashboard cards ─────────────────────────────────────── -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:32px;">
+
+        <a href="/dashboards/clients.html" class="dashboard-card" style="--card-color:var(--color-primary);">
+          <div class="dashboard-card-section">Clients</div>
+          <div class="dashboard-card-title">Client Report</div>
+          <div class="dashboard-card-desc">New and returning clients — current month, previous month and 12-month trend. Includes qualitative analysis of why clients are returning and time-to-return metrics.</div>
+        </a>
+
+        <a href="/dashboards/pipeline.html" class="dashboard-card" style="--card-color:var(--color-blue);">
+          <div class="dashboard-card-section">Cases</div>
+          <div class="dashboard-card-title">Case Pipeline</div>
+          <div class="dashboard-card-desc">Open cases by stage, caseworker and urgency across the active pipeline.</div>
+        </a>
+
+        <a href="/dashboards/cases.html" class="dashboard-card" style="--card-color:var(--color-blue);">
+          <div class="dashboard-card-section">Cases</div>
+          <div class="dashboard-card-title">Case Summary</div>
+          <div class="dashboard-card-desc">Case volume, funding decisions, outcomes and trends over time.</div>
+        </a>
+
+        <a href="/dashboards/distributions.html" class="dashboard-card" style="--card-color:var(--color-green);">
+          <div class="dashboard-card-section">Distributions</div>
+          <div class="dashboard-card-title">Distributions</div>
+          <div class="dashboard-card-desc">Payment volumes, Zakat categories, amounts distributed and payment status tracking.</div>
+        </a>
+
+      </div>
+
+      <!-- Data refresh status ──────────────────────────────────── -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Data Refresh Status</div>
+            <div class="chart-card-subtitle">GitHub Actions pulls from Zoho CRM on a 6-hour schedule — Netlify redeploys automatically on each refresh</div>
+          </div>
+          <button
+            class="btn btn-secondary"
+            style="font-size:0.78rem;padding:6px 14px;"
+            onclick="window.location.reload()">
+            ↻ Refresh
+          </button>
+        </div>
+        <div id="data-status">
+          <div class="loading-overlay">
+            <div class="spinner"></div>
+            Checking data status…
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+(async () => {
+  await requireAuth();
+  renderNav("Home");
+  loadDataStatus();
+})();
+
+async function loadDataStatus() {
+  const el = document.getElementById('data-status');
+  try {
+    const res  = await fetch('/data/meta.json');
+    const meta = await res.json();
+    window.__NZF_META = meta;
+
+    const datasets = [
+      { key: 'clients',  label: 'Client Report',  file: '/data/clients.json',  href: '/dashboards/clients.html'  },
+      { key: 'pipeline', label: 'Case Pipeline',   file: '/data/pipeline.json', href: '/dashboards/pipeline.html' },
+    ];
+
+    // Try fetching each data file to get its own meta
+    const rows = await Promise.all(datasets.map(async d => {
+      try {
+        const r    = await fetch(d.file);
+        const json = await r.json();
+        const updated = json.meta?.last_updated || meta.last_updated;
+        const count   = json.meta?.record_count ?? '—';
+        return { ...d, updated, count, ok: true };
+      } catch(e) {
+        return { ...d, updated: null, count: '—', ok: false };
+      }
+    }));
+
+    const fmtDt = s => s
+      ? new Date(s).toLocaleString('en-AU', {
+          day: 'numeric', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        })
+      : '—';
+
+    el.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Report</th>
+            <th>Records</th>
+            <th>Last Refreshed</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td><strong>${r.label}</strong></td>
+              <td style="font-family:'Cambay',sans-serif;">${r.count.toLocaleString?.() ?? r.count}</td>
+              <td>${fmtDt(r.updated)}</td>
+              <td>
+                ${r.ok
+                  ? '<span class="badge badge-success">Current</span>'
+                  : '<span class="badge badge-alert">Not Available</span>'}
+              </td>
+              <td>
+                ${r.ok
+                  ? `<a href="${r.href}" class="btn btn-secondary" style="font-size:0.75rem;padding:4px 12px;">View →</a>`
+                  : ''}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+
+  } catch(e) {
+    el.innerHTML = `
+      <div style="padding:24px;font-family:'Cambay',sans-serif;font-size:0.875rem;">
+        <strong style="color:var(--color-alert);">⚠ Data not yet available</strong><br>
+        <span style="color:var(--text-muted);">
+          Run the GitHub Action to fetch data from Zoho CRM for the first time.
+        </span>
+      </div>`;
+  }
+}
+</script>
+</body>
+</html>

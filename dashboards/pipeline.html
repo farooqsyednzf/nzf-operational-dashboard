@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pipeline — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!--
+    ENTRA ID — When enabling auth, uncomment:
+    <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
+  -->
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+
+  <div class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Pipeline Report</h1>
+          <p>Open deals by stage, owner and close probability — sourced from Zoho CRM.</p>
+        </div>
+      </div>
+
+      <!-- KPI Row -->
+      <div class="kpi-grid" id="kpi-row">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Pipeline by Stage</div>
+              <div class="chart-card-subtitle">Total deal value per stage (NZD)</div>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-stage"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Deals by Owner</div>
+              <div class="chart-card-subtitle">Number of open deals per rep</div>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-owner"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deals table -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <span class="table-card-title">Open Deals</span>
+        </div>
+        <div id="deals-table">
+          <div class="loading-overlay">
+            <div class="spinner"></div>
+            Loading pipeline data…
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+// ── Brand palette for charts ─────────────────────────────────────
+const BRAND = {
+  red:    '#EE3526',
+  yellow: '#FDB913',
+  blue:   '#0081C6',
+  green:  '#49A942',
+  dark:   '#B51E10',
+  grey:   '#9F9393',
+};
+
+const CHART_COLORS = [BRAND.red, BRAND.blue, BRAND.yellow, BRAND.green, BRAND.dark, BRAND.grey];
+
+(async () => {
+  await requireAuth();
+  renderNav("Pipeline Report");
+
+  try {
+    const res  = await fetch('/data/pipeline.json');
+    const data = await res.json();
+    window.__NZF_META = data.meta;
+
+    renderKPIs(data);
+    renderStageChart(data);
+    renderOwnerChart(data);
+    renderDealsTable(data);
+  } catch(e) {
+    document.getElementById('kpi-row').innerHTML =
+      `<div style="font-family:'Cambay',sans-serif;color:var(--text-muted);font-size:0.875rem;padding:20px;">
+        ⚠ Pipeline data not yet available. Run the data refresh action.
+      </div>`;
+    document.getElementById('deals-table').innerHTML =
+      `<div style="padding:24px;font-family:'Cambay',sans-serif;color:var(--text-muted);font-size:0.875rem;">No data available.</div>`;
+  }
+})();
+
+const fmt  = n => new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD', maximumFractionDigits: 0 }).format(n);
+const fmtN = n => new Intl.NumberFormat('en-NZ').format(n);
+
+function renderKPIs(data) {
+  const s = data.summary;
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi-card accent-red">
+      <div class="kpi-label">Total Pipeline Value</div>
+      <div class="kpi-value">${fmt(s.total_value)}</div>
+    </div>
+    <div class="kpi-card accent-blue">
+      <div class="kpi-label">Open Deals</div>
+      <div class="kpi-value">${fmtN(s.total_deals)}</div>
+    </div>
+    <div class="kpi-card accent-yellow">
+      <div class="kpi-label">Avg Deal Size</div>
+      <div class="kpi-value">${fmt(s.avg_deal_size)}</div>
+    </div>
+    <div class="kpi-card accent-green">
+      <div class="kpi-label">Weighted Pipeline</div>
+      <div class="kpi-value">${fmt(s.weighted_value)}</div>
+    </div>`;
+}
+
+function renderStageChart(data) {
+  new Chart(document.getElementById('chart-stage'), {
+    type: 'bar',
+    data: {
+      labels: data.by_stage.map(s => s.stage),
+      datasets: [{
+        label: 'Deal Value (NZD)',
+        data:  data.by_stage.map(s => s.value),
+        backgroundColor: CHART_COLORS,
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          ticks: {
+            callback: v => '$' + (v / 1000).toFixed(0) + 'k',
+            font: { family: 'Cambay', size: 11 }
+          },
+          grid: { color: '#F0EEEE' }
+        },
+        x: {
+          ticks: { font: { family: 'Cambay', size: 11 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function renderOwnerChart(data) {
+  new Chart(document.getElementById('chart-owner'), {
+    type: 'doughnut',
+    data: {
+      labels: data.by_owner.map(o => o.owner),
+      datasets: [{
+        data:            data.by_owner.map(o => o.deal_count),
+        backgroundColor: CHART_COLORS,
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font: { family: 'Cambay', size: 12 }, padding: 16 }
+        }
+      }
+    }
+  });
+}
+
+function renderDealsTable(data) {
+  const stageBadge = s => {
+    const map = {
+      'Prospecting':  'badge-blue',
+      'Qualification':'badge-blue',
+      'Proposal':     'badge-warning',
+      'Negotiation':  'badge-alert',
+      'Closed Won':   'badge-success',
+      'Closed Lost':  'badge-grey',
+    };
+    return `<span class="badge ${map[s] || 'badge-grey'}">${s}</span>`;
+  };
+
+  document.getElementById('deals-table').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Deal Name</th>
+          <th>Account</th>
+          <th>Owner</th>
+          <th>Stage</th>
+          <th>Value</th>
+          <th>Close Date</th>
+          <th>Probability</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.deals.map(d => `
+          <tr>
+            <td><strong>${d.name}</strong></td>
+            <td>${d.account}</td>
+            <td>${d.owner}</td>
+            <td>${stageBadge(d.stage)}</td>
+            <td style="font-family:'Cambay',sans-serif;font-weight:700;">${fmt(d.value)}</td>
+            <td>${d.close_date}</td>
+            <td>${d.probability}%</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+</script>
+</body>
+</html>

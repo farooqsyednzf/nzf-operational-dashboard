@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Client Report — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!--
+    ENTRA ID — When enabling auth, uncomment:
+    <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
+  -->
+  <style>
+    /* ── Report-specific styles ─────────────────────────────────── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 32px 0 20px;
+    }
+    .section-divider-bar {
+      width: 4px;
+      height: 28px;
+      border-radius: 2px;
+      background: var(--section-color, var(--color-primary));
+      flex-shrink: 0;
+    }
+    .section-divider h2 {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text-primary);
+    }
+    .section-divider p {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .qual-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 0;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .qual-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-2);
+    }
+    .qual-header-title {
+      font-family: 'Bree Serif', serif;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+    .qual-ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--color-blue-bg);
+      color: var(--color-blue);
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .qual-ai-badge::before {
+      content: '✦';
+      font-size: 0.65rem;
+    }
+    .ai-summary-box {
+      padding: 20px 22px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.875rem;
+      line-height: 1.65;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-subtle);
+      min-height: 80px;
+    }
+    .ai-summary-box.loading {
+      color: var(--text-muted);
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ai-theme-list {
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .ai-theme-chip {
+      background: var(--color-primary-bg);
+      border: 1px solid rgba(238,53,38,0.15);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.82rem;
+    }
+    .ai-theme-chip-label {
+      font-weight: 700;
+      color: var(--color-primary);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+    }
+    .ai-theme-chip-desc {
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .cases-table-wrap { overflow-x: auto; }
+    .gap-pill {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .gap-short  { background: var(--color-alert-bg);   color: var(--color-alert);   }
+    .gap-medium { background: var(--color-warning-bg); color: #7A5700;              }
+    .gap-long   { background: var(--color-green-bg);   color: var(--color-green);   }
+    .gap-vlong  { background: var(--surface-2);        color: var(--text-muted);    }
+
+    .kpi-grid-2col { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+
+    .month-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+
+  <div class="main">
+    <div id="topbar-mount"></div>
+
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Client Report</h1>
+          <p>New and returning clients — current month, previous month and 12-month trend.</p>
+        </div>
+        <div id="month-labels" style="text-align:right;"></div>
+      </div>
+
+      <!-- ── SECTION 1: New Clients ──────────────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-primary);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>New Clients</h2>
+          <p>First-time clients — cases recorded with status "New"</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-2col" id="new-kpis">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns: 1fr;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">New Clients — 12 Month Trend</div>
+              <div class="chart-card-subtitle">Monthly count of first-time client cases</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:220px;">
+            <canvas id="chart-new-trend"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: Returning Clients ───────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-blue); margin-top:36px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Returning Clients</h2>
+          <p>Clients with a new case who previously received assistance — excludes ILA / ongoing funding stages</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-2col" id="ret-kpis">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Returning Clients — 12 Month Trend</div>
+              <div class="chart-card-subtitle">Monthly count of returning client cases</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:220px;">
+            <canvas id="chart-ret-trend"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">New vs Returning — Combined View</div>
+              <div class="chart-card-subtitle">Stacked monthly comparison</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:220px;">
+            <canvas id="chart-combined"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3: Time to Return ──────────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-yellow); margin-top:36px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Time to Return</h2>
+          <p>Period between last distribution payment (Paid/Extracted) and new case creation</p>
+        </div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns:2fr 1fr;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Return Gap Distribution</div>
+              <div class="chart-card-subtitle">How long after last assistance are clients returning?</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:240px;">
+            <canvas id="chart-gap"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card" id="gap-summary-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Return Gap Summary</div>
+              <div class="chart-card-subtitle">Averages & key metrics</div>
+            </div>
+          </div>
+          <div id="gap-stats" style="padding:16px;">
+            <div class="loading-overlay"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 4: Qualitative Analysis ────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-green); margin-top:36px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Qualitative Analysis</h2>
+          <p>AI-powered analysis of case descriptions and notes for returning clients</p>
+        </div>
+      </div>
+
+      <div class="qual-card" id="qual-card" style="margin-bottom:24px;">
+        <div class="qual-header">
+          <span class="qual-header-title">Why are clients returning?</span>
+          <span class="qual-ai-badge">AI Analysis</span>
+        </div>
+        <div class="ai-summary-box loading" id="ai-summary">
+          <div class="spinner"></div>
+          Analysing case descriptions and notes…
+        </div>
+        <div class="ai-theme-list" id="ai-themes"></div>
+      </div>
+
+      <!-- Returning cases detail table -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <span class="table-card-title">Returning Client Cases — Detail</span>
+        </div>
+        <div class="cases-table-wrap" id="cases-table">
+          <div class="loading-overlay"><div class="spinner"></div>Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+// ── Brand palette ────────────────────────────────────────────────
+const C = {
+  red:       '#EE3526',
+  redLight:  'rgba(238,53,38,0.12)',
+  blue:      '#0081C6',
+  blueLight: 'rgba(0,129,198,0.12)',
+  yellow:    '#FDB913',
+  green:     '#49A942',
+  grey:      '#9F9393',
+  border:    '#E8E6E6',
+};
+
+const CHART_DEFAULTS = {
+  font:   { family: 'Cambay', size: 11 },
+  grid:   { color: '#F0EEEE' },
+};
+
+// ── Main ─────────────────────────────────────────────────────────
+(async () => {
+  await requireAuth();
+  renderNav("Client Report");
+
+  let data;
+  try {
+    const res = await fetch('/data/clients.json');
+    data = await res.json();
+    window.__NZF_META = data.meta;
+  } catch(e) {
+    showError('clients.json not yet available. Run the data refresh action.');
+    return;
+  }
+
+  renderMonthLabels(data);
+  renderNewKPIs(data);
+  renderRetKPIs(data);
+  renderNewTrendChart(data);
+  renderRetTrendChart(data);
+  renderCombinedChart(data);
+  renderGapChart(data);
+  renderGapStats(data);
+  renderCasesTable(data);
+  runQualAnalysis(data);
+})();
+
+// ── Helpers ──────────────────────────────────────────────────────
+function fmt(n) {
+  return (n ?? 0).toLocaleString('en-AU');
+}
+
+function changeBadge(pct) {
+  if (pct === null || pct === undefined) return '';
+  const cls = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+  const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '—';
+  return `<div class="kpi-change ${cls}">${arrow} ${Math.abs(pct)}% vs prev month</div>`;
+}
+
+function friendlyMonth(ym) {
+  if (!ym) return '';
+  const [y, m] = ym.split('-');
+  return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'long', year: 'numeric' });
+}
+
+function showError(msg) {
+  document.getElementById('new-kpis').innerHTML =
+    `<div style="padding:20px;font-family:'Cambay';color:var(--text-muted);">⚠ ${msg}</div>`;
+}
+
+function renderMonthLabels(data) {
+  const el = document.getElementById('month-labels');
+  el.innerHTML = `
+    <div class="month-label">Current month</div>
+    <div style="font-family:'Bree Serif';font-size:1rem;color:var(--text-primary)">
+      ${friendlyMonth(data.meta.current_month)}
+    </div>`;
+}
+
+// ── New Client KPIs ───────────────────────────────────────────────
+function renderNewKPIs(data) {
+  const s = data.summary;
+  document.getElementById('new-kpis').innerHTML = `
+    <div class="kpi-card accent-red">
+      <div class="kpi-label">New Clients — ${friendlyMonth(data.meta.current_month)}</div>
+      <div class="kpi-value">${fmt(s.new_clients_current_month)}</div>
+      ${changeBadge(s.new_clients_pct_change)}
+    </div>
+    <div class="kpi-card accent-red" style="--kpi-color:var(--color-mid-grey)">
+      <div class="kpi-label">New Clients — ${friendlyMonth(data.meta.previous_month)}</div>
+      <div class="kpi-value">${fmt(s.new_clients_previous_month)}</div>
+    </div>
+    <div class="kpi-card accent-yellow">
+      <div class="kpi-label">12-Month Total (New)</div>
+      <div class="kpi-value">${fmt(data.trend.reduce((a,t) => a + t.new, 0))}</div>
+    </div>
+    <div class="kpi-card accent-yellow" style="--kpi-color:var(--color-green)">
+      <div class="kpi-label">Monthly Avg (New)</div>
+      <div class="kpi-value">${fmt(Math.round(data.trend.reduce((a,t) => a + t.new, 0) / data.trend.length))}</div>
+    </div>`;
+}
+
+// ── Returning Client KPIs ─────────────────────────────────────────
+function renderRetKPIs(data) {
+  const s = data.summary;
+  document.getElementById('ret-kpis').innerHTML = `
+    <div class="kpi-card accent-blue">
+      <div class="kpi-label">Returning — ${friendlyMonth(data.meta.current_month)}</div>
+      <div class="kpi-value">${fmt(s.returning_clients_current_month)}</div>
+      ${changeBadge(s.returning_clients_pct_change)}
+    </div>
+    <div class="kpi-card accent-blue" style="--kpi-color:var(--color-mid-grey)">
+      <div class="kpi-label">Returning — ${friendlyMonth(data.meta.previous_month)}</div>
+      <div class="kpi-value">${fmt(s.returning_clients_previous_month)}</div>
+    </div>
+    <div class="kpi-card accent-yellow">
+      <div class="kpi-label">12-Month Total (Returning)</div>
+      <div class="kpi-value">${fmt(s.total_returning_in_period)}</div>
+    </div>
+    <div class="kpi-card accent-green">
+      <div class="kpi-label">Avg Return Gap</div>
+      <div class="kpi-value">${fmt(s.avg_return_gap_days)} <span style="font-size:0.9rem;font-family:'Cambay'">days</span></div>
+    </div>`;
+}
+
+// ── New trend line chart ──────────────────────────────────────────
+function renderNewTrendChart(data) {
+  const labels = data.trend.map(t => {
+    const [y, m] = t.month.split('-');
+    return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'short', year: '2-digit' });
+  });
+  new Chart(document.getElementById('chart-new-trend'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'New Clients',
+        data: data.trend.map(t => t.new),
+        borderColor: C.red,
+        backgroundColor: C.redLight,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: C.red,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 2.5,
+      }]
+    },
+    options: chartOptions('New Clients per Month'),
+  });
+}
+
+// ── Returning trend line chart ────────────────────────────────────
+function renderRetTrendChart(data) {
+  const labels = data.trend.map(t => {
+    const [y, m] = t.month.split('-');
+    return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'short', year: '2-digit' });
+  });
+  new Chart(document.getElementById('chart-ret-trend'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Returning Clients',
+        data: data.trend.map(t => t.returning),
+        borderColor: C.blue,
+        backgroundColor: C.blueLight,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: C.blue,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 2.5,
+      }]
+    },
+    options: chartOptions('Returning Clients per Month'),
+  });
+}
+
+// ── Combined stacked bar chart ────────────────────────────────────
+function renderCombinedChart(data) {
+  const labels = data.trend.map(t => {
+    const [y, m] = t.month.split('-');
+    return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'short' });
+  });
+  new Chart(document.getElementById('chart-combined'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'New',
+          data: data.trend.map(t => t.new),
+          backgroundColor: C.red,
+          borderRadius: 4,
+          borderSkipped: false,
+          stack: 'clients',
+        },
+        {
+          label: 'Returning',
+          data: data.trend.map(t => t.returning),
+          backgroundColor: C.blue,
+          borderRadius: 4,
+          borderSkipped: false,
+          stack: 'clients',
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: CHART_DEFAULTS.font, padding: 12 } }
+      },
+      scales: {
+        x: { stacked: true, ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { stacked: true, ticks: { font: CHART_DEFAULTS.font }, grid: CHART_DEFAULTS.grid }
+      }
+    }
+  });
+}
+
+// ── Gap distribution bar chart ────────────────────────────────────
+function renderGapChart(data) {
+  const gapColors = {
+    '< 1 month':   C.red,
+    '1–3 months':  '#FF8C42',
+    '3–6 months':  C.yellow,
+    '6–12 months': C.green,
+    '1–2 years':   C.blue,
+    '2+ years':    C.grey,
+    'Unknown':     '#CFCFC9',
+  };
+  const gd = data.gap_distribution;
+  new Chart(document.getElementById('chart-gap'), {
+    type: 'bar',
+    data: {
+      labels: gd.map(g => g.band),
+      datasets: [{
+        label: 'Clients',
+        data: gd.map(g => g.count),
+        backgroundColor: gd.map(g => gapColors[g.band] || C.grey),
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font }, grid: CHART_DEFAULTS.grid }
+      }
+    }
+  });
+}
+
+// ── Gap stats panel ───────────────────────────────────────────────
+function renderGapStats(data) {
+  const s   = data.summary;
+  const gd  = data.gap_distribution;
+  const total = gd.reduce((a, g) => a + g.count, 0) || 1;
+  const largest = gd.reduce((a, b) => b.count > a.count ? b : a, { band: '-', count: 0 });
+  const within6 = gd.filter(g => ['< 1 month','1–3 months','3–6 months'].includes(g.band))
+                     .reduce((a, g) => a + g.count, 0);
+
+  document.getElementById('gap-stats').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div class="kpi-label">Average Return Gap</div>
+        <div class="kpi-value" style="font-size:1.5rem">${fmt(s.avg_return_gap_days)} days</div>
+        <div style="font-family:'Cambay';font-size:0.78rem;color:var(--text-muted);margin-top:3px;">
+          ≈ ${Math.round(s.avg_return_gap_days / 30)} months
+        </div>
+      </div>
+      <div style="height:1px;background:var(--border-subtle);"></div>
+      <div>
+        <div class="kpi-label">Most Common Gap</div>
+        <div style="font-family:'Bree Serif';font-size:1.1rem;color:var(--text-primary);">${largest.band}</div>
+        <div style="font-family:'Cambay';font-size:0.78rem;color:var(--text-muted);">${largest.count} clients (${Math.round(largest.count/total*100)}%)</div>
+      </div>
+      <div style="height:1px;background:var(--border-subtle);"></div>
+      <div>
+        <div class="kpi-label">Returning within 6 months</div>
+        <div style="font-family:'Bree Serif';font-size:1.1rem;color:var(--color-alert);">${Math.round(within6/total*100)}%</div>
+        <div style="font-family:'Cambay';font-size:0.78rem;color:var(--text-muted);">${within6} of ${total} returning clients</div>
+      </div>
+    </div>`;
+}
+
+// ── Cases detail table ────────────────────────────────────────────
+function renderCasesTable(data) {
+  const cases = data.returning_cases;
+  if (!cases || !cases.length) {
+    document.getElementById('cases-table').innerHTML =
+      '<div style="padding:20px;font-family:\'Cambay\';color:var(--text-muted)">No returning cases in this period.</div>';
+    return;
+  }
+
+  function gapClass(band) {
+    if (band === '< 1 month' || band === '1–3 months') return 'gap-short';
+    if (band === '3–6 months') return 'gap-medium';
+    if (band === '6–12 months') return 'gap-long';
+    return 'gap-vlong';
+  }
+
+  function fmtDate(s) {
+    if (!s) return '—';
+    return new Date(s).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  document.getElementById('cases-table').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Case ID</th>
+          <th>Client</th>
+          <th>Case Created</th>
+          <th>Stage</th>
+          <th>Last Paid Dist.</th>
+          <th>Return Gap</th>
+          <th>Description Preview</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${cases.map(c => `
+          <tr>
+            <td style="font-family:'Cambay';font-weight:700;color:var(--color-primary);white-space:nowrap">${c.case_id || '—'}</td>
+            <td style="white-space:nowrap">${c.client_name || '—'}</td>
+            <td style="white-space:nowrap">${fmtDate(c.created)}</td>
+            <td><span class="badge badge-grey">${c.stage || '—'}</span></td>
+            <td style="white-space:nowrap">${fmtDate(c.last_paid_date)}</td>
+            <td><span class="gap-pill ${gapClass(c.return_gap_band)}">${c.return_gap_band}</span></td>
+            <td style="max-width:300px;color:var(--text-secondary);font-size:0.8rem;">
+              ${(c.description || c.notes_summary || '—').substring(0, 120)}${(c.description || '').length > 120 ? '…' : ''}
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── AI qualitative analysis via Anthropic API ─────────────────────
+async function runQualAnalysis(data) {
+  const cases = data.returning_cases;
+  if (!cases || !cases.length) {
+    document.getElementById('ai-summary').innerHTML =
+      '<em style="color:var(--text-muted)">No returning case data available for analysis.</em>';
+    document.getElementById('ai-summary').classList.remove('loading');
+    return;
+  }
+
+  // Build a compact text of descriptions for analysis
+  const caseTexts = cases
+    .filter(c => c.description || c.notes_summary)
+    .map((c, i) => `Case ${i+1} (gap: ${c.return_gap_band || 'unknown'}): ${(c.description || '') + ' ' + (c.notes_summary || '')}`.trim())
+    .join('\n\n');
+
+  const prompt = `You are an analyst reviewing returning client cases for NZF (National Zakat Foundation), a charity that provides financial assistance to people in need.
+
+Below are descriptions and notes from ${cases.length} cases where clients have returned for additional assistance after previously receiving help. Analyse these to understand WHY clients are returning.
+
+Please respond ONLY with a valid JSON object in this exact format (no markdown, no preamble):
+{
+  "summary": "2-3 sentence overall summary of why clients are returning",
+  "themes": [
+    {"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "e.g. ~40% of cases"},
+    {"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "e.g. ~25% of cases"},
+    {"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "e.g. ~20% of cases"},
+    {"label": "Theme Name", "description": "1-2 sentence description", "count_estimate": "e.g. ~15% of cases"}
+  ]
+}
+
+Case data:
+${caseTexts.substring(0, 4000)}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      })
+    });
+
+    const apiData = await res.json();
+    const raw = apiData.content?.[0]?.text || '';
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+
+    // Render summary
+    const summaryEl = document.getElementById('ai-summary');
+    summaryEl.classList.remove('loading');
+    summaryEl.innerHTML = `<strong style="font-family:'Bree Serif';font-size:1rem;font-weight:400;">Summary</strong><br><br>${parsed.summary}`;
+
+    // Render themes
+    const themesEl = document.getElementById('ai-themes');
+    themesEl.innerHTML = parsed.themes.map(t => `
+      <div class="ai-theme-chip">
+        <div class="ai-theme-chip-label">${t.label} <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0">${t.count_estimate}</span></div>
+        <div class="ai-theme-chip-desc">${t.description}</div>
+      </div>
+    `).join('');
+
+  } catch(e) {
+    const summaryEl = document.getElementById('ai-summary');
+    summaryEl.classList.remove('loading');
+    summaryEl.innerHTML = `
+      <em style="color:var(--text-muted)">
+        AI analysis unavailable — case descriptions and notes are available in the table below for manual review.
+      </em>`;
+  }
+}
+
+// ── Shared chart options ──────────────────────────────────────────
+function chartOptions(label) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+      y: { ticks: { font: CHART_DEFAULTS.font }, grid: CHART_DEFAULTS.grid, beginAtZero: true }
+    }
+  };
+}
+</script>
+</body>
+</html>
