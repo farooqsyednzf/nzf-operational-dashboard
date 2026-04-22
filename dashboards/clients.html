@@ -6,7 +6,6 @@
   <title>Client Report — NZF Dashboards</title>
   <link rel="stylesheet" href="/assets/css/dashboard.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <!--
     ENTRA ID — When enabling auth, uncomment:
     <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
@@ -137,6 +136,16 @@
 
     .kpi-grid-2col { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
+    .badge-funded {
+      background: rgba(73,169,66,0.12);
+      color: #2d7a27;
+      border: 1px solid rgba(73,169,66,0.3);
+    }
+    .badge-notfunded {
+      background: rgba(238,53,38,0.08);
+      color: var(--color-primary);
+      border: 1px solid rgba(238,53,38,0.2);
+    }
     .state-toggle-btn {
       padding: 6px 14px;
       border-radius: var(--radius);
@@ -359,9 +368,7 @@
 <script src="/assets/js/auth.js"></script>
 <script src="/assets/js/nav.js"></script>
 <script>
-// ── Brand palette ────────────────────────────────────────────────
-// Register datalabels plugin for value labels on charts
-Chart.register(ChartDataLabels);
+// ── Brand palette ─────────────────────────────────────────────────
 
 const C = {
   red:       '#EE3526',
@@ -681,13 +688,6 @@ function switchStatePeriod(period, btn) {
             label: ctx => ` ${ctx.parsed.x} client${ctx.parsed.x !== 1 ? 's' : ''}`
           }
         },
-        datalabels: {
-          anchor:    'end',
-          align:     'right',
-          formatter: v => v > 0 ? v : '',
-          font:      { family: 'Cambay', size: 11, weight: 'bold' },
-          color:     '#231F1F',
-        }
       },
       scales: {
         x: {
@@ -832,6 +832,8 @@ function renderCasesTable(data) {
           <th>Case ID</th>
           <th>Case Created</th>
           <th>Stage</th>
+          <th>Last Case Date</th>
+          <th>Last Case Outcome</th>
           <th>Last Paid Dist.</th>
           <th>Return Gap</th>
           <th>Summary</th>
@@ -840,14 +842,22 @@ function renderCasesTable(data) {
       <tbody>
         ${cases.map(c => {
           const summary = c.ai_case_summary || (c.description || '').substring(0, 120) + ((c.description || '').length > 120 ? '…' : '');
+          const lastStage = c.last_case_stage || '';
+          const lastStageBadgeClass = lastStage.toLowerCase().includes('funded') && !lastStage.toLowerCase().includes('not')
+            ? 'badge-funded'
+            : lastStage.toLowerCase().includes('not funded') || lastStage.toLowerCase().includes('no response')
+              ? 'badge-notfunded'
+              : 'badge-grey';
           return `
           <tr>
             <td style="font-weight:700;color:var(--color-primary);white-space:nowrap;font-size:0.85rem;">${c.case_id || '—'}</td>
             <td style="white-space:nowrap">${fmtDate(c.created)}</td>
             <td><span class="badge badge-grey">${c.stage || '—'}</span></td>
+            <td style="white-space:nowrap">${fmtDate(c.last_case_date) || '—'}</td>
+            <td>${lastStage ? `<span class="badge ${lastStageBadgeClass}">${lastStage}</span>` : '—'}</td>
             <td style="white-space:nowrap">${fmtDate(c.last_paid_date)}</td>
             <td><span class="gap-pill ${gapClass(c.return_gap_band)}">${c.return_gap_band || 'Unknown'}</span></td>
-            <td style="max-width:360px;color:var(--text-secondary);font-size:0.82rem;line-height:1.5;">
+            <td style="max-width:320px;color:var(--text-secondary);font-size:0.82rem;line-height:1.5;">
               ${summary || '<em style="color:var(--text-muted)">No description available</em>'}
             </td>
           </tr>`;
