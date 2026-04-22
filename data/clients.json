@@ -1,7 +1,7 @@
 {
   "meta": {
-    "last_updated": "2026-04-22T14:49:48.757720+00:00",
-    "record_count": 3119,
+    "last_updated": "2026-04-22T19:53:33.986684+00:00",
+    "record_count": 3125,
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -22,14 +22,14 @@
     "same_instance_excluded": 91
   },
   "summary": {
-    "new_clients_current_month": 77,
+    "new_clients_current_month": 83,
     "new_clients_previous_month": 219,
-    "new_clients_pct_change": -64.8,
+    "new_clients_pct_change": -62.1,
     "returning_clients_current_month": 77,
-    "returning_clients_previous_month": 186,
-    "returning_clients_pct_change": -58.6,
-    "total_returning_in_period": 1169,
-    "avg_return_gap_days": 671
+    "returning_clients_previous_month": 185,
+    "returning_clients_pct_change": -58.4,
+    "total_returning_in_period": 1168,
+    "avg_return_gap_days": 668
   },
   "trend": [
     {
@@ -94,31 +94,31 @@
     },
     {
       "month": "2026-02",
-      "new": 156,
+      "new": 157,
       "returning": 150,
-      "total": 306
+      "total": 307
     },
     {
       "month": "2026-03",
       "new": 219,
-      "returning": 186,
-      "total": 405
+      "returning": 185,
+      "total": 404
     },
     {
       "month": "2026-04",
-      "new": 77,
+      "new": 83,
       "returning": 77,
-      "total": 154
+      "total": 160
     }
   ],
   "gap_distribution": [
     {
       "band": "< 1 month",
-      "count": 112
+      "count": 113
     },
     {
       "band": "1\u20133 months",
-      "count": 117
+      "count": 120
     },
     {
       "band": "3\u20136 months",
@@ -130,7 +130,7 @@
     },
     {
       "band": "1\u20132 years",
-      "count": 136
+      "count": 135
     },
     {
       "band": "2+ years",
@@ -138,18 +138,18 @@
     },
     {
       "band": "Unknown",
-      "count": 240
+      "count": 236
     }
   ],
   "clients_by_state": {
     "current_month": [
       {
         "state": "NSW",
-        "count": 76
+        "count": 81
       },
       {
         "state": "VIC",
-        "count": 58
+        "count": 59
       },
       {
         "state": "WA",
@@ -158,10 +158,6 @@
       {
         "state": "QLD",
         "count": 7
-      },
-      {
-        "state": "Other",
-        "count": 2
       },
       {
         "state": "TAS",
@@ -179,7 +175,7 @@
       },
       {
         "state": "VIC",
-        "count": 153
+        "count": 152
       },
       {
         "state": "QLD",
@@ -188,10 +184,6 @@
       {
         "state": "WA",
         "count": 18
-      },
-      {
-        "state": "Other",
-        "count": 14
       },
       {
         "state": "SA",
@@ -213,7 +205,7 @@
     "last_12_months": [
       {
         "state": "NSW",
-        "count": 1253
+        "count": 1258
       },
       {
         "state": "VIC",
@@ -225,15 +217,11 @@
       },
       {
         "state": "WA",
-        "count": 121
+        "count": 122
       },
       {
         "state": "SA",
         "count": 63
-      },
-      {
-        "state": "Other",
-        "count": 51
       },
       {
         "state": "ACT",
@@ -281,7 +269,7 @@
           81,
           129,
           171,
-          76
+          81
         ]
       },
       {
@@ -298,8 +286,8 @@
           69,
           80,
           107,
-          153,
-          58
+          152,
+          59
         ]
       },
       {
@@ -333,7 +321,7 @@
           5,
           9,
           10,
-          16,
+          17,
           18,
           8
         ]
@@ -354,24 +342,6 @@
           4,
           14,
           1
-        ]
-      },
-      {
-        "state": "Other",
-        "data": [
-          8,
-          4,
-          3,
-          1,
-          0,
-          5,
-          4,
-          3,
-          4,
-          1,
-          2,
-          14,
-          2
         ]
       },
       {
@@ -442,7 +412,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 50,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730418",
@@ -455,7 +426,8 @@
       "return_gap_days": 74,
       "return_gap_band": "1\u20133 months",
       "days_since_last_case": 6,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730414",
@@ -468,7 +440,8 @@
       "return_gap_days": 691,
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 628,
-      "prior_case_count": 7
+      "prior_case_count": 7,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730411",
@@ -481,7 +454,8 @@
       "return_gap_days": 33,
       "return_gap_band": "1\u20133 months",
       "days_since_last_case": 6,
-      "prior_case_count": 4
+      "prior_case_count": 4,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730409",
@@ -494,7 +468,8 @@
       "return_gap_days": 936,
       "return_gap_band": "2+ years",
       "days_since_last_case": 1053,
-      "prior_case_count": 6
+      "prior_case_count": 6,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730406",
@@ -507,7 +482,8 @@
       "return_gap_days": 15,
       "return_gap_band": "< 1 month",
       "days_since_last_case": 9,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730404",
@@ -520,7 +496,8 @@
       "return_gap_days": 331,
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 37,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730401",
@@ -533,7 +510,8 @@
       "return_gap_days": 2662,
       "return_gap_band": "2+ years",
       "days_since_last_case": 3554,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730399",
@@ -546,7 +524,8 @@
       "return_gap_days": 2662,
       "return_gap_band": "2+ years",
       "days_since_last_case": 2544,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730398",
@@ -559,7 +538,8 @@
       "return_gap_days": 2516,
       "return_gap_band": "2+ years",
       "days_since_last_case": 1213,
-      "prior_case_count": 4
+      "prior_case_count": 4,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730392",
@@ -572,7 +552,8 @@
       "return_gap_days": 222,
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 121,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730388",
@@ -585,7 +566,8 @@
       "return_gap_days": 2158,
       "return_gap_band": "2+ years",
       "days_since_last_case": 2158,
-      "prior_case_count": 5
+      "prior_case_count": 5,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730386",
@@ -598,7 +580,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 419,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730382",
@@ -611,7 +594,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 1822,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730380",
@@ -624,7 +608,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 1468,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730378",
@@ -637,7 +622,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 1776,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730377",
@@ -650,7 +636,8 @@
       "return_gap_days": 67,
       "return_gap_band": "1\u20133 months",
       "days_since_last_case": 146,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730376",
@@ -663,7 +650,8 @@
       "return_gap_days": 502,
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 326,
-      "prior_case_count": 5
+      "prior_case_count": 5,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730375",
@@ -676,7 +664,8 @@
       "return_gap_days": 252,
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 397,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730373",
@@ -689,7 +678,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 1597,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730371",
@@ -702,7 +692,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 63,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730370",
@@ -715,7 +706,8 @@
       "return_gap_days": 230,
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 42,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730369",
@@ -728,7 +720,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 487,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730368",
@@ -741,7 +734,8 @@
       "return_gap_days": 98,
       "return_gap_band": "3\u20136 months",
       "days_since_last_case": 215,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730367",
@@ -754,7 +748,8 @@
       "return_gap_days": 27,
       "return_gap_band": "< 1 month",
       "days_since_last_case": 70,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730363",
@@ -767,7 +762,8 @@
       "return_gap_days": 1257,
       "return_gap_band": "2+ years",
       "days_since_last_case": 258,
-      "prior_case_count": 10
+      "prior_case_count": 10,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730360",
@@ -780,7 +776,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 16,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730359",
@@ -793,7 +790,8 @@
       "return_gap_days": 195,
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 149,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730358",
@@ -806,7 +804,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 17,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730356",
@@ -819,7 +818,8 @@
       "return_gap_days": 2509,
       "return_gap_band": "2+ years",
       "days_since_last_case": 234,
-      "prior_case_count": 14
+      "prior_case_count": 14,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730355",
@@ -832,20 +832,22 @@
       "return_gap_days": 417,
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 210,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730354",
       "client_id": "981539000016361016",
       "created": "Apr 13, 2026 09:38 AM",
       "month": "2026-04",
-      "stage": "Ready for Allocation",
+      "stage": "Ready For Allocation P2",
       "description": "Nil income, CL payments still processing. Has debts. Needs help with daily living costs.",
       "last_paid_date": null,
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 2996,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730350",
@@ -858,33 +860,36 @@
       "return_gap_days": 2385,
       "return_gap_band": "2+ years",
       "days_since_last_case": 1814,
-      "prior_case_count": 15
+      "prior_case_count": 15,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730349",
       "client_id": "981539000178864002",
       "created": "Apr 11, 2026 10:04 PM",
       "month": "2026-04",
-      "stage": "Intake",
+      "stage": "Ready for Allocation",
       "description": "I urgently need zakat assistance to prevent homelessness, and continue fighting to bring my children back into my care and support their wellbeing.",
       "last_paid_date": null,
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 805,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730346",
       "client_id": "981539000187691003",
       "created": "Apr 11, 2026 09:32 AM",
       "month": "2026-04",
-      "stage": "Ready for Allocation",
+      "stage": "Allocated",
       "description": "Unemployed for a month. Though wife works, income is not enough for other basic needs",
       "last_paid_date": "Apr 24, 2025 06:27 PM",
       "return_gap_days": 351,
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 447,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730345",
@@ -897,20 +902,22 @@
       "return_gap_days": 1254,
       "return_gap_band": "2+ years",
       "days_since_last_case": 1024,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730344",
       "client_id": "981539000273590002",
       "created": "Apr 11, 2026 04:45 AM",
       "month": "2026-04",
-      "stage": "Intake",
+      "stage": "Closed - NO Response",
       "description": "Returning for new Muslim support.",
       "last_paid_date": null,
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 21,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730342",
@@ -923,20 +930,22 @@
       "return_gap_days": 141,
       "return_gap_band": "3\u20136 months",
       "days_since_last_case": 45,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730341",
       "client_id": "981539000226952002",
       "created": "Apr 10, 2026 04:19 PM",
       "month": "2026-04",
-      "stage": "Intake",
+      "stage": "Ready for Allocation",
       "description": "I lost my job and if possible please kindly help me",
       "last_paid_date": "Jul 02, 2025 09:29 PM",
       "return_gap_days": 281,
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 399,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730340",
@@ -949,7 +958,8 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 319,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730338",
@@ -962,20 +972,22 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 13,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730335",
       "client_id": "981539000266598001",
       "created": "Apr 10, 2026 12:36 PM",
       "month": "2026-04",
-      "stage": "Intake",
+      "stage": "Closed - NO Response",
       "description": "help with bond and rent; unable to work due to an injury",
       "last_paid_date": "Mar 30, 2026 03:05 PM",
       "return_gap_days": 10,
       "return_gap_band": "< 1 month",
       "days_since_last_case": 42,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730333",
@@ -988,20 +1000,22 @@
       "return_gap_days": 561,
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 707,
-      "prior_case_count": 2
+      "prior_case_count": 2,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730332",
       "client_id": "981539000150327219",
       "created": "Apr 10, 2026 09:21 AM",
       "month": "2026-04",
-      "stage": "Intake",
+      "stage": "Closed - NO Response",
       "description": "I need Food Voucher for food and clothes. My children don't take care of me. I pay all the bills and rent and the kids do not contribute anything.",
       "last_paid_date": null,
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 1043,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730331",
@@ -1014,7 +1028,8 @@
       "return_gap_days": 188,
       "return_gap_band": "6\u201312 months",
       "days_since_last_case": 311,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730330",
@@ -1027,7 +1042,8 @@
       "return_gap_days": 2655,
       "return_gap_band": "2+ years",
       "days_since_last_case": 3362,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730329",
@@ -1040,20 +1056,22 @@
       "return_gap_days": null,
       "return_gap_band": "Unknown",
       "days_since_last_case": 2121,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730328",
       "client_id": "981539000021385370",
       "created": "Apr 09, 2026 06:04 PM",
       "month": "2026-04",
-      "stage": "Allocated",
+      "stage": "Waiting On Client",
       "description": "I am seeking assistance\u2022 $700 for a Functional Capacity Assessment required by Centrelink &\n$116.34 for my overdue vehicle registration",
       "last_paid_date": "Dec 31, 2018 12:00 PM",
       "return_gap_days": 2656,
       "return_gap_band": "2+ years",
       "days_since_last_case": 122,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730327",
@@ -1066,51 +1084,53 @@
       "return_gap_days": 1069,
       "return_gap_band": "2+ years",
       "days_since_last_case": 56,
-      "prior_case_count": 3
+      "prior_case_count": 3,
+      "ai_case_summary": ""
     },
     {
       "case_id": "201730326",
       "client_id": "981539000194236042",
       "created": "Apr 09, 2026 01:17 PM",
       "month": "2026-04",
-      "stage": "Ready for Allocation",
+      "stage": "Ready For Allocation P2",
       "description": "I graduated from the College of Engineering in Gaza. I was working for Uber in the past period, but I stopped about two months ago. Currently, I am looking for a job in my field of study. For around the past two months, I have been spending all the money I had saved, and now I have nothing left. I am not receiving any government support.",
       "last_paid_date": "Sep 13, 2024 05:19 PM",
       "return_gap_days": 572,
       "return_gap_band": "1\u20132 years",
       "days_since_last_case": 672,
-      "prior_case_count": 1
+      "prior_case_count": 1,
+      "ai_case_summary": ""
     }
   ],
   "ai_analysis": {
-    "summary": "Returning clients are experiencing cyclical financial crises driven by income volatility, unexpected expenses, and ongoing structural hardship. Most face recurring gaps between income sources, medical/disability costs, or sudden shocks (job loss, crime, injury) that erode their financial stability despite previous assistance.",
+    "summary": "Returning clients predominantly seek assistance for recurring basic living expenses (food, utilities, rent) and unexpected hardships (medical costs, job loss, crime), indicating that initial support did not resolve underlying structural poverty or that new crises have emerged. The majority of cases reflect ongoing income instability, underemployment, or welfare dependency rather than one-time emergencies.",
     "themes": [
       {
-        "label": "Income-Expense Timing Gaps",
-        "description": "Clients experience predictable shortfalls between income payments (Centrelink, wages) and essential expenses like rent, food, and utilities. They return when facing specific payment deadlines before the next income arrives.",
-        "count_estimate": "~32% of cases"
+        "label": "Chronic Food & Living Cost Insecurity",
+        "description": "Clients returning for assistance with food, utilities, rent, and daily living expenses, often citing insufficient Centrelink payments, underemployment, or income gaps. These cases suggest persistent inability to meet basic needs despite previous support.",
+        "count_estimate": "~36% of cases"
       },
       {
-        "label": "Health/Disability-Related Costs",
-        "description": "Medical conditions, disabilities, specialist appointments, prescriptions, and disability-appropriate equipment create ongoing or episodic financial strain beyond regular living costs. These expenses are often unpredictable or recurrent.",
-        "count_estimate": "~24% of cases"
+        "label": "Health Crisis & Medical Hardship",
+        "description": "Clients facing new or ongoing medical expenses, post-operative recovery, specialist care costs, and chronic disease management (diabetes, disability) that create temporary or extended financial strain. Medical events appear to trigger cascading financial problems.",
+        "count_estimate": "~22% of cases"
       },
       {
-        "label": "Sudden External Shocks",
-        "description": "Unexpected crises such as job loss, crime/theft, accidents, injuries, or vehicle breakdown create immediate financial emergencies requiring rapid assistance to maintain housing and transport.",
+        "label": "Employment Loss & Income Disruption",
+        "description": "Clients who have lost employment, suffered injury preventing work, or face unstable/zero income periods. Job loss appears to be a primary catalyst for return applications, often leading to debt accumulation and arrears.",
         "count_estimate": "~20% of cases"
       },
       {
-        "label": "Structural Poverty & Single-Parent Households",
-        "description": "Single mothers and low-income households face chronic insufficient income to meet basic needs (food, housing, childcare) consistently. They return repeatedly as baseline income never covers all obligations.",
-        "count_estimate": "~18% of cases"
+        "label": "Housing Instability & Emergency Costs",
+        "description": "Clients experiencing homelessness, requiring bond/rent advances, facing eviction, or dealing with unexpected costs like vehicle registration, crime-related losses, or fines. Housing-related crises often occur alongside other hardships.",
+        "count_estimate": "~16% of cases"
       },
       {
-        "label": "Debt Accumulation & Financial Obligations",
-        "description": "Clients return after accumulating debts from buy-now-pay-later services, personal loans, fines, legal fees, or rent arrears that exceed their ability to repay from current income.",
+        "label": "Debt & Legal/Professional Obligations",
+        "description": "Clients seeking help with accumulated consumer debt (Afterpay, ZipPay), fines, legal fees, or professional exam costs. These represent both consequences of earlier poverty and barriers to economic mobility.",
         "count_estimate": "~6% of cases"
       }
     ],
-    "generated_at": "2026-04-22T14:49:48.756735+00:00"
+    "generated_at": "2026-04-22T19:53:22.696839+00:00"
   }
 }

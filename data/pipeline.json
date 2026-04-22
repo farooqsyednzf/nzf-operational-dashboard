@@ -1,55 +1,59 @@
 {
   "meta": {
-    "last_updated": "2026-04-22T14:49:54.464130+00:00",
-    "record_count": 724
+    "last_updated": "2026-04-22T19:53:40.138582+00:00",
+    "record_count": 726
   },
   "summary": {
-    "total_open": 724
+    "total_open": 726
   },
   "by_stage": [
     {
       "stage": "Ready for Allocation",
-      "count": 362
+      "count": 357
     },
     {
       "stage": "Funding",
-      "count": 82
+      "count": 85
     },
     {
       "stage": "Ongoing Funding",
-      "count": 81
+      "count": 82
     },
     {
       "stage": "Intake",
-      "count": 55
+      "count": 52
+    },
+    {
+      "stage": "NM Approval",
+      "count": 45
     },
     {
       "stage": "Follow Up",
       "count": 43
     },
     {
-      "stage": "NM Approval",
-      "count": 41
-    },
-    {
       "stage": "Waiting On Client",
-      "count": 26
+      "count": 31
     },
     {
       "stage": "Allocated",
-      "count": 14
+      "count": 12
     },
     {
       "stage": "Post- Follow-Up",
-      "count": 9
+      "count": 8
     },
     {
       "stage": "Interview",
-      "count": 7
+      "count": 5
+    },
+    {
+      "stage": "Ready For Allocation P2",
+      "count": 3
     },
     {
       "stage": "Gaza-2023",
-      "count": 3
+      "count": 2
     },
     {
       "stage": "Phase 4: Monitoring & Impact",
@@ -59,10 +63,64 @@
   "by_caseworker": [
     {
       "caseworker": "Unassigned",
-      "count": 724
+      "count": 726
     }
   ],
   "cases": [
+    {
+      "case_id": "201730428",
+      "case_name": "Zakat Application for Abdullah Sha",
+      "stage": "Intake",
+      "priority": "",
+      "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
+      "caseworker": "Unassigned",
+      "created": "Apr 22, 2026 08:09 PM"
+    },
+    {
+      "case_id": "201730427",
+      "case_name": "Zakat Application for ABDULRAZZAQ ADEL AL AWER",
+      "stage": "Intake",
+      "priority": "",
+      "case_type": "Financial hardship - food, bills, medical",
+      "caseworker": "Unassigned",
+      "created": "Apr 22, 2026 01:45 PM"
+    },
+    {
+      "case_id": "201730426",
+      "case_name": "Zakat Application for Laila Allouche",
+      "stage": "Intake",
+      "priority": "",
+      "case_type": "Financial hardship - food, bills, medical",
+      "caseworker": "Unassigned",
+      "created": "Apr 22, 2026 11:37 AM"
+    },
+    {
+      "case_id": "201730425",
+      "case_name": "Zakat Application for Khairunnahar Smriti",
+      "stage": "Intake",
+      "priority": "",
+      "case_type": "Financial hardship - food, bills, medical",
+      "caseworker": "Unassigned",
+      "created": "Apr 22, 2026 11:32 AM"
+    },
+    {
+      "case_id": "201730424",
+      "case_name": "Zakat Application for Afroz Ali",
+      "stage": "Funding",
+      "priority": "Priority 1 - (SAME DAY)",
+      "case_type": "Financial hardship - food, bills, medical",
+      "caseworker": "Unassigned",
+      "created": "Apr 22, 2026 11:23 AM"
+    },
+    {
+      "case_id": "201730423",
+      "case_name": "Zakat Application for Mehreen Saman",
+      "stage": "Intake",
+      "priority": "",
+      "case_type": "Housing - rent, bond, arrears",
+      "caseworker": "Unassigned",
+      "created": "Apr 22, 2026 08:44 AM"
+    },
     {
       "case_id": "201730422",
       "case_name": "Zakat Application for Ibrahem Badron",
@@ -138,7 +196,7 @@
     {
       "case_id": "201730412",
       "case_name": "Zakat Application for Basira Hashem Zada",
-      "stage": "Waiting On Client",
+      "stage": "NM Approval",
       "priority": "",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -264,7 +322,7 @@
     {
       "case_id": "201730396",
       "case_name": "Zakat Application for Ahlam Mohammed",
-      "stage": "Intake",
+      "stage": "Ready for Allocation",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -292,7 +350,7 @@
       "case_id": "201730393",
       "case_name": "Zakat Application for Laurine Abd albaki",
       "stage": "Intake",
-      "priority": "",
+      "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
       "created": "Apr 16, 2026 09:07 AM"
@@ -606,7 +664,7 @@
     {
       "case_id": "201730354",
       "case_name": "Zakat Application for Rima Hassoun",
-      "stage": "Ready for Allocation",
+      "stage": "Ready For Allocation P2",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -616,7 +674,7 @@
       "case_id": "201730353",
       "case_name": "Zakat Application for Najla Akkari",
       "stage": "Intake",
-      "priority": "",
+      "priority": "Priority 4- (7-10 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
       "created": "Apr 13, 2026 07:10 AM"
@@ -642,9 +700,9 @@
     {
       "case_id": "201730349",
       "case_name": "Zakat Application for Hannia Rawas",
-      "stage": "Intake",
-      "priority": "",
-      "case_type": "Other",
+      "stage": "Ready for Allocation",
+      "priority": "Priority 3-  (4-6 days)",
+      "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
       "created": "Apr 11, 2026 10:04 PM"
     },
@@ -661,15 +719,15 @@
       "case_id": "201730347",
       "case_name": "Zakat Application for Tony Taei",
       "stage": "Intake",
-      "priority": "",
-      "case_type": "Other;Housing - rent, bond, arrears",
+      "priority": "Priority 1 - (SAME DAY)",
+      "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
       "created": "Apr 11, 2026 04:32 PM"
     },
     {
       "case_id": "201730346",
       "case_name": "Zakat Application for Ahmed Alhobayshi",
-      "stage": "Ready for Allocation",
+      "stage": "Allocated",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -679,19 +737,10 @@
       "case_id": "201730345",
       "case_name": "Zakat Application for Nurul lyiana Hassan",
       "stage": "Intake",
-      "priority": "",
+      "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
       "created": "Apr 11, 2026 05:26 AM"
-    },
-    {
-      "case_id": "201730344",
-      "case_name": "Zakat Application for KELLIE Smith",
-      "stage": "Intake",
-      "priority": "",
-      "case_type": "Housing - rent, bond, arrears;Funeral debt;Financial hardship - food, bills, medical",
-      "caseworker": "Unassigned",
-      "created": "Apr 11, 2026 04:45 AM"
     },
     {
       "case_id": "201730343",
@@ -705,8 +754,8 @@
     {
       "case_id": "201730341",
       "case_name": "Zakat Application for Ghouse Mohammed",
-      "stage": "Intake",
-      "priority": "",
+      "stage": "Ready for Allocation",
+      "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical;Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
       "created": "Apr 10, 2026 04:19 PM"
@@ -723,8 +772,8 @@
     {
       "case_id": "201730339",
       "case_name": "Zakat Application for Rawia Chabchoul",
-      "stage": "Intake",
-      "priority": "",
+      "stage": "Ready for Allocation",
+      "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
       "created": "Apr 10, 2026 01:27 PM"
@@ -739,15 +788,6 @@
       "created": "Apr 10, 2026 12:51 PM"
     },
     {
-      "case_id": "201730337",
-      "case_name": "Zakat Application for Husain Ayat",
-      "stage": "Intake",
-      "priority": "",
-      "case_type": "Other",
-      "caseworker": "Unassigned",
-      "created": "Apr 10, 2026 12:50 PM"
-    },
-    {
       "case_id": "201730336",
       "case_name": "Zakat Application for Souhaib Yassine",
       "stage": "NM Approval",
@@ -755,15 +795,6 @@
       "case_type": "Financial hardship - food, bills, medical;Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
       "created": "Apr 10, 2026 12:37 PM"
-    },
-    {
-      "case_id": "201730335",
-      "case_name": "Zakat Application for Abdul Mueed",
-      "stage": "Intake",
-      "priority": "Priority 3-  (4-6 days)",
-      "case_type": "Housing - rent, bond, arrears",
-      "caseworker": "Unassigned",
-      "created": "Apr 10, 2026 12:36 PM"
     },
     {
       "case_id": "201730334",
@@ -782,15 +813,6 @@
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
       "created": "Apr 10, 2026 09:36 AM"
-    },
-    {
-      "case_id": "201730332",
-      "case_name": "Zakat Application for Christine Onder",
-      "stage": "Intake",
-      "priority": "Priority 3-  (4-6 days)",
-      "case_type": "Financial hardship - food, bills, medical",
-      "caseworker": "Unassigned",
-      "created": "Apr 10, 2026 09:21 AM"
     },
     {
       "case_id": "201730331",
@@ -813,7 +835,7 @@
     {
       "case_id": "201730328",
       "case_name": "Zakat Application for Isa Kocoglu",
-      "stage": "Allocated",
+      "stage": "Waiting On Client",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -831,7 +853,7 @@
     {
       "case_id": "201730326",
       "case_name": "Zakat Application for Mohammed AlAbadla",
-      "stage": "Ready for Allocation",
+      "stage": "Ready For Allocation P2",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
@@ -840,7 +862,7 @@
     {
       "case_id": "201730324",
       "case_name": "Zakat Application for Basak Bayramoglu",
-      "stage": "Allocated",
+      "stage": "NM Approval",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
@@ -893,9 +915,9 @@
     },
     {
       "case_id": "201730316",
-      "case_name": "Zakat Application for SUFYAN ALABADLA",
-      "stage": "Gaza-2023",
-      "priority": "",
+      "case_name": "Zakat Application for Sufyan Alabadla",
+      "stage": "Funding",
+      "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
       "created": "Apr 08, 2026 06:09 PM"
@@ -975,7 +997,7 @@
     {
       "case_id": "201730293",
       "case_name": "Zakat Application for Badriah Al-Hassan",
-      "stage": "Follow Up",
+      "stage": "NM Approval",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
@@ -1002,7 +1024,7 @@
     {
       "case_id": "201730285",
       "case_name": "Zakat Application for Amal Al maliky",
-      "stage": "Allocated",
+      "stage": "Waiting On Client",
       "priority": "",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -1056,7 +1078,7 @@
     {
       "case_id": "201730275",
       "case_name": "Zakat Application for Hasnurul Yusof",
-      "stage": "Follow Up",
+      "stage": "NM Approval",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -1119,7 +1141,7 @@
     {
       "case_id": "201730264",
       "case_name": "Zakat Application for Mohammad Namani",
-      "stage": "Ready for Allocation",
+      "stage": "Ready For Allocation P2",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -1155,7 +1177,7 @@
     {
       "case_id": "201730256",
       "case_name": "Zakat Application for Ishraq Sonnet",
-      "stage": "Waiting On Client",
+      "stage": "Follow Up",
       "priority": "",
       "case_type": "Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
@@ -1245,7 +1267,7 @@
     {
       "case_id": "201730230",
       "case_name": "Zakat Application for Inayathullah Rashid Mohammed",
-      "stage": "NM Approval",
+      "stage": "Follow Up",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
@@ -1335,7 +1357,7 @@
     {
       "case_id": "201730212",
       "case_name": "Zakat Application for Abdulla Abdukakhkhorov",
-      "stage": "Follow Up",
+      "stage": "Funding",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Education - courses, Quran school fees",
       "caseworker": "Unassigned",
@@ -1515,7 +1537,7 @@
     {
       "case_id": "201730176",
       "case_name": "Zakat Application for Sia Kamara",
-      "stage": "Interview",
+      "stage": "Follow Up",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -2047,8 +2069,8 @@
       "case_id": "201730050",
       "case_name": "Zakat Application for Ammar Abu deeb",
       "stage": "Ready for Allocation",
-      "priority": "",
-      "case_type": "Housing - rent, bond, arrears",
+      "priority": "Priority 3-  (4-6 days)",
+      "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
       "created": "Mar 16, 2026 07:23 AM"
     },
@@ -2064,7 +2086,7 @@
     {
       "case_id": "201730048",
       "case_name": "Zakat Application for Inshrah Hussain",
-      "stage": "NM Approval",
+      "stage": "Ongoing Funding",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -2487,7 +2509,7 @@
     {
       "case_id": "201729963",
       "case_name": "Zakat Application for Hasan Aljammal",
-      "stage": "Allocated",
+      "stage": "Waiting On Client",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -4440,7 +4462,7 @@
     {
       "case_id": "201729565",
       "case_name": "Zakat Application for Khairuddin Samsudin",
-      "stage": "Post- Follow-Up",
+      "stage": "NM Approval",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical;Education - courses, Quran school fees",
       "caseworker": "Unassigned",
@@ -4863,7 +4885,7 @@
     {
       "case_id": "201729464",
       "case_name": "Zakat Application for Mohammed Barakoni",
-      "stage": "Follow Up",
+      "stage": "Waiting On Client",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears;Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -5682,7 +5704,7 @@
     {
       "case_id": "201729189",
       "case_name": "Zakat Application for Arianna Hamzee",
-      "stage": "Ready for Allocation",
+      "stage": "Waiting On Client",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -5691,7 +5713,7 @@
     {
       "case_id": "201729188",
       "case_name": "Zakat Application for Seemab Maqsood",
-      "stage": "Ready for Allocation",
+      "stage": "Allocated",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -5709,7 +5731,7 @@
     {
       "case_id": "201729180",
       "case_name": "Zakat Application for KHADIJA AHMED",
-      "stage": "Ready for Allocation",
+      "stage": "NM Approval",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Housing - rent, bond, arrears",
       "caseworker": "Unassigned",
@@ -5727,7 +5749,7 @@
     {
       "case_id": "201729172",
       "case_name": "Zakat Application for Busra Simitci",
-      "stage": "Ready for Allocation",
+      "stage": "Waiting On Client",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -5736,7 +5758,7 @@
     {
       "case_id": "201729162",
       "case_name": "Zakat Application for Mohammad Salem Younesi",
-      "stage": "Ready for Allocation",
+      "stage": "Allocated",
       "priority": "",
       "case_type": "Education - courses, Quran school fees",
       "caseworker": "Unassigned",
@@ -5763,7 +5785,7 @@
     {
       "case_id": "201729148",
       "case_name": "Zakat Application for Rouba Chahal",
-      "stage": "Allocated",
+      "stage": "Waiting On Client",
       "priority": "",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
@@ -5781,7 +5803,7 @@
     {
       "case_id": "201729142",
       "case_name": "Zakat Application for Mariam Diaa Youssef ABUMOHSEN",
-      "stage": "Interview",
+      "stage": "Follow Up",
       "priority": "Priority 3-  (4-6 days)",
       "case_type": "Financial hardship - food, bills, medical",
       "caseworker": "Unassigned",
