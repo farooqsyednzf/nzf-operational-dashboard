@@ -3,24 +3,13 @@ fetch_clients_data.py
 ─────────────────────
 Builds /data/clients.json for the Client Report dashboard.
 
-Definitions
-───────────
-New client
-  A client whose case in the reporting window is their FIRST EVER case.
-  Determined by checking all cases across all time (not just 14 months).
-  The case's Created Time determines which month the new client is attributed to.
+All business rules loaded from config/nzf_rules.json.
 
-Returning client
-  A client who has at least one prior case AND the new case is a genuine
-  new application — not a continuation of the same assistance instance.
-
-Same instance (excluded from returning count)
-  Cases that are continuations of previous assistance rather than new
-  applications. Detected by:
-    1. Stage is in the known ongoing-funding stage list.
-    2. Description contains keywords suggesting linkage / continuation
-       (ILA payments, re-opened cases, follow-up installments, etc.).
-  These are excluded from both new and returning counts.
+Collects:
+  - New / returning client counts by month
+  - Return gap distribution
+  - Clients by state (current month, previous month, last 12 months)
+  - AI qualitative analysis of returning case descriptions
 """
 
 import os, json, sys, requests
@@ -34,178 +23,130 @@ DATA_DIR          = os.path.join(os.path.dirname(__file__), "..", "data")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# ── Stages that indicate ongoing / linked assistance ──────────────
-ONGOING_STAGES = {
-    "Ongoing Funding",
-    "Post Funding - Follow Up",
-    "Post=Follow-Up",
-    "Post- Follow-Up",
-    "Phase 4: Monitoring & Impact",
-}
+# ── Load all business rules from central config ───────────────────
+RULES = zac.RULES
 
-# ── Keywords in description suggesting same-instance continuation ──
-# These indicate the case is linked to a previous one, not a new
-# application — ILA instalments, re-opened cases, follow-up payments.
-SAME_INSTANCE_KEYWORDS = [
-    "ila payment",
-    "ila instalment",
-    "ila installment",
-    "interest-free loan",
-    "interest free loan",
-    "ila repayment",
-    "ongoing ila",
-    "continuation of",
-    "continuation of previous",
-    "continuing support",
-    "linked to previous case",
-    "linked to case",
-    "linked to prior case",
-    "same case",
-    "re-open",
-    "reopen",
-    "reopened",
-    "re-opened",
-    "reopening of",
-    "same application",
-    "follow-up payment",
-    "follow up payment",
-    "follow-up instalment",
-    "follow up instalment",
-    "second instalment",
-    "third instalment",
-    "second payment",
-    "third payment",
-    "instalment of previous",
-]
+_client_rules = RULES["client_definitions"]
+_dist_rules   = RULES["distributions"]
+_periods      = RULES["reporting_periods"]
 
-BAND_ORDER = [
-    "< 1 month", "1–3 months", "3–6 months",
-    "6–12 months", "1–2 years", "2+ years", "Unknown",
-]
+ONGOING_STAGES         = set(_client_rules["same_instance_exclusions"]["stage_exclusions"])
+SAME_INSTANCE_KEYWORDS = _client_rules["same_instance_exclusions"]["description_keywords"]
+PAID_STATUSES          = set(_dist_rules["paid_statuses"])
+WINDOW_MONTHS          = _periods["client_report_window_months"]
+TREND_MONTHS           = _periods["trend_display_months"]
+
+_gap_bands_cfg = _dist_rules["return_gap_bands"]["bands"]
+BAND_ORDER     = [b["label"] for b in _gap_bands_cfg] + ["Unknown"]
 
 # ── Helpers ───────────────────────────────────────────────────────
-def cutoff_14_months():
-    n = datetime.now(timezone.utc)
-    m, y = n.month - 13, n.year
+def return_gap_band(days):
+    if days is None: return "Unknown"
+    for band in _gap_bands_cfg:
+        lo, hi = band["days_from"], band["days_to"]
+        if hi is None and days >= lo:       return band["label"]
+        if hi is not None and lo <= days <= hi: return band["label"]
+    return "Unknown"
+
+def cutoff_n_months(n):
+    now = datetime.now(timezone.utc)
+    m, y = now.month - (n - 1), now.year
     while m <= 0: m += 12; y -= 1
     return datetime(y, m, 1, tzinfo=timezone.utc)
 
-def last_13_months():
-    n = datetime.now(timezone.utc)
+def last_n_months(n):
+    now = datetime.now(timezone.utc)
     result, seen = [], set()
-    for i in range(14):
-        m, y = n.month - i, n.year
+    for i in range(n + 1):
+        m, y = now.month - i, now.year
         while m <= 0: m += 12; y -= 1
         mk = f"{y}-{m:02d}"
         if mk not in seen:
             seen.add(mk); result.append(mk)
     result.reverse()
-    return result[-13:]
+    return result[-n:]
 
 def days_between(s1, s2):
     d1, d2 = zac.parse_dt(s1), zac.parse_dt(s2)
     return abs((d2 - d1).days) if d1 and d2 else None
 
-def return_gap_band(days):
-    if days is None:  return "Unknown"
-    if days < 30:     return "< 1 month"
-    if days < 90:     return "1–3 months"
-    if days < 180:    return "3–6 months"
-    if days < 365:    return "6–12 months"
-    if days < 730:    return "1–2 years"
-    return "2+ years"
-
 # ── Same-instance detection ───────────────────────────────────────
 def is_same_instance(stage, description):
-    """
-    Returns True if this case is a continuation of a previous assistance
-    instance rather than a genuine new application.
-
-    Checks:
-      1. Stage is in the known ongoing-stage list.
-      2. Description contains keywords indicating linkage / continuation.
-    """
     if stage in ONGOING_STAGES:
         return True
     desc_lower = (description or "").lower()
     return any(kw in desc_lower for kw in SAME_INSTANCE_KEYWORDS)
 
-# ── Build case history index for all clients ──────────────────────
-def build_client_case_history(all_cases):
-    """
-    Build a dict: client_id → sorted list of case Created Time datetimes.
+# ── Client state index ─────────────────────────────────────────────
+def build_client_state_index(client_rows):
+    """client_id → Australian state abbreviation (e.g. 'NSW', 'VIC')."""
+    index = {}
+    for c in client_rows:
+        client_id = c.get("id", "").strip()
+        state     = (c.get("mailing_state") or c.get("state", "")).strip().upper()
+        if client_id and state:
+            index[client_id] = state
+    print(f"  State index: {len(index):,} clients with state data")
+    return index
 
-    Uses ALL cases (not just the 14-month window) so we can determine
-    whether a case in the reporting window is the client's first ever.
-    """
+# ── Client case history ────────────────────────────────────────────
+def build_client_case_history(all_cases):
     history = defaultdict(list)
     for c in all_cases:
         client_id = c.get("client_name", "").strip()
         dt        = zac.parse_dt(c.get("created_time", ""))
         if client_id and dt:
             history[client_id].append(dt)
-
-    # Sort each client's cases chronologically
-    for client_id in history:
-        history[client_id].sort()
-
+    for cid in history:
+        history[cid].sort()
     return history
 
-# ── Build last-paid-date index (for return gap calculation) ────────
+# ── Last-paid-date index ───────────────────────────────────────────
 def build_last_paid_index(dist_rows):
-    """
-    contact_id → latest effective paid date.
-    Used for calculating how long since last assistance.
-    """
     index = {}
     for d in dist_rows:
         status    = d.get("status", "").strip()
-        if status not in ("Paid", "Extracted"):
-            continue
+        if status not in PAID_STATUSES: continue
         client_id = d.get("client_name", "").strip()
-        if not client_id:
-            continue
+        if not client_id: continue
         paid_dt = (
-            d.get("paid_date") if status == "Paid"
-            else d.get("extracted_date")
+            d.get("paid_date") if status == "Paid" else d.get("extracted_date")
         )
         if not paid_dt or not paid_dt.strip():
             paid_dt = d.get("created_time", "")
-        if not paid_dt:
-            continue
+        if not paid_dt: continue
         existing = index.get(client_id)
         if not existing or paid_dt > existing:
             index[client_id] = paid_dt
-
-    print(f"  Last-paid index: {len(index):,} clients with paid distributions")
+    print(f"  Last-paid index: {len(index):,} clients")
     return index
 
-# ── AI qualitative analysis (server-side) ─────────────────────────
+# ── State distribution helper ──────────────────────────────────────
+def state_counts_sorted(counter):
+    """Counter dict → sorted list of {state, count} dicts, descending."""
+    return sorted(
+        [{"state": s, "count": n} for s, n in counter.items() if s],
+        key=lambda x: -x["count"]
+    )
+
+# ── AI qualitative analysis ────────────────────────────────────────
 def run_ai_analysis(returning_cases):
-    """
-    Calls Anthropic API to analyse why clients are returning.
-    Runs server-side during GitHub Actions refresh — result stored in JSON.
-    Returns None if ANTHROPIC_API_KEY not set or call fails.
-    """
     if not ANTHROPIC_API_KEY:
         print("  ⚠ ANTHROPIC_API_KEY not set — skipping AI analysis")
         return None
-
     cases_with_text = [c for c in returning_cases if c.get("description")]
     if not cases_with_text:
-        print("  ⚠ No case descriptions available for AI analysis")
+        print("  ⚠ No case descriptions for AI analysis")
         return None
-
     case_texts = "\n\n".join(
         f"Case {i+1} (gap: {c.get('return_gap_band','unknown')}): {c['description']}"
         for i, c in enumerate(cases_with_text[:50])
     )
-
     prompt = f"""You are an analyst reviewing returning client cases for NZF (National Zakat Foundation), a charity providing Zakat-based financial assistance in Australia.
 
-Below are {len(cases_with_text)} case descriptions where clients have returned for assistance after previously receiving help. Note: same-instance cases (ILA instalments, re-opened cases, follow-up payments) have already been filtered out — these are all genuine new applications from returning clients.
+Below are {len(cases_with_text)} case descriptions where clients have returned for assistance. Same-instance cases (ILA instalments, re-opened cases, follow-up payments) have already been filtered out — these are genuine new applications from returning clients.
 
-Analyse these to understand WHY clients are genuinely returning.
+Analyse these to understand WHY clients are genuinely returning for additional assistance.
 
 Respond ONLY with valid JSON (no markdown, no preamble):
 {{
@@ -220,117 +161,133 @@ Respond ONLY with valid JSON (no markdown, no preamble):
 
 Case data:
 {case_texts[:4000]}"""
-
     try:
         res = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
-                "x-api-key":         ANTHROPIC_API_KEY,
+                "x-api-key": ANTHROPIC_API_KEY,
                 "anthropic-version": "2023-06-01",
-                "content-type":      "application/json",
+                "content-type": "application/json",
             },
             json={
-                "model":      "claude-haiku-4-5-20251001",
+                "model": "claude-haiku-4-5-20251001",
                 "max_tokens": 1000,
-                "messages":   [{"role": "user", "content": prompt}],
+                "messages": [{"role": "user", "content": prompt}],
             },
             timeout=30,
         )
         res.raise_for_status()
         raw    = res.json()["content"][0]["text"]
-        parsed = json.loads(raw.replace("```json", "").replace("```", "").strip())
-        print(f"  ✓ AI analysis complete — {len(parsed.get('themes', []))} themes identified")
+        parsed = json.loads(raw.replace("```json","").replace("```","").strip())
+        print(f"  ✓ AI analysis — {len(parsed.get('themes',[]))} themes")
         return {**parsed, "generated_at": datetime.now(timezone.utc).isoformat()}
     except Exception as e:
         print(f"  ⚠ AI analysis failed: {e}")
         return None
 
-# ── Build report ──────────────────────────────────────────────────
+# ── Monthly state series builder ──────────────────────────────────
+def _build_state_monthly_series(state_monthly, state_12m, months):
+    """
+    Build a Chart.js-ready series structure for the stacked bar chart.
+
+    Returns:
+      {
+        "months": ["2025-05", ...],   # x-axis labels
+        "series": [
+          {"state": "NSW", "data": [12, 15, 10, ...]},
+          ...
+        ]
+      }
+
+    States ordered by 12-month total descending so the most significant
+    states stack at the bottom of the chart.
+    """
+    # States ranked by 12-month total, most active first
+    ranked_states = [
+        s for s, _ in sorted(state_12m.items(), key=lambda x: -x[1])
+    ]
+
+    series = []
+    for state in ranked_states:
+        series.append({
+            "state": state,
+            "data":  [state_monthly.get(m, {}).get(state, 0) for m in months],
+        })
+
+    return {"months": months, "series": series}
+
+# ── Build report ───────────────────────────────────────────────────
 def build_clients_report(token):
-    cutoff = cutoff_14_months()
+    cutoff = cutoff_n_months(WINDOW_MONTHS)
+    months = last_n_months(TREND_MONTHS)
 
     print("\n  Fetching Analytics views...")
-    all_cases = zac.fetch_view(token, zac.VIEW_CASES,         label="Cases")
-    all_dists = zac.fetch_view(token, zac.VIEW_DISTRIBUTIONS, label="Distributions")
+    all_cases   = zac.fetch_view(token, zac.VIEW_CASES,         label="Cases")
+    all_dists   = zac.fetch_view(token, zac.VIEW_DISTRIBUTIONS, label="Distributions")
+    all_clients = zac.fetch_view(token, zac.VIEW_CLIENTS,       label="Clients")
 
-    # Build full case history for ALL clients (used to determine first-ever case)
-    case_history = build_client_case_history(all_cases)
+    case_history  = build_client_case_history(all_cases)
+    last_paid     = build_last_paid_index(all_dists)
+    client_states = build_client_state_index(all_clients)
+    del all_dists, all_clients
 
-    # Build last-paid index for return gap calculation
-    last_paid = build_last_paid_index(all_dists)
-    del all_dists
+    window_cases = [
+        c for c in all_cases
+        if (zac.parse_dt(c.get("created_time","")) or datetime.min.replace(tzinfo=timezone.utc)) >= cutoff
+    ]
+    print(f"  Cases in window: {len(window_cases):,} (of {len(all_cases):,} total)")
 
-    # Filter cases to the 14-month reporting window
-    window_cases = []
-    for c in all_cases:
-        dt = zac.parse_dt(c.get("created_time", ""))
-        if dt and dt >= cutoff:
-            window_cases.append(c)
-
-    print(f"  Cases in reporting window: {len(window_cases):,} "
-          f"(of {len(all_cases):,} total)")
-
-    months         = last_13_months()
     current_month  = months[-1]
     previous_month = months[-2]
 
     new_by_month       = defaultdict(int)
     returning_by_month = defaultdict(int)
-    same_instance_count= 0
+    same_instance_count = 0
     returning_cases    = []
     gap_bands          = defaultdict(int)
 
+    # State counters for three periods
+    state_current  = defaultdict(int)              # current month only
+    state_previous = defaultdict(int)              # previous month only
+    state_12m      = defaultdict(int)              # all 12 months
+    state_monthly  = defaultdict(lambda: defaultdict(int))  # month → state → count
+
     for c in window_cases:
-        created_dt  = zac.parse_dt(c.get("created_time", ""))
+        created_dt  = zac.parse_dt(c.get("created_time",""))
         mk          = zac.month_key(created_dt)
         if not mk or mk not in months:
             continue
 
-        client_id   = c.get("client_name", "").strip()
-        stage       = c.get("stage", "").strip()
-        description = c.get("description", "").strip()
-        case_id     = c.get("case_id") or c.get("case-id", "")
+        client_id   = c.get("client_name","").strip()
+        stage       = c.get("stage","").strip()
+        description = c.get("description","").strip()
+        case_id     = c.get("case_id") or c.get("case-id","")
+        state       = client_states.get(client_id, "")
 
-        # ── Same-instance check ───────────────────────────────────
-        # Exclude continuations (ILA payments, re-opened cases, etc.)
+        # Same-instance exclusion
         if is_same_instance(stage, description):
             same_instance_count += 1
             continue
 
-        # ── New vs returning ──────────────────────────────────────
-        # New    = this is the client's first ever case across all time
-        # Return = client has at least one prior case before this one
-        client_all_case_dates = case_history.get(client_id, [])
-        is_first_ever_case    = (
-            not client_all_case_dates                         # no history found
-            or client_all_case_dates[0] == created_dt        # this IS the earliest
-        )
+        # New vs returning
+        client_dates       = case_history.get(client_id, [])
+        is_first_ever_case = not client_dates or client_dates[0] == created_dt
 
         if is_first_ever_case:
-            # ── New client ────────────────────────────────────────
             new_by_month[mk] += 1
-
         else:
-            # ── Returning client ──────────────────────────────────
             returning_by_month[mk] += 1
-
-            # Time since last paid distribution
-            last_paid_dt = last_paid.get(client_id)
-            gap_days     = days_between(last_paid_dt, c.get("created_time")) \
-                           if last_paid_dt else None
-            band         = return_gap_band(gap_days)
+            last_paid_dt    = last_paid.get(client_id)
+            gap_days        = days_between(last_paid_dt, c.get("created_time")) if last_paid_dt else None
+            band            = return_gap_band(gap_days)
             gap_bands[band] += 1
-
-            # Days since their previous case
-            prior_dates      = [d for d in client_all_case_dates if d < created_dt]
-            last_case_dt     = max(prior_dates) if prior_dates else None
-            days_since_case  = abs((created_dt - last_case_dt).days) \
-                               if last_case_dt else None
-
+            prior_dates     = [d for d in client_dates if d < created_dt]
+            last_case_dt    = max(prior_dates) if prior_dates else None
+            days_since_case = abs((created_dt - last_case_dt).days) if last_case_dt else None
             returning_cases.append({
                 "case_id":              case_id,
                 "client_id":            client_id,
-                "created":              c.get("created_time", ""),
+                "created":              c.get("created_time",""),
                 "month":                mk,
                 "stage":                stage,
                 "description":          description[:500],
@@ -341,11 +298,19 @@ def build_clients_report(token):
                 "prior_case_count":     len(prior_dates),
             })
 
-    print(f"  Same-instance cases excluded: {same_instance_count:,}")
-    print(f"  New clients (in window):      {sum(new_by_month.values()):,}")
-    print(f"  Returning clients (in window):{sum(returning_by_month.values()):,}")
+        # State counts — total clients (new + returning) per period
+        if state:
+            state_12m[state] += 1
+            state_monthly[mk][state] += 1
+            if mk == current_month:
+                state_current[state] += 1
+            elif mk == previous_month:
+                state_previous[state] += 1
 
-    # Trend series
+    print(f"  Same-instance excluded: {same_instance_count:,}")
+    print(f"  New (in window):        {sum(new_by_month.values()):,}")
+    print(f"  Returning (in window):  {sum(returning_by_month.values()):,}")
+
     trend = [
         {
             "month":     m,
@@ -364,14 +329,12 @@ def build_clients_report(token):
     ret_curr = returning_by_month.get(current_month, 0)
     ret_prev = returning_by_month.get(previous_month, 0)
 
-    gap_days_list = [c["return_gap_days"] for c in returning_cases
-                     if c["return_gap_days"] is not None]
+    gap_days_list = [c["return_gap_days"] for c in returning_cases if c["return_gap_days"] is not None]
     avg_gap = round(sum(gap_days_list) / len(gap_days_list)) if gap_days_list else 0
 
     qual_sample = sorted(
         [c for c in returning_cases if c.get("description")],
-        key=lambda x: x["created"] or "",
-        reverse=True,
+        key=lambda x: x["created"] or "", reverse=True
     )[:50]
 
     print("\n  Running AI qualitative analysis...")
@@ -379,12 +342,12 @@ def build_clients_report(token):
 
     return {
         "meta": {
-            "last_updated":             datetime.now(timezone.utc).isoformat(),
-            "record_count":             len(window_cases),
-            "months_covered":           months,
-            "current_month":            current_month,
-            "previous_month":           previous_month,
-            "same_instance_excluded":   same_instance_count,
+            "last_updated":           datetime.now(timezone.utc).isoformat(),
+            "record_count":           len(window_cases),
+            "months_covered":         months,
+            "current_month":          current_month,
+            "previous_month":         previous_month,
+            "same_instance_excluded": same_instance_count,
         },
         "summary": {
             "new_clients_current_month":        new_curr,
@@ -398,14 +361,22 @@ def build_clients_report(token):
         },
         "trend":  trend,
         "gap_distribution": [
-            {"band": b, "count": gap_bands[b]}
+            {"band": b, "count": gap_bands.get(b, 0)}
             for b in BAND_ORDER if gap_bands.get(b, 0) > 0
         ],
+        "clients_by_state": {
+            "current_month":  state_counts_sorted(state_current),
+            "previous_month": state_counts_sorted(state_previous),
+            "last_12_months": state_counts_sorted(state_12m),
+        },
+        "clients_by_state_monthly": _build_state_monthly_series(
+            state_monthly, state_12m, months
+        ),
         "returning_cases": qual_sample,
         "ai_analysis":     ai_analysis,
     }
 
-# ── Main ──────────────────────────────────────────────────────────
+# ── Main ───────────────────────────────────────────────────────────
 def main():
     print("═" * 55)
     print("NZF — Client Report  |  Zoho Analytics")
@@ -427,6 +398,7 @@ def main():
     print(f"   New this month:          {s['new_clients_current_month']}")
     print(f"   Returning this month:    {s['returning_clients_current_month']}")
     print(f"   Avg return gap:          {s['avg_return_gap_days']} days")
+    print(f"   States (12m):            {len(data['clients_by_state']['last_12_months'])} states")
     print(f"   AI analysis:             {'✓ included' if data['ai_analysis'] else '✗ not available'}")
     print("═" * 55)
 
