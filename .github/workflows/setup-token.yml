@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       auth_code:
-        description: 'Paste your code from Zoho API Console here'
+        description: 'Paste your code from Zoho API Console (scope: ZohoAnalytics.fullaccess.all)'
         required: true
         type: string
 
@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Exchange code for refresh token
         run: |
-          echo "🔄 Exchanging authorization code for refresh token..."
+          echo "🔄 Exchanging authorisation code for refresh token..."
 
           RESPONSE=$(curl -s -X POST "https://accounts.zoho.com/oauth/v2/token" \
             -d "code=${{ github.event.inputs.auth_code }}" \
@@ -23,51 +23,33 @@ jobs:
             -d "redirect_uri=https://www.zoho.com/crm" \
             -d "grant_type=authorization_code")
 
-          echo "Response received."
-
-          # Check for error
           if echo "$RESPONSE" | grep -q '"error"'; then
-            echo ""
             echo "❌ ERROR — Token exchange failed."
             echo "   Response: $RESPONSE"
-            echo ""
-            echo "   Most likely cause: the code has expired (10 min limit)."
-            echo "   Go back to api-console.zoho.com, generate a new code,"
-            echo "   and run this workflow again immediately."
+            echo "   The code may have expired (10 min limit). Generate a new one and try again."
             exit 1
           fi
 
-          # Extract refresh token
           REFRESH_TOKEN=$(echo "$RESPONSE" | python3 -c "
           import sys, json
           data = json.load(sys.stdin)
-          rt = data.get('refresh_token', '')
-          if rt:
-              print(rt)
-          else:
-              print('NOT_FOUND')
+          print(data.get('refresh_token','NOT_FOUND'))
           ")
 
           if [ "$REFRESH_TOKEN" = "NOT_FOUND" ]; then
-            echo "❌ Could not find refresh_token in response."
-            echo "   Full response: $RESPONSE"
+            echo "❌ No refresh_token in response: $RESPONSE"
             exit 1
           fi
 
           echo ""
-          echo "✅ Success! Your refresh token has been generated."
+          echo "✅ Success!"
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "  REFRESH TOKEN (copy this entire value):"
+          echo "  REFRESH TOKEN:"
           echo ""
           echo "  $REFRESH_TOKEN"
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo ""
-          echo "👉 Next steps:"
-          echo "   1. Copy the token value above"
-          echo "   2. Go to your GitHub repo"
-          echo "   3. Settings → Secrets and variables → Actions"
-          echo "   4. Click the pencil next to ZOHO_REFRESH_TOKEN"
-          echo "   5. Paste the token → Save"
-          echo "   6. Run the 'Refresh Zoho CRM Data' workflow"
+          echo "👉 Copy the token above and save it as the ZOHO_REFRESH_TOKEN"
+          echo "   GitHub secret (Settings → Secrets → Actions → pencil icon)."
