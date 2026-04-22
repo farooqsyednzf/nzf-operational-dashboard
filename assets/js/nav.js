@@ -19,8 +19,7 @@ const NAV_ITEMS = [
   {
     section: "Cases",
     items: [
-      { label: "Case Pipeline",    href: "/dashboards/pipeline.html", icon: "pipeline" },
-      { label: "Case Summary",     href: "/dashboards/cases.html",    icon: "chart" },
+      { label: "Cases Report",     href: "/dashboards/cases.html",    icon: "chart" },
     ]
   },
   {
