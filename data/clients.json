@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-22T14:25:58.686494+00:00",
+    "last_updated": "2026-04-22T14:41:11.654744+00:00",
     "record_count": 3119,
     "months_covered": [
       "2025-04",
@@ -141,6 +141,287 @@
       "count": 240
     }
   ],
+  "clients_by_state": {
+    "current_month": [
+      {
+        "state": "NSW",
+        "count": 76
+      },
+      {
+        "state": "VIC",
+        "count": 58
+      },
+      {
+        "state": "WA",
+        "count": 8
+      },
+      {
+        "state": "QLD",
+        "count": 7
+      },
+      {
+        "state": "TAS",
+        "count": 2
+      },
+      {
+        "state": "SA",
+        "count": 1
+      }
+    ],
+    "previous_month": [
+      {
+        "state": "NSW",
+        "count": 171
+      },
+      {
+        "state": "VIC",
+        "count": 153
+      },
+      {
+        "state": "QLD",
+        "count": 27
+      },
+      {
+        "state": "WA",
+        "count": 18
+      },
+      {
+        "state": "SA",
+        "count": 14
+      },
+      {
+        "state": "ACT",
+        "count": 4
+      },
+      {
+        "state": "NT",
+        "count": 2
+      },
+      {
+        "state": "TAS",
+        "count": 2
+      }
+    ],
+    "last_12_months": [
+      {
+        "state": "NSW",
+        "count": 1253
+      },
+      {
+        "state": "VIC",
+        "count": 1001
+      },
+      {
+        "state": "QLD",
+        "count": 164
+      },
+      {
+        "state": "WA",
+        "count": 121
+      },
+      {
+        "state": "SA",
+        "count": 63
+      },
+      {
+        "state": "ACT",
+        "count": 20
+      },
+      {
+        "state": "TAS",
+        "count": 7
+      },
+      {
+        "state": "NT",
+        "count": 6
+      },
+      {
+        "state": "GREENACRE",
+        "count": 2
+      }
+    ]
+  },
+  "clients_by_state_monthly": {
+    "months": [
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04"
+    ],
+    "series": [
+      {
+        "state": "NSW",
+        "data": [
+          96,
+          114,
+          77,
+          88,
+          65,
+          88,
+          93,
+          86,
+          89,
+          81,
+          129,
+          171,
+          76
+        ]
+      },
+      {
+        "state": "VIC",
+        "data": [
+          72,
+          77,
+          66,
+          74,
+          64,
+          55,
+          60,
+          66,
+          69,
+          80,
+          107,
+          153,
+          58
+        ]
+      },
+      {
+        "state": "QLD",
+        "data": [
+          9,
+          11,
+          11,
+          6,
+          11,
+          4,
+          12,
+          8,
+          5,
+          10,
+          43,
+          27,
+          7
+        ]
+      },
+      {
+        "state": "WA",
+        "data": [
+          6,
+          9,
+          8,
+          2,
+          11,
+          9,
+          10,
+          5,
+          9,
+          10,
+          16,
+          18,
+          8
+        ]
+      },
+      {
+        "state": "SA",
+        "data": [
+          4,
+          11,
+          2,
+          0,
+          3,
+          6,
+          3,
+          6,
+          3,
+          6,
+          4,
+          14,
+          1
+        ]
+      },
+      {
+        "state": "ACT",
+        "data": [
+          1,
+          1,
+          4,
+          1,
+          1,
+          1,
+          0,
+          1,
+          1,
+          1,
+          4,
+          4,
+          0
+        ]
+      },
+      {
+        "state": "TAS",
+        "data": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "state": "NT",
+        "data": [
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          2,
+          0
+        ]
+      },
+      {
+        "state": "GREENACRE",
+        "data": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ]
+      }
+    ]
+  },
   "returning_cases": [
     {
       "case_id": "201728743",
@@ -794,29 +1075,34 @@
     }
   ],
   "ai_analysis": {
-    "summary": "Returning clients predominantly face persistent employment instability and structural barriers to income generation, compounded by visa/residency limitations that restrict access to services and work opportunities. Most reapply due to ongoing housing insecurity and essential living costs that periodically exceed their limited financial capacity, rather than single crisis events.",
+    "summary": "Returning clients predominantly face persistent structural barriers to financial stability including unemployment/underemployment, housing insecurity, and visa/migration-related restrictions that prevent access to mainstream support. Many experience compounding vulnerabilities such as domestic violence, disability, or health crises that create cyclical financial need beyond their initial assistance period.",
     "themes": [
       {
-        "label": "Employment Instability & Income Insufficiency",
-        "description": "Clients with no job, underemployment, precarious work arrangements, or income that doesn't cover basic expenses. Includes those facing job loss, delayed employment starts, or inability to work due to visa restrictions.",
-        "count_estimate": "~36% of cases"
-      },
-      {
         "label": "Housing Insecurity & Rental Crisis",
-        "description": "Clients unable to afford rent, facing eviction notices, requiring bond assistance, or at risk of homelessness. Often the primary trigger for reapplication when financial buffers are depleted.",
+        "description": "Clients unable to afford rent, facing eviction notices, or needing bond/deposit assistance. Housing costs consume disproportionate income, creating recurring financial shortfalls.",
         "count_estimate": "~28% of cases"
       },
       {
-        "label": "Visa/Residency Barriers & Systemic Exclusion",
-        "description": "Temporary residents, protection visa holders, and refugees ineligible for mainstream government support (Centrelink). Face compounded vulnerability due to immigration status and inability to access broader welfare systems.",
-        "count_estimate": "~20% of cases"
+        "label": "Unemployment & Job Loss",
+        "description": "Clients experiencing job loss, inability to secure employment, or underemployment (precarious/part-time work). Extended job search periods deplete savings and create dependency on emergency assistance.",
+        "count_estimate": "~26% of cases"
       },
       {
-        "label": "Family Vulnerability & Dependents",
-        "description": "Single parents (especially mothers), families with children requiring education/school expenses, or dependents with special needs or health requirements. Additional financial obligations drain limited resources.",
+        "label": "Visa/Migration Status & Exclusion from Support",
+        "description": "Temporary visa holders, refugees, and protection visa holders ineligible for government welfare (Centrelink) despite significant vulnerability. Creates dependence on charitable assistance for basic needs.",
+        "count_estimate": "~18% of cases"
+      },
+      {
+        "label": "Health, Disability & Compounding Vulnerability",
+        "description": "Clients with physical/mental health conditions, disability, or domestic violence histories that reduce earning capacity and increase essential expenses (medical, counselling, childcare).",
         "count_estimate": "~16% of cases"
+      },
+      {
+        "label": "Essential Living Costs (Utilities, Food, Education)",
+        "description": "Ongoing need for bills, groceries, school fees, and medical expenses that exceed household income, particularly for single parents and families on minimal welfare.",
+        "count_estimate": "~12% of cases"
       }
     ],
-    "generated_at": "2026-04-22T14:25:58.685442+00:00"
+    "generated_at": "2026-04-22T14:41:11.653661+00:00"
   }
 }
