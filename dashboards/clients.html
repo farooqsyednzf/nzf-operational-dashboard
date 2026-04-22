@@ -193,11 +193,50 @@
           <div class="chart-card-header">
             <div>
               <div class="chart-card-title">New Clients — 12 Month Trend</div>
-              <div class="chart-card-subtitle">Monthly count of first-time client cases</div>
+              <div class="chart-card-subtitle">Monthly count of first-time clients (no prior cases)</div>
             </div>
           </div>
-          <div class="chart-container" style="height:220px;">
+          <div class="chart-container" style="height:240px;">
             <canvas id="chart-new-trend"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION: Returning Clients ───────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-blue); margin-top:36px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Returning Clients</h2>
+          <p>Clients with a new genuine application who previously received assistance</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-2col" id="ret-kpis">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Returning Clients — 12 Month Trend</div>
+              <div class="chart-card-subtitle">Monthly count of returning client cases</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:240px;">
+            <canvas id="chart-ret-trend"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">New vs Returning — Combined View</div>
+              <div class="chart-card-subtitle">Stacked monthly comparison</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:240px;">
+            <canvas id="chart-combined"></canvas>
           </div>
         </div>
       </div>
@@ -214,12 +253,12 @@
       <div class="chart-grid">
         <!-- State snapshot with period toggle -->
         <div class="chart-card">
-          <div class="chart-card-header">
+          <div class="chart-card-header" style="flex-wrap:wrap;gap:10px;">
             <div>
               <div class="chart-card-title" id="state-chart-title">Clients by State</div>
               <div class="chart-card-subtitle">All clients after same-instance exclusions</div>
             </div>
-            <div id="state-toggle" style="display:flex;gap:6px;flex-shrink:0;">
+            <div id="state-toggle" style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
               <button class="state-toggle-btn active" data-period="current_month"
                 onclick="switchStatePeriod('current_month',this)">Current Month</button>
               <button class="state-toggle-btn" data-period="previous_month"
@@ -228,12 +267,12 @@
                 onclick="switchStatePeriod('last_12_months',this)">Last 12 Months</button>
             </div>
           </div>
-          <div class="chart-container" style="height:280px;">
+          <div class="chart-container" style="height:300px;">
             <canvas id="chart-state"></canvas>
           </div>
         </div>
 
-        <!-- Monthly state trend — stacked bar -->
+        <!-- Monthly state trend — line per state -->
         <div class="chart-card">
           <div class="chart-card-header">
             <div>
@@ -241,47 +280,8 @@
               <div class="chart-card-subtitle">Last 12 months — one line per state</div>
             </div>
           </div>
-          <div class="chart-container" style="height:280px;">
+          <div class="chart-container" style="height:300px;">
             <canvas id="chart-state-monthly"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── SECTION: Trend ────────────────────────────────────── -->
-      <div class="section-divider" style="--section-color: var(--color-blue); margin-top:36px;">
-        <div class="section-divider-bar"></div>
-        <div>
-          <h2>Returning Clients</h2>
-          <p>Clients with a new case who previously received assistance — excludes ILA / ongoing funding stages</p>
-        </div>
-      </div>
-
-      <div class="kpi-grid kpi-grid-2col" id="ret-kpis">
-        <div class="loading-overlay"><div class="spinner"></div></div>
-      </div>
-
-      <div class="chart-grid">
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div>
-              <div class="chart-card-title">Returning Clients — 12 Month Trend</div>
-              <div class="chart-card-subtitle">Monthly count of returning client cases</div>
-            </div>
-          </div>
-          <div class="chart-container" style="height:220px;">
-            <canvas id="chart-ret-trend"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div>
-              <div class="chart-card-title">New vs Returning — Combined View</div>
-              <div class="chart-card-subtitle">Stacked monthly comparison</div>
-            </div>
-          </div>
-          <div class="chart-container" style="height:220px;">
-            <canvas id="chart-combined"></canvas>
           </div>
         </div>
       </div>
@@ -295,7 +295,7 @@
         </div>
       </div>
 
-      <div class="chart-grid" style="grid-template-columns:2fr 1fr;">
+      <div class="chart-grid" style="grid-template-columns: minmax(300px,2fr) minmax(200px,1fr);">
         <div class="chart-card">
           <div class="chart-card-header">
             <div>
@@ -365,12 +365,13 @@ Chart.register(ChartDataLabels);
 
 const C = {
   red:       '#EE3526',
-  redLight:  'rgba(238,53,38,0.12)',
+  redLight:  'rgba(238,53,38,0.08)',
   blue:      '#0081C6',
-  blueLight: 'rgba(0,129,198,0.12)',
+  blueLight: 'rgba(0,129,198,0.08)',
   yellow:    '#FDB913',
   green:     '#49A942',
   grey:      '#9F9393',
+  dark:      '#231F1F',
   border:    '#E8E6E6',
 };
 
@@ -504,9 +505,9 @@ function renderNewTrendChart(data) {
         fill: true,
         tension: 0.35,
         pointBackgroundColor: C.red,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        borderWidth: 2.5,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2,
       }]
     },
     options: chartOptions('New Clients per Month'),
@@ -531,9 +532,9 @@ function renderRetTrendChart(data) {
         fill: true,
         tension: 0.35,
         pointBackgroundColor: C.blue,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        borderWidth: 2.5,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2,
       }]
     },
     options: chartOptions('Returning Clients per Month'),
@@ -829,27 +830,28 @@ function renderCasesTable(data) {
       <thead>
         <tr>
           <th>Case ID</th>
-          <th>Client</th>
           <th>Case Created</th>
           <th>Stage</th>
           <th>Last Paid Dist.</th>
           <th>Return Gap</th>
-          <th>Description Preview</th>
+          <th>Summary</th>
         </tr>
       </thead>
       <tbody>
-        ${cases.map(c => `
+        ${cases.map(c => {
+          const summary = c.ai_case_summary || (c.description || '').substring(0, 120) + ((c.description || '').length > 120 ? '…' : '');
+          return `
           <tr>
-            <td style="font-family:'Cambay';font-weight:700;color:var(--color-primary);white-space:nowrap">${c.case_id || '—'}</td>
-            <td style="white-space:nowrap">${c.client_name || c.client_id || '—'}</td>
+            <td style="font-weight:700;color:var(--color-primary);white-space:nowrap;font-size:0.85rem;">${c.case_id || '—'}</td>
             <td style="white-space:nowrap">${fmtDate(c.created)}</td>
             <td><span class="badge badge-grey">${c.stage || '—'}</span></td>
             <td style="white-space:nowrap">${fmtDate(c.last_paid_date)}</td>
-            <td><span class="gap-pill ${gapClass(c.return_gap_band)}">${c.return_gap_band}</span></td>
-            <td style="max-width:300px;color:var(--text-secondary);font-size:0.8rem;">
-              ${(c.description || c.notes_summary || '—').substring(0, 120)}${(c.description || '').length > 120 ? '…' : ''}
+            <td><span class="gap-pill ${gapClass(c.return_gap_band)}">${c.return_gap_band || 'Unknown'}</span></td>
+            <td style="max-width:360px;color:var(--text-secondary);font-size:0.82rem;line-height:1.5;">
+              ${summary || '<em style="color:var(--text-muted)">No description available</em>'}
             </td>
-          </tr>`).join('')}
+          </tr>`;
+        }).join('')}
       </tbody>
     </table>`;
 }
@@ -905,10 +907,14 @@ function chartOptions(label) {
   return {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: { mode: 'index', intersect: false },
+    },
     scales: {
       x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
-      y: { ticks: { font: CHART_DEFAULTS.font }, grid: CHART_DEFAULTS.grid, beginAtZero: true }
+      y: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true }
     }
   };
 }
