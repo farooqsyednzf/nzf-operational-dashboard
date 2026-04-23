@@ -121,76 +121,29 @@ def _build_unprioritized_from_crm(crm_cases, max_rows=20):
         })
     return result[:max_rows]
 
-def run_case_enrichment(cases, context="all"):
+def run_combined_analysis(recent_cases):
     """
-    Single batch AI call that enriches every case with:
-      - recommended_priority: P1–P5 based on description (even if already assigned)
-      - summary: 1–2 sentence plain-English summary of the case situation
+    Single merged AI call that replaces the previous two separate calls
+    (run_priority_analysis + run_case_enrichment).
 
-    context: "all" (for unassigned cases needing priority recommendation)
-             or used alongside the accuracy analysis flags.
+    For every case with a description it returns:
+      - quality_score / quality_summary / patterns  (accuracy analysis)
+      - flags: cases with wrong priority assignment
+      - per_case: case_id -> {recommended_priority, summary}
 
-    Returns dict: case_id -> {"recommended_priority": "P1", "summary": "..."}
-    """
-    cases_with_desc = [c for c in cases if (c.get("description") or "").strip()]
-    if not cases_with_desc or not ANTHROPIC_API_KEY:
-        return {}
+    Using one call is cheaper, faster, and lets the model reason about
+    the overall picture while also writing per-case summaries.
 
-    guide_text = "\n".join(
-        f"  {p}: {desc}"
-        for p, desc in CLASSIFICATION_GUIDE.items()
-        if not p.startswith("_")
-    )
-
-    lines = "\n".join(
-        f'ID:{c.get("case_id","?")} PRIORITY:{c.get("priority","No Priority")} '
-        f'DESC:{(c.get("description") or "")[:400]}'
-        for c in cases_with_desc
-    )
-
-    prompt = f"""You are a caseworker assistant for NZF (National Zakat Foundation Australia), a Zakat charity.
-
-PRIORITY FRAMEWORK:
-{guide_text}
-
-For each case below, provide:
-1. recommended_priority: The correct priority (P1-P5) based strictly on the description and the framework above.
-   If the description is too vague to determine, use "P3" as a default.
-2. summary: A plain-English 1-2 sentence summary of what the client needs and how urgent it is.
-   IMPORTANT: No personal names, no locations, no identifying details. Third person, professional tone.
-
-Respond ONLY with valid JSON (no markdown, no preamble):
-{{
-  "CASE_ID": {{
-    "recommended_priority": "P1",
-    "summary": "Client requires..."
-  }},
-  ...
-}}
-
-Cases:
-{lines}"""
-
-    result = call_claude(prompt, max_tokens=3000)
-    if result:
-        print(f"  Case enrichment: {len(result)} cases enriched")
-    return result or {}
-
-# ── AI priority accuracy analysis ─────────────────────────────────
-def run_priority_analysis(recent_cases):
-    """
-    Reviews recent cases (any priority including No Priority) against
-    the classification framework to detect misassignment.
+    Returns dict with keys: quality_score, quality_summary, total_reviewed,
+    flags, patterns, generated_at, per_case
     """
     if not ANTHROPIC_API_KEY:
-        print("  INFO: ANTHROPIC_API_KEY not set — skipping priority analysis")
+        print("  INFO: ANTHROPIC_API_KEY not set — skipping AI analysis")
         return None
 
-    # Include ALL cases with descriptions — both assigned and unassigned
-    cases_with_desc = [c for c in recent_cases if c.get("description")][:60]
-
+    cases_with_desc = [c for c in recent_cases if (c.get("description") or "").strip()][:80]
     if len(cases_with_desc) < 3:
-        print(f"  INFO: Only {len(cases_with_desc)} cases with descriptions — skipping analysis")
+        print(f"  INFO: Only {len(cases_with_desc)} cases with descriptions — skipping")
         return None
 
     guide_text = "\n".join(
@@ -200,26 +153,31 @@ def run_priority_analysis(recent_cases):
     )
 
     case_lines = "\n".join(
-        f'ID:{c["case_id"]} PRIORITY:{c["priority"]} DESC:{c["description"][:250]}'
+        f'ID:{c["case_id"]} ASSIGNED:{c.get("priority","No Priority")} '
+        f'DESC:{(c.get("description") or "")[:350]}'
         for c in cases_with_desc
     )
 
-    prompt = f"""You are a quality assurance analyst for NZF (National Zakat Foundation Australia), a Zakat charity.
+    prompt = f"""You are a quality assurance analyst and caseworker assistant for NZF (National Zakat Foundation Australia).
 
 PRIORITY FRAMEWORK:
 {guide_text}
 
-Review {len(cases_with_desc)} recent cases. Each shows the assigned priority and the client's description.
+Review these {len(cases_with_desc)} cases. For EACH case you must:
+1. Determine the correct priority (P1-P5) based on the description
+2. Write a plain-English 1-2 sentence summary of the situation and urgency
+   - No personal names, locations, or identifying details
+   - Third person, professional tone
 
-Identify cases where the priority appears INCORRECT — especially:
-1. Descriptions showing P1-level crisis (homeless, no food, DV, eviction today) assigned P3/P4/No Priority
-2. Cases assigned too high a priority given the description
-3. No Priority cases that clearly should have been prioritised immediately
+Also assess the OVERALL quality of priority assignments across all cases and flag
+any cases where the assigned priority appears significantly WRONG — especially:
+- Descriptions showing P1-level crisis (homeless, DV, eviction today) assigned P3/P4/No Priority
+- Cases assigned too high given the description
 
-Respond ONLY with valid JSON (no markdown):
+Respond ONLY with valid JSON (no markdown, no preamble):
 {{
   "quality_score": "Good|Fair|Poor",
-  "quality_summary": "2-3 sentence assessment of priority assignment quality across these cases",
+  "quality_summary": "2-3 sentence overall assessment",
   "total_reviewed": {len(cases_with_desc)},
   "flags": [
     {{
@@ -230,20 +188,33 @@ Respond ONLY with valid JSON (no markdown):
       "reason": "One sentence — no personal names"
     }}
   ],
-  "patterns": ["pattern observed", "another pattern if applicable"]
+  "patterns": ["pattern 1", "pattern 2"],
+  "per_case": {{
+    "CASE_ID_VALUE": {{
+      "recommended_priority": "P1",
+      "summary": "Client requires..."
+    }}
+  }}
 }}
 
-Limit flags to the 10 most significant. Do not include personal names in any field.
+Important:
+- per_case must contain ALL {len(cases_with_desc)} cases, not just flagged ones
+- flags: limit to the 10 most significant misclassifications
+- No personal names in any field
 
 Cases:
 {case_lines}"""
 
-    result = call_claude(prompt, max_tokens=2000)
+    result = call_claude(prompt, max_tokens=6000)
     if result:
-        print(f"  AI analysis: {result.get('quality_score')} — "
-              f"{len(result.get('flags', []))} flags from {len(cases_with_desc)} cases")
-        return {**result, "generated_at": datetime.now(timezone.utc).isoformat()}
+        n_flags   = len(result.get("flags", []))
+        n_per_case= len(result.get("per_case", {}))
+        print(f"  Combined AI: {result.get('quality_score')} — "
+              f"{n_flags} flags, {n_per_case} case enrichments")
+        return {**result, "generated_at": __import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc).isoformat()}
     return None
+
 
 # ── Build report ──────────────────────────────────────────────────
 def build_cases_report(token):
@@ -335,22 +306,14 @@ def build_cases_report(token):
         s["case_id"]: s["zoho_record_id"]
         for s in recent_sample if s["case_id"] and s["zoho_record_id"]
     }
-    print(f"  Cases for AI review: {len(recent_sample):,} (last 30 days, live CRM)")
-    ai_analysis = run_priority_analysis(recent_sample)
 
-    # 3. Single batch enrichment call — recommended priority + summary for all cases
-    #    in crm_recent that have descriptions. Replaces the old per-type calls.
-    print("  Enriching cases for combined table (priority + summary)...")
-    all_for_enrichment = [
-        {
-            "case_id":     c.get("case_id", ""),
-            "priority":    normalise_priority(c.get("case_urgency", "")),
-            "description": c.get("description", ""),
-        }
-        for c in crm_recent
-        if (c.get("description") or "").strip()
-    ]
-    enrichment = run_case_enrichment(all_for_enrichment)
+    # 3. Single merged AI call — accuracy analysis + per-case enrichment together
+    print(f"  Running combined AI analysis ({len(recent_sample):,} cases, live CRM)...")
+    combined_result = run_combined_analysis(recent_sample)
+
+    # Extract the two outputs from the single response
+    ai_analysis = combined_result  # flags, quality_score, patterns used by HTML
+    per_case    = (combined_result or {}).get("per_case", {})
 
     # ── Build combined cases table ────────────────────────────────
     SEV_ORDER     = {"High": 0, "Medium": 1, "Low": 2}
@@ -374,7 +337,7 @@ def build_cases_report(token):
         created = crm_c.get("created_time", "")
         crdt    = zac.parse_dt(created)
         age_h   = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
-        enr     = enrichment.get(cid, {})
+        enr = per_case.get(cid, {})
         combined.append({
             "zoho_record_id":     crm_c.get("id", "") or case_id_lookup.get(cid, ""),
             "case_id":            cid,
@@ -403,7 +366,7 @@ def build_cases_report(token):
         crdt    = zac.parse_dt(created)
         age_h   = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
         sev     = "High" if (age_h or 0) > 48 else "Medium" if (age_h or 0) > 24 else "Low"
-        enr     = enrichment.get(cid, {})
+        enr = per_case.get(cid, {})
         rec_pri = enr.get("recommended_priority", "Assign Priority")
         combined.append({
             "zoho_record_id":     c.get("id", ""),
