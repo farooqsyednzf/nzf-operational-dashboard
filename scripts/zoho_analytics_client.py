@@ -83,9 +83,31 @@ def _parse_csv(text):
 
 # ── Datetime helpers ──────────────────────────────────────────────
 def parse_dt(s):
-    """Parse Analytics datetime strings into UTC datetime."""
+    """Parse datetime strings into UTC datetime.
+    Handles both Analytics format ('Apr 23, 2026 02:30 PM')
+    and CRM API ISO 8601 format ('2026-04-23T14:30:00+05:30').
+    """
     if not s:
         return None
+    s = s.strip()
+    # ISO 8601 (CRM API) — try first as it's unambiguous
+    if "T" in s:
+        try:
+            # Python 3.7+ handles timezone offsets in fromisoformat
+            # Replace +05:30 style — works natively in 3.11+, needs workaround for 3.7-3.10
+            from datetime import timezone as _tz
+            import re as _re
+            # Normalise: replace +HH:MM or -HH:MM suffix
+            iso = _re.sub(r'([+-]\d{2}):(\d{2})$', r'\1\2', s)
+            iso = iso.replace('Z', '+0000')
+            try:
+                dt = datetime.strptime(iso, "%Y-%m-%dT%H:%M:%S%z")
+            except ValueError:
+                dt = datetime.strptime(iso, "%Y-%m-%dT%H:%M:%S.%f%z")
+            return dt.astimezone(timezone.utc).replace(tzinfo=timezone.utc)
+        except Exception:
+            pass
+    # Analytics formats
     for fmt in [
         "%b %d, %Y %I:%M %p",
         "%b %d, %Y %H:%M:%S",
@@ -94,7 +116,7 @@ def parse_dt(s):
         "%b %d, %Y",
     ]:
         try:
-            return datetime.strptime(s.strip(), fmt).replace(tzinfo=timezone.utc)
+            return datetime.strptime(s, fmt).replace(tzinfo=timezone.utc)
         except ValueError:
             continue
     return None

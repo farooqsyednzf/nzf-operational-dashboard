@@ -19,6 +19,7 @@ from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(__file__))
 import zoho_analytics_client as zac
+import zoho_crm_client as zcrm
 
 DATA_DIR          = os.path.join(os.path.dirname(__file__), "..", "data")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
@@ -98,47 +99,27 @@ def call_claude(prompt, max_tokens=1500):
         return None
 
 # ── Unprioritized alert ────────────────────────────────────────────
-def build_unprioritized_alert(all_cases):
+def _build_unprioritized_from_crm(crm_cases, max_rows=20):
     """
-    Find cases with no priority assigned that are >threshold hours old.
-    Returns latest 20, sorted newest first (most actionable).
-    Zoho record ID stored for CRM deep links.
+    Convert live CRM unprioritized cases into the shape used by the
+    combined table. Sorted newest first (most recently submitted = most urgent).
+    Capped at max_rows.
     """
-    now       = datetime.now(timezone.utc)
-    threshold = timedelta(hours=UNPRIORITIZED_HOURS)
-    flagged   = []
-
-    for c in all_cases:
-        if normalise_priority(c.get("case_urgency", "")) != NO_PRIORITY:
-            continue
+    now     = datetime.now(timezone.utc)
+    result  = []
+    for c in crm_cases:  # Already sorted newest-first by CRM API
         created_dt = zac.parse_dt(c.get("created_time", ""))
-        if not created_dt:
-            continue
-        age = now - created_dt
-        if age <= threshold:
-            continue
-
-        flagged.append({
-            "zoho_record_id": c.get("id", ""),        # For CRM link
-            "case_id":        c.get("case_id") or c.get("case-id", ""),
-            "client_id":      c.get("client_name", ""),  # Value is Zoho record ID
+        age_h      = round((now - created_dt).total_seconds() / 3600, 1) if created_dt else None
+        result.append({
+            "zoho_record_id": c.get("id", ""),
+            "case_id":        c.get("case_id", ""),
+            "client_id":      c.get("client_name", ""),
             "created":        c.get("created_time", ""),
-            "created_dt":     created_dt,
-            "age_hours":      round(age.total_seconds() / 3600, 1),
-            "age_days":       round(age.total_seconds() / 86400, 1),
-            "stage":          c.get("stage", "").strip(),
-            "description":    (c.get("description") or "").strip(),
+            "age_hours":      age_h,
+            "stage":          c.get("stage", ""),
+            "description":    c.get("description", ""),
         })
-
-    # Sort newest first — most recently submitted unanswered cases
-    flagged.sort(key=lambda x: x["created_dt"], reverse=True)
-    flagged = flagged[:20]
-
-    # Remove non-serialisable datetime field
-    for f in flagged:
-        del f["created_dt"]
-
-    return flagged
+    return result[:max_rows]
 
 def run_unprioritized_summaries(cases):
     """
@@ -302,107 +283,95 @@ def build_cases_report(token):
         for p in PRIORITY_ORDER
     }
 
-    # ── Priority intelligence ─────────────────────────────────────
-    print("\n  Building priority intelligence...")
+    # ── Priority intelligence — LIVE CRM DATA ────────────────────
+    # Deliberately uses Zoho CRM REST API (not Analytics) because:
+    #   Analytics sync can be up to 24 hours delayed.
+    #   A P1 case created 2 hours ago would be invisible in Analytics.
+    #   Priority intelligence must detect urgent cases in near real-time.
+    print("\n  Building priority intelligence (live CRM data)...")
 
-    # Full case data index: case_id → case dict (for enriching AI flags)
-    case_data_index = {}
-    for c, dt in window_cases:
-        cid = c.get("case_id") or c.get("case-id", "")
-        if cid:
-            case_data_index[cid] = (c, dt)
+    # 1. Unprioritized open cases — directly from CRM, all-time (not just window)
+    crm_unprioritized_raw = zcrm.fetch_all_open_cases_no_priority(
+        token,
+        threshold_hours=UNPRIORITIZED_HOURS,
+        max_pages=5,
+    )
+    unprioritized = _build_unprioritized_from_crm(crm_unprioritized_raw)
+    print(f"  Unprioritized (>{UNPRIORITIZED_HOURS}h): {len(unprioritized):,} shown (of {len(crm_unprioritized_raw):,} total)")
 
-    # 1. Unprioritized cases (>24h with no priority assigned)
-    unprioritized = build_unprioritized_alert(all_cases)
-    print(f"  Unprioritized (>{UNPRIORITIZED_HOURS}h): {len(unprioritized):,} cases")
-
-    # 2. AI priority accuracy analysis
-    cutoff_30d    = datetime.now(timezone.utc) - timedelta(days=30)
+    # 2. AI accuracy analysis — last 30 days, live from CRM
+    crm_recent = zcrm.fetch_recent_cases(token, days=30, max_pages=5)
     recent_sample = [
         {
-            "case_id":        c.get("case_id") or c.get("case-id", ""),
+            "case_id":        c.get("case_id", ""),
             "zoho_record_id": c.get("id", ""),
             "priority":       normalise_priority(c.get("case_urgency", "")),
-            "description":    (c.get("description") or "").strip(),
+            "description":    c.get("description", "").strip(),
         }
-        for c, dt in window_cases
-        if dt >= cutoff_30d and (c.get("description") or "").strip()
+        for c in crm_recent
+        if c.get("description", "").strip()
     ]
-    # Lookup: case_id → zoho_record_id (used by combined table)
     case_id_lookup = {
         s["case_id"]: s["zoho_record_id"]
         for s in recent_sample if s["case_id"] and s["zoho_record_id"]
     }
-    print(f"  Cases for AI review: {len(recent_sample):,} (last 30 days with descriptions)")
+    print(f"  Cases for AI review: {len(recent_sample):,} (last 30 days, live CRM)")
     ai_analysis = run_priority_analysis(recent_sample)
 
-    # 3. AI summaries for unprioritized cases
+    # 3. AI summaries for unprioritized table
     summaries = run_unprioritized_summaries(unprioritized)
 
     # ── Build combined cases table ────────────────────────────────
-    # Merge flagged + unprioritized into one list, deduped by case_id.
-    # Flagged cases first (High → Medium → Low), then unprioritized newest-first.
-    # Cap at 30 total rows.
     SEV_ORDER = {"High": 0, "Medium": 1, "Low": 2}
     now       = datetime.now(timezone.utc)
-
-    def enrich_case(case_id, zoho_record_id=""):
-        """Pull created/age/stage/client_id from the case index."""
-        entry = case_data_index.get(case_id)
-        if not entry:
-            return {}
-        c, dt = entry
-        age   = now - dt
-        return {
-            "zoho_record_id": zoho_record_id or c.get("id", ""),
-            "client_id":      c.get("client_name", ""),
-            "created":        c.get("created_time", ""),
-            "age_hours":      round(age.total_seconds() / 3600, 1),
-            "stage":          c.get("stage", "").strip(),
-        }
-
+    crm_index = {c.get("case_id", ""): c for c in crm_recent if c.get("case_id")}
+    flags     = (ai_analysis or {}).get("flags", [])
     combined  = []
     seen_ids  = set()
 
-    # Flagged cases from AI analysis
-    flags = (ai_analysis or {}).get("flags", [])
+    # Flagged misclassifications first (High → Medium → Low)
     for f in sorted(flags, key=lambda x: SEV_ORDER.get(x.get("severity","Low"), 2)):
-        cid   = f.get("case_id", "")
+        cid = f.get("case_id", "")
         if not cid or cid in seen_ids:
             continue
-        zid   = case_id_lookup.get(cid, "")
-        enriched = enrich_case(cid, zid)
+        crm_c   = crm_index.get(cid, {})
+        created = crm_c.get("created_time", "")
+        crdt    = zac.parse_dt(created)
+        age_h   = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
         combined.append({
-            **enriched,
-            "case_id":           cid,
-            "assigned_priority": f.get("assigned_priority", ""),
-            "suggested_priority":f.get("suggested_priority", ""),
-            "flag_type":         "misclassified",
-            "flag_severity":     f.get("severity", "Medium"),
-            "flag_reason":       f.get("reason", ""),
-            "ai_summary":        f.get("reason", ""),
+            "zoho_record_id":     crm_c.get("id", "") or case_id_lookup.get(cid, ""),
+            "case_id":            cid,
+            "client_id":          crm_c.get("client_name", ""),
+            "created":            created,
+            "age_hours":          age_h,
+            "stage":              crm_c.get("stage", ""),
+            "assigned_priority":  f.get("assigned_priority", ""),
+            "suggested_priority": f.get("suggested_priority", ""),
+            "flag_type":          "misclassified",
+            "flag_severity":      f.get("severity", "Medium"),
+            "flag_reason":        f.get("reason", ""),
+            "ai_summary":         f.get("reason", ""),
         })
         seen_ids.add(cid)
 
-    # Unprioritized cases (newest first)
-    for u in sorted(unprioritized, key=lambda x: x.get("age_hours", 0)):
+    # Unprioritized cases (newest first, deduplicated)
+    for u in unprioritized:
         cid = u.get("case_id", "")
         if not cid or cid in seen_ids:
             continue
         combined.append({
             **u,
-            "assigned_priority": NO_PRIORITY,
-            "suggested_priority":"Assign Priority",
-            "flag_type":         "unassigned",
-            "flag_severity":     "Medium" if u.get("age_hours",0) > 48 else "Low",
-            "flag_reason":       f"No priority assigned for {round(u.get('age_hours',0)/24,1)} days",
-            "ai_summary":        summaries.get(cid, u.get("description","")[:100]),
+            "assigned_priority":  NO_PRIORITY,
+            "suggested_priority": "Assign Priority",
+            "flag_type":          "unassigned",
+            "flag_severity":      "Medium" if (u.get("age_hours") or 0) > 48 else "Low",
+            "flag_reason":        f"No priority assigned for {round((u.get('age_hours') or 0)/24,1)} days",
+            "ai_summary":         summaries.get(cid, (u.get("description") or "")[:100]),
         })
         seen_ids.add(cid)
 
     combined = combined[:30]
-    print(f"  Combined cases table: {len(combined)} rows "
-          f"({len(flags)} flagged, {len(unprioritized)} unprioritized)")
+    print(f"  Combined table: {len(combined)} rows ({len(flags)} flagged, {len(unprioritized)} unprioritized)")
 
     return {
         "meta": {

@@ -1,29 +1,9 @@
 {
-  "last_updated": "2026-04-23T02:58:18.960649+00:00",
+  "last_updated": "2026-04-22T00:00:00Z",
   "datasets": [
-    {
-      "name": "Client Report",
-      "file": "clients.json",
-      "record_count": 3125,
-      "last_updated": "2026-04-23T02:57:02.222566+00:00"
-    },
-    {
-      "name": "Cases Report",
-      "file": "cases.json",
-      "record_count": 3125,
-      "last_updated": "2026-04-23T02:57:33.401178+00:00"
-    },
-    {
-      "name": "Cases Performance",
-      "file": "cases_perf.json",
-      "record_count": 0,
-      "last_updated": "2026-04-23T02:58:06.586358+00:00"
-    },
-    {
-      "name": "Distributions",
-      "file": "distributions.json",
-      "record_count": 2448,
-      "last_updated": "2026-04-23T02:58:18.744931+00:00"
-    }
+    { "name": "Pipeline",   "record_count": 12 },
+    { "name": "Sales",      "record_count": 34 },
+    { "name": "Activities", "record_count": 87 },
+    { "name": "Leads",      "record_count": 56 }
   ]
 }

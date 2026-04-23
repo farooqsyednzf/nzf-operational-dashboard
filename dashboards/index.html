@@ -100,10 +100,10 @@
 async function loadDataStatus() {
   const el = document.getElementById('data-status');
   const datasets = [
-    { label:'Client Report',      file:'/data/clients.json',      href:'/dashboards/clients.html'     },
-    { label:'Cases Report',       file:'/data/cases.json',         href:'/dashboards/cases.html'       },
-    { label:'Cases Performance',  file:'/data/cases_perf.json',    href:'/dashboards/cases_perf.html'  },
-    { label:'Distributions',      file:'/data/distributions.json', href:'/dashboards/distributions.html'},
+    { label:'Client Report',      file:'/data/clients.json',      href:'/dashboards/clients.html',      source:'Analytics'            },
+    { label:'Cases Report',       file:'/data/cases.json',         href:'/dashboards/cases.html',        source:'Analytics + Live CRM' },
+    { label:'Cases Performance',  file:'/data/cases_perf.json',    href:'/dashboards/cases_perf.html',   source:'Analytics'            },
+    { label:'Distributions',      file:'/data/distributions.json', href:'/dashboards/distributions.html',source:'Analytics'            },
   ];
 
   try {
@@ -138,6 +138,7 @@ async function loadDataStatus() {
         <thead>
           <tr>
             <th>Report</th>
+            <th>Data Source</th>
             <th>Records</th>
             <th>Last Refreshed</th>
             <th>Status</th>
@@ -148,6 +149,12 @@ async function loadDataStatus() {
           ${rows.map(r => `
             <tr>
               <td><strong>${r.label}</strong></td>
+              <td style="font-family:'Cambay';font-size:0.78rem;">
+                ${r.source === 'Analytics + Live CRM'
+                  ? `<span style="color:var(--color-blue);font-weight:700">Live CRM</span>
+                     <span style="color:var(--text-muted)"> + Analytics</span>`
+                  : `<span style="color:var(--text-muted)">Analytics</span>`}
+              </td>
               <td style="font-family:'Cambay',sans-serif;">${r.count?.toLocaleString?.() ?? r.count}</td>
               <td>${fmtDt(r.updated)}</td>
               <td>

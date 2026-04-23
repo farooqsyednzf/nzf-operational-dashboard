@@ -1,7 +1,7 @@
 {
   "meta": {
-    "last_updated": "2026-04-23T02:57:02.222566+00:00",
-    "record_count": 3125,
+    "last_updated": "2026-04-22T00:00:00Z",
+    "record_count": 680,
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -18,1311 +18,172 @@
       "2026-04"
     ],
     "current_month": "2026-04",
-    "previous_month": "2026-03",
-    "same_instance_excluded": 91,
-    "crm_base_url": "https://crm.zoho.com/crm/org30478025/tab"
+    "previous_month": "2026-03"
   },
   "summary": {
-    "new_clients_current_month": 83,
-    "new_clients_previous_month": 219,
-    "new_clients_pct_change": -62.1,
-    "returning_clients_current_month": 77,
-    "returning_clients_previous_month": 185,
-    "returning_clients_pct_change": -58.4,
-    "total_returning_in_period": 1168,
-    "avg_return_gap_days": 473
+    "new_clients_current_month": 56,
+    "new_clients_previous_month": 60,
+    "new_clients_pct_change": -6.7,
+    "returning_clients_current_month": 23,
+    "returning_clients_previous_month": 27,
+    "returning_clients_pct_change": -14.8,
+    "total_returning_in_period": 270,
+    "avg_return_gap_days": 198
   },
   "trend": [
     {
       "month": "2025-04",
-      "new": 101,
-      "returning": 96,
-      "total": 197
+      "new": 50,
+      "returning": 16,
+      "total": 66
     },
     {
       "month": "2025-05",
-      "new": 142,
-      "returning": 86,
-      "total": 228
+      "new": 40,
+      "returning": 19,
+      "total": 59
     },
     {
       "month": "2025-06",
-      "new": 117,
-      "returning": 54,
-      "total": 171
+      "new": 44,
+      "returning": 18,
+      "total": 62
     },
     {
       "month": "2025-07",
-      "new": 96,
-      "returning": 77,
-      "total": 173
+      "new": 44,
+      "returning": 17,
+      "total": 61
     },
     {
       "month": "2025-08",
-      "new": 95,
-      "returning": 60,
-      "total": 155
+      "new": 53,
+      "returning": 24,
+      "total": 77
     },
     {
       "month": "2025-09",
-      "new": 91,
-      "returning": 78,
-      "total": 169
+      "new": 45,
+      "returning": 23,
+      "total": 68
     },
     {
       "month": "2025-10",
-      "new": 115,
-      "returning": 68,
-      "total": 183
+      "new": 45,
+      "returning": 17,
+      "total": 62
     },
     {
       "month": "2025-11",
-      "new": 92,
-      "returning": 83,
-      "total": 175
+      "new": 46,
+      "returning": 20,
+      "total": 66
     },
     {
       "month": "2025-12",
-      "new": 113,
-      "returning": 67,
-      "total": 180
+      "new": 49,
+      "returning": 26,
+      "total": 75
     },
     {
       "month": "2026-01",
-      "new": 103,
-      "returning": 87,
-      "total": 190
+      "new": 56,
+      "returning": 18,
+      "total": 74
     },
     {
       "month": "2026-02",
-      "new": 157,
-      "returning": 150,
-      "total": 307
+      "new": 56,
+      "returning": 22,
+      "total": 78
     },
     {
       "month": "2026-03",
-      "new": 219,
-      "returning": 185,
-      "total": 404
+      "new": 60,
+      "returning": 27,
+      "total": 87
     },
     {
       "month": "2026-04",
-      "new": 83,
-      "returning": 77,
-      "total": 160
+      "new": 56,
+      "returning": 23,
+      "total": 79
     }
   ],
   "gap_distribution": [
     {
       "band": "< 1 month",
-      "count": 182
+      "count": 8
     },
     {
       "band": "1\u20133 months",
-      "count": 130
+      "count": 22
     },
     {
       "band": "3\u20136 months",
-      "count": 156
+      "count": 35
     },
     {
       "band": "6\u201312 months",
-      "count": 253
+      "count": 28
     },
     {
       "band": "1\u20132 years",
-      "count": 222
+      "count": 15
     },
     {
       "band": "2+ years",
-      "count": 225
+      "count": 6
     }
   ],
-  "clients_by_state": {
-    "current_month": [
-      {
-        "state": "NSW",
-        "count": 81
-      },
-      {
-        "state": "VIC",
-        "count": 59
-      },
-      {
-        "state": "WA",
-        "count": 8
-      },
-      {
-        "state": "QLD",
-        "count": 7
-      },
-      {
-        "state": "TAS",
-        "count": 2
-      },
-      {
-        "state": "SA",
-        "count": 1
-      }
-    ],
-    "previous_month": [
-      {
-        "state": "NSW",
-        "count": 171
-      },
-      {
-        "state": "VIC",
-        "count": 152
-      },
-      {
-        "state": "QLD",
-        "count": 27
-      },
-      {
-        "state": "WA",
-        "count": 18
-      },
-      {
-        "state": "SA",
-        "count": 14
-      },
-      {
-        "state": "ACT",
-        "count": 4
-      },
-      {
-        "state": "NT",
-        "count": 2
-      },
-      {
-        "state": "TAS",
-        "count": 2
-      }
-    ],
-    "last_12_months": [
-      {
-        "state": "NSW",
-        "count": 1258
-      },
-      {
-        "state": "VIC",
-        "count": 1001
-      },
-      {
-        "state": "QLD",
-        "count": 164
-      },
-      {
-        "state": "WA",
-        "count": 122
-      },
-      {
-        "state": "SA",
-        "count": 63
-      },
-      {
-        "state": "ACT",
-        "count": 20
-      },
-      {
-        "state": "TAS",
-        "count": 7
-      },
-      {
-        "state": "NT",
-        "count": 6
-      }
-    ]
-  },
-  "clients_by_state_monthly": {
-    "months": [
-      "2025-04",
-      "2025-05",
-      "2025-06",
-      "2025-07",
-      "2025-08",
-      "2025-09",
-      "2025-10",
-      "2025-11",
-      "2025-12",
-      "2026-01",
-      "2026-02",
-      "2026-03",
-      "2026-04"
-    ],
-    "series": [
-      {
-        "state": "NSW",
-        "data": [
-          96,
-          114,
-          77,
-          88,
-          65,
-          88,
-          93,
-          86,
-          89,
-          81,
-          129,
-          171,
-          81
-        ]
-      },
-      {
-        "state": "VIC",
-        "data": [
-          72,
-          77,
-          66,
-          74,
-          64,
-          55,
-          60,
-          66,
-          69,
-          80,
-          107,
-          152,
-          59
-        ]
-      },
-      {
-        "state": "QLD",
-        "data": [
-          9,
-          11,
-          11,
-          6,
-          11,
-          4,
-          12,
-          8,
-          5,
-          10,
-          43,
-          27,
-          7
-        ]
-      },
-      {
-        "state": "WA",
-        "data": [
-          6,
-          9,
-          8,
-          2,
-          11,
-          9,
-          10,
-          5,
-          9,
-          10,
-          17,
-          18,
-          8
-        ]
-      },
-      {
-        "state": "SA",
-        "data": [
-          4,
-          11,
-          2,
-          0,
-          3,
-          6,
-          3,
-          6,
-          3,
-          6,
-          4,
-          14,
-          1
-        ]
-      },
-      {
-        "state": "ACT",
-        "data": [
-          1,
-          1,
-          4,
-          1,
-          1,
-          1,
-          0,
-          1,
-          1,
-          1,
-          4,
-          4,
-          0
-        ]
-      },
-      {
-        "state": "TAS",
-        "data": [
-          0,
-          0,
-          0,
-          1,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          1,
-          2,
-          2
-        ]
-      },
-      {
-        "state": "NT",
-        "data": [
-          1,
-          1,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          1,
-          0,
-          2,
-          0
-        ]
-      }
-    ]
-  },
   "returning_cases": [
     {
-      "zoho_record_id": "981539000277920007",
-      "case_id": "201730419",
-      "client_id": "981539000270466049",
-      "created": "Apr 21, 2026 12:27 PM",
+      "case_id": "C-001",
+      "client_name": "Sample Client A",
+      "created": "2026-04-10T09:00:00+00:00",
       "month": "2026-04",
-      "stage": "Intake",
-      "description": "As salamu alaikum :)\nI am in need of 2 weeks advance rent if possible. \nI also am in need of a washing machine & dryer please.\n\nI sent an application when I was still homeless with my son, but we have signed a lease and moved in now. \nWe are just missing a few basic/ essentials needed for our new home.\nI can send further documents such lease, bank statements etc\nThank you.",
-      "last_paid_date": null,
-      "return_gap_days": 50,
-      "return_gap_band": "1\u20133 months",
-      "days_since_last_case": 50,
-      "prior_case_count": 1,
-      "last_case_date": "Mar 02, 2026 12:15 PM",
-      "last_case_stage": "Closed - NO Response",
-      "last_case_description": "New Muslimah, single mother. Was homeless, helped by Vinnies. Seeking help with bond and advance rent.",
-      "ai_case_summary": "Previous case for bond/rent assistance as homeless single mother was closed without response. Now requests two weeks advance rent and washing machine/dryer."
-    },
-    {
-      "zoho_record_id": "981539000277916002",
-      "case_id": "201730418",
-      "client_id": "981539000256968004",
-      "created": "Apr 21, 2026 11:49 AM",
-      "month": "2026-04",
-      "stage": "Closed - Not Funded",
-      "description": "Dear brothers and sisters,\nAlsalamu allikum,\n\nI hope this message finds you well.\n\nI am writing to respectfully request financial assistance through your support programs, as I am currently experiencing significant and ongoing financial hardship.\n\nFor the past two years, I have been struggling financially and have accumulated debts through loans from friends as well as services such as ZipPay and Afterpay. My financial situation worsened after I lost my job approximately one year ago, and I rema",
-      "last_paid_date": "Feb 06, 2026 10:01 AM",
-      "return_gap_days": 6,
-      "return_gap_band": "< 1 month",
-      "days_since_last_case": 6,
-      "prior_case_count": 2,
-      "last_case_date": "Apr 14, 2026 03:52 PM",
-      "last_case_stage": "Intake",
-      "last_case_description": "Help in paying for pharmacy board exam fee of $700",
-      "ai_case_summary": "Previous case sought $700 pharmacy board exam fee assistance at intake stage. Now requests financial assistance due to current hardship experiences."
-    },
-    {
-      "zoho_record_id": "981539000277797001",
-      "case_id": "201730414",
-      "client_id": "981539000161951002",
-      "created": "Apr 21, 2026 06:29 AM",
-      "month": "2026-04",
-      "stage": "Closed - Not Funded",
-      "description": "I am experiencing hardship at the moment I recently had a operation and I have had multiple unforeseen situations where I have needed to see specialist for some problems I have I am a type 2 diabetic and I need to buy the correct food I have everyday expenses as well a food voucher and petrol voucher would be enormous help at this time could you please assist me could you please email me on elias.joukhador1982@hotmail.com or contact me on 0420-641-385 please and let me know if u could assist me ",
-      "last_paid_date": "May 29, 2024 10:25 AM",
-      "return_gap_days": 628,
-      "return_gap_band": "1\u20132 years",
-      "days_since_last_case": 628,
-      "prior_case_count": 7,
-      "last_case_date": "Jul 31, 2024 08:01 AM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "To this wonderful organization I am in urgent need of cash I will forever be grateful I have multiple expenses I need to buy food for my diet plan I'm on I am running short in expenses I need in terms of medical and specialist appointments I urgently need to get petrol I have so much expenses I am a",
-      "ai_case_summary": "Previous urgent cash request for food and expenses was not funded. Now seeks help after operation requiring specialist visits as diabetic."
-    },
-    {
-      "zoho_record_id": "981539000277684003",
-      "case_id": "201730411",
-      "client_id": "981539000179853001",
-      "created": "Apr 20, 2026 09:52 AM",
-      "month": "2026-04",
-      "stage": "Closed - Not Funded",
-      "description": "Salam alaykom how are u? My rego will expire tomorrow and i need to drop off and pick up my daughter from school i would like to check if you can help me with this problem i can send u evidence of that thanks jazakom allah khayran",
-      "last_paid_date": "Mar 17, 2026 02:12 PM",
-      "return_gap_days": 6,
-      "return_gap_band": "< 1 month",
-      "days_since_last_case": 6,
-      "prior_case_count": 4,
-      "last_case_date": "Apr 14, 2026 08:10 AM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "My husband went to lebanon with my son and decided to stay there not willing to come back ge put me in debt with no financial support i paid ny half rent from my centerlink pay and end up with money left for food,diesel, medication and cloth for my daughter as its getting cold and need to buy her a ",
-      "ai_case_summary": "Previous request after husband abandoned her in debt was not funded. Now needs vehicle registration help for daughter's school transport."
-    },
-    {
-      "zoho_record_id": "981539000277708001",
-      "case_id": "201730409",
-      "client_id": "981539000021510001",
-      "created": "Apr 20, 2026 08:41 AM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "migration lawyer fees",
-      "last_paid_date": "Sep 26, 2023 03:53 PM",
-      "return_gap_days": 1053,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1053,
-      "prior_case_count": 6,
-      "last_case_date": "Jun 01, 2023 01:54 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "Last ILA paid last month. Now asking for more food and rent assistance.",
-      "ai_case_summary": "Previous food and rent assistance request was successfully funded. Now requests assistance with migration lawyer fees."
-    },
-    {
-      "zoho_record_id": "981539000277538007",
-      "case_id": "201730406",
-      "client_id": "981539000276133010",
-      "created": "Apr 18, 2026 11:25 AM",
-      "month": "2026-04",
-      "stage": "Closed - Not Funded",
-      "description": "Single mum.with 3 kids homless in suntry housing now ineed some help with kids im.not working  itry to get help from to many place",
-      "last_paid_date": "Apr 02, 2026 02:42 PM",
-      "return_gap_days": 9,
-      "return_gap_band": "< 1 month",
-      "days_since_last_case": 9,
-      "prior_case_count": 2,
-      "last_case_date": "Apr 08, 2026 11:46 AM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "Dear sir/madam\nI am a single mother of three children with no financial support and nowhere to go. I am at risk of being homeless aftet the 12th of this month due to my situation and pass domestic violamce.\n\nMy only fear is seeing my children without a safe place to sleep. I am asking for ypur help ",
-      "ai_case_summary": "Previous homelessness prevention request as domestic violence survivor was not funded. Now seeks help as homeless single mother of three."
-    },
-    {
-      "zoho_record_id": "981539000277566001",
-      "case_id": "201730404",
-      "client_id": "981539000226298040",
-      "created": "Apr 18, 2026 08:18 AM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Selam alleykum i am a single mother ive just been robbed broken enter .they have taken everything from my house i have nothing left l.ishallah if yous could pls help me kindly that would be great.also i am behind in rent.i have nothing left at mt house",
-      "last_paid_date": "May 21, 2025 12:36 PM",
-      "return_gap_days": 37,
-      "return_gap_band": "1\u20133 months",
-      "days_since_last_case": 37,
-      "prior_case_count": 2,
-      "last_case_date": "Mar 11, 2026 03:38 PM",
-      "last_case_stage": "Closed - NO Response",
-      "last_case_description": "Aselam aleykum i need help qith cost of living food vogues .car service pls .",
-      "ai_case_summary": "Previous cost of living and car service request received no response. Now seeks help after home burglary took everything she owned."
-    },
-    {
-      "zoho_record_id": "981539000277316001",
-      "case_id": "201730401",
-      "client_id": "981539000006789001",
-      "created": "Apr 17, 2026 12:57 AM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "I am a single mother. I do not have any money until I get my government support next week and need some help with food and petrol.",
-      "last_paid_date": "Jan 01, 2019 01:04 PM",
-      "return_gap_days": 3554,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 3554,
-      "prior_case_count": 1,
-      "last_case_date": "Jul 23, 2016 08:00 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "sister referred by the White Coats Struggling Sister program. Approved her for $90",
-      "ai_case_summary": "Previous case received $90 funding through White Coats program referral. Now requests food and petrol assistance until government support arrives."
-    },
-    {
-      "zoho_record_id": "981539000277256001",
-      "case_id": "201730399",
-      "client_id": "981539000001762051",
-      "created": "Apr 16, 2026 06:09 PM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "single mum to 5 seeking urgent help with food, bills, daily living costs",
-      "last_paid_date": "Jan 01, 2019 02:02 PM",
-      "return_gap_days": 2544,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 2544,
-      "prior_case_count": 2,
-      "last_case_date": "Apr 29, 2019 09:38 AM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "education assistance;tutoring for speech impaired son",
-      "ai_case_summary": "Previous tutoring request for speech impaired son was not funded. Now seeks urgent help with food, bills, and living costs."
-    },
-    {
-      "zoho_record_id": "981539000277038181",
-      "case_id": "201730398",
-      "client_id": "981539000049294014",
-      "created": "Apr 16, 2026 02:40 PM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Returning client seeking help with buying a car that is appropriate for their daughter's needs. She has significant disabilities and uses a wheelchair.",
-      "last_paid_date": "May 27, 2019 08:59 AM",
-      "return_gap_days": 1213,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1213,
-      "prior_case_count": 4,
-      "last_case_date": "Dec 19, 2022 08:11 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "Existing client. Asking for help towards burial costs of mother in law in America. Not sure if it was an Islamic funeral",
-      "ai_case_summary": "Previous burial costs request for mother-in-law was not funded. Now requests car purchase assistance for wheelchair-using disabled daughter."
-    },
-    {
-      "zoho_record_id": "981539000277078121",
-      "case_id": "201730392",
-      "client_id": "981539000277038111",
-      "created": "Apr 16, 2026 08:13 AM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Good morning, I Mustafa Mizrak am in hardship due to not having no foods or have any money to buy foods for my everyday needs. I am seeking help with the ability to purchase foods to eat until I get paid next my Centrelink disability support pension payment.\n\nThank you kindly.",
-      "last_paid_date": "Sep 05, 2025 10:02 AM",
-      "return_gap_days": 121,
+      "stage": "Assessment",
+      "description": "Client returning after 4 months. Previously assisted with rental arrears. Now facing new utility debt and medical expenses following illness.",
+      "notes_summary": "Client has three dependants. Has been managing well but unexpected hospital bills have caused financial stress.",
+      "return_gap_days": 125,
       "return_gap_band": "3\u20136 months",
-      "days_since_last_case": 121,
-      "prior_case_count": 3,
-      "last_case_date": "Dec 16, 2025 07:16 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "salam aleykum I am urgent need of food assistance as i don't have foods left and my my next centrelink payment is due on the 23rd of December. I would appreciate it kindly if could help with food voucher so i can buy foods. Thank you so much",
-      "ai_case_summary": "Previous food assistance request until December 23rd payment was funded. Now seeks food help again due to no money or food."
+      "last_paid_date": "2025-12-06T00:00:00+00:00"
     },
     {
-      "zoho_record_id": "981539000277057088",
-      "case_id": "201730388",
-      "client_id": "981539000015412209",
-      "created": "Apr 15, 2026 01:21 PM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Fines",
-      "last_paid_date": "May 17, 2020 01:24 PM",
-      "return_gap_days": 2158,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 2158,
-      "prior_case_count": 5,
-      "last_case_date": "May 17, 2020 01:24 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "",
-      "ai_case_summary": "Previous case was successfully funded. Now requests assistance with paying fines."
-    },
-    {
-      "zoho_record_id": "981539000277034148",
-      "case_id": "201730386",
-      "client_id": "981539000224377057",
-      "created": "Apr 15, 2026 12:00 PM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "I am currently cannot working due to my knee injury and gout. I need help at the moment to cover by bills, rent and medical",
-      "last_paid_date": null,
-      "return_gap_days": 419,
-      "return_gap_band": "1\u20132 years",
-      "days_since_last_case": 419,
-      "prior_case_count": 1,
-      "last_case_date": "Feb 19, 2025 01:07 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "On December 2024 I just had a court hearing regarding my visa and lost the case. I have to pay certain amount to get my visa back. But at the moment while waiting for the visa return to normal, I have no work right and not able to support myself, rend and bill. I need help with financial support for",
-      "ai_case_summary": "Previous visa court case payment request was not funded. Now needs help with bills, rent, and medical due to injury."
-    },
-    {
-      "zoho_record_id": "981539000277033114",
-      "case_id": "201730382",
-      "client_id": "981539000077061030",
-      "created": "Apr 15, 2026 05:06 AM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "help with rent and paying back debts",
-      "last_paid_date": null,
-      "return_gap_days": 1822,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1822,
-      "prior_case_count": 1,
-      "last_case_date": "Apr 18, 2021 01:30 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "i",
-      "ai_case_summary": "Previous case received minimal description and was not funded. Now requests help with rent payments and debt repayment."
-    },
-    {
-      "zoho_record_id": "981539000277004170",
-      "case_id": "201730380",
-      "client_id": "981539000110331007",
-      "created": "Apr 14, 2026 06:26 PM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Single mother to 3. Seeking support with daily living costs and bills.",
-      "last_paid_date": null,
-      "return_gap_days": 1468,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1468,
-      "prior_case_count": 1,
-      "last_case_date": "Apr 06, 2022 07:28 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "single mother; assistance",
-      "ai_case_summary": "Previous single mother assistance request was not funded. Now seeks support with daily living costs and bills."
-    },
-    {
-      "zoho_record_id": "981539000277073127",
-      "case_id": "201730378",
-      "client_id": "981539000080962005",
-      "created": "Apr 14, 2026 03:54 PM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Unstable income, seeking assistance with daily living costs and bills",
-      "last_paid_date": null,
-      "return_gap_days": 1776,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1776,
-      "prior_case_count": 1,
-      "last_case_date": "Jun 02, 2021 07:00 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "migrant assistance",
-      "ai_case_summary": "Previous migrant assistance request was not funded. Now seeks help with daily living costs due to unstable income."
-    },
-    {
-      "zoho_record_id": "981539000277021182",
-      "case_id": "201730377",
-      "client_id": "981539000256968004",
-      "created": "Apr 14, 2026 03:52 PM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Help in paying for pharmacy board exam fee of $700",
-      "last_paid_date": "Feb 06, 2026 10:01 AM",
-      "return_gap_days": 146,
-      "return_gap_band": "3\u20136 months",
-      "days_since_last_case": 146,
-      "prior_case_count": 1,
-      "last_case_date": "Nov 19, 2025 07:11 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "single Muslimah doing pharmacy internship; seeking rent and daily living assistance",
-      "ai_case_summary": "Previous rent and living assistance for pharmacy intern was funded. Now requests $700 assistance for pharmacy board exam fee."
-    },
-    {
-      "zoho_record_id": "981539000277032064",
-      "case_id": "201730376",
-      "client_id": "981539000110335022",
-      "created": "Apr 14, 2026 03:20 PM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "Salam Alaykom, I need assistance with food please.",
-      "last_paid_date": "Nov 28, 2024 08:55 AM",
-      "return_gap_days": 326,
-      "return_gap_band": "6\u201312 months",
-      "days_since_last_case": 326,
-      "prior_case_count": 5,
-      "last_case_date": "May 23, 2025 12:27 PM",
-      "last_case_stage": "Closed - NO Response",
-      "last_case_description": "household goods assistance",
-      "ai_case_summary": "Previous household goods assistance request received no response. Now requests food assistance."
-    },
-    {
-      "zoho_record_id": "981539000277035097",
-      "case_id": "201730375",
-      "client_id": "981539000227457044",
-      "created": "Apr 14, 2026 01:41 PM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "alsalam ealaykum\nPlease, I need help paying my electricity bill. I am from Gaza. I am unemployed and have a family to support.",
-      "last_paid_date": "Aug 05, 2025 12:40 PM",
-      "return_gap_days": 397,
-      "return_gap_band": "1\u20132 years",
-      "days_since_last_case": 397,
-      "prior_case_count": 1,
-      "last_case_date": "Mar 13, 2025 05:46 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "I'm coming from Gaza and I need your help.\n\nI have a family and children.\n\nMay God bless you.",
-      "ai_case_summary": "Previous Gaza refugee family assistance request was funded. Now requests help paying electricity bill while unemployed with family."
-    },
-    {
-      "zoho_record_id": "981539000276969209",
-      "case_id": "201730373",
-      "client_id": "981539000097265020",
-      "created": "Apr 14, 2026 01:27 PM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "We are submitting this application with the consent of Nadwa, who is currently experiencing significant financial hardship. This hardship has arisen due to multiple deductions from her Centrelink income following her recent transition from community housing to a public housing property. Nadwa was not aware that a secondary rent payment would be deducted today, and this unexpected withdrawal has caused considerable distress. As a result, her entire Centrelink payment of $1,200 has been exhausted.",
-      "last_paid_date": null,
-      "return_gap_days": 1597,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1597,
-      "prior_case_count": 1,
-      "last_case_date": "Nov 29, 2021 10:35 AM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "Single mother of 4. DV survivor. Seeking assistance with debt from Islamic school - Glenroy Private of $4200.",
-      "ai_case_summary": "Previous $4200 Islamic school debt assistance was not funded. Now submits application regarding Centrelink deductions causing hardship."
-    },
-    {
-      "zoho_record_id": "981539000277038042",
-      "case_id": "201730371",
-      "client_id": "981539000277067118",
-      "created": "Apr 14, 2026 12:49 PM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "Recently injured my left hand and had a major surgery on it. Doctors advised for me to not work for the next 3-6 months as my hand is in a cast. I am currently behind my electricity bill and can\u2019t seek eapa until July. I am purchasing groceries on Afterpay and reached my limit. I just need a food voucher for me and my 3 kids to help me relieve my Afterpay bill to be back on track until I will be able to work again.",
-      "last_paid_date": null,
-      "return_gap_days": 63,
-      "return_gap_band": "1\u20133 months",
-      "days_since_last_case": 63,
-      "prior_case_count": 1,
-      "last_case_date": "Feb 09, 2026 12:57 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "I just need a one off assistance with a voucher to help me in Ramadan due to the overlap of overdue bills and arrears.",
-      "ai_case_summary": "Previous Ramadan voucher assistance for overdue bills was funded. Now needs help with electricity after hand surgery prevents work."
-    },
-    {
-      "zoho_record_id": "981539000277025047",
-      "case_id": "201730370",
-      "client_id": "981539000235953011",
-      "created": "Apr 14, 2026 12:14 PM",
-      "month": "2026-04",
-      "stage": "NM Approval",
-      "description": "Asalamu alaykom wrb,\nI came from Lebanon about a year ago fleeing the war. I lost my home and my job and I have nothing left. I arrived in Australia as a refugee and am currently on a bridging visa while waiting for my case to be processed by the Department of Home Affairs\nAt the moment I am living on aid and struggling to meet basic needs. I do not have enough money for Rent or food or daily expenses. Due to depression for which I am receiving treatment and medication I am currently unable to w",
-      "last_paid_date": "Aug 26, 2025 12:41 PM",
-      "return_gap_days": 42,
-      "return_gap_band": "1\u20133 months",
-      "days_since_last_case": 42,
-      "prior_case_count": 2,
-      "last_case_date": "Mar 03, 2026 11:18 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "food assistance in Ramadan",
-      "ai_case_summary": "Previous Ramadan food assistance request was funded. Now requests help as Lebanese war refugee on bridging visa."
-    },
-    {
-      "zoho_record_id": "981539000276982067",
-      "case_id": "201730369",
-      "client_id": "981539000216724009",
-      "created": "Apr 14, 2026 11:47 AM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Hi there, \nI am a social worker from Holstep health and reaching out on behalf of my client Marwa Al Zayat. She is a single mother of 4 children aged 1, 2, 5 and 6. She is unemployed and only source of income is Centrelink payments which is barely enough to pay for rent, bills, necessity and raise four children. She needs assistance with her rent and over due bills. \nIs there any way you can provide some support for this vulnerable family\n\nPlease reach out to me if you have further questions \nKi",
-      "last_paid_date": null,
-      "return_gap_days": 487,
-      "return_gap_band": "1\u20132 years",
-      "days_since_last_case": 487,
-      "prior_case_count": 1,
-      "last_case_date": "Dec 13, 2024 11:28 AM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "I'm a young single Muslim Mother to 4 children. Adam (5), Sami (4), Safiya (2) and Amelia (2 months old). We moved to Melbourne at the beginning of the year.\nMy ex-partner does not provide me with any financial support and I have fallen behind in rent. I'm really worried that my children and I will ",
-      "ai_case_summary": "Previous assistance request as single mother of four was not funded. Now social worker requests help for unemployed client with children."
-    },
-    {
-      "zoho_record_id": "981539000277004111",
-      "case_id": "201730368",
-      "client_id": "981539000277067010",
-      "created": "Apr 14, 2026 10:57 AM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "I am facing hardship with rent and financial difficulties with food prices",
-      "last_paid_date": "Jan 06, 2026 08:32 AM",
-      "return_gap_days": 215,
-      "return_gap_band": "6\u201312 months",
-      "days_since_last_case": 215,
-      "prior_case_count": 1,
-      "last_case_date": "Sep 11, 2025 08:40 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "I need help with the rent I pay rent 900 per week and cake care of my 72 year old husband with disability and my 5 kids no is working just of Centrelink",
-      "ai_case_summary": "Previous rent assistance for disabled husband and five children was funded. Now faces hardship with rent and food price difficulties."
-    },
-    {
-      "zoho_record_id": "981539000277066011",
-      "case_id": "201730367",
-      "client_id": "981539000179853001",
-      "created": "Apr 14, 2026 08:10 AM",
-      "month": "2026-04",
-      "stage": "Closed - Not Funded",
-      "description": "My husband went to lebanon with my son and decided to stay there not willing to come back ge put me in debt with no financial support i paid ny half rent from my centerlink pay and end up with money left for food,diesel, medication and cloth for my daughter as its getting cold and need to buy her a cloth and winter costume for school",
-      "last_paid_date": "Mar 17, 2026 02:12 PM",
-      "return_gap_days": 70,
-      "return_gap_band": "1\u20133 months",
-      "days_since_last_case": 70,
-      "prior_case_count": 3,
-      "last_case_date": "Feb 03, 2026 07:08 AM",
-      "last_case_stage": "Ongoing Funding",
-      "last_case_description": "im currently preparing to do a registration to become a migration agents and my exam will cost around 2200$ i need to pay this by 9 of feb",
-      "ai_case_summary": "Previous migration agent registration exam funding is ongoing. Now requests help after husband abandoned her with debt in Lebanon."
-    },
-    {
-      "zoho_record_id": "981539000277021133",
-      "case_id": "201730363",
-      "client_id": "981539000015810055",
-      "created": "Apr 13, 2026 08:36 PM",
+      "case_id": "C-002",
+      "client_name": "Sample Client B",
+      "created": "2026-04-08T11:00:00+00:00",
       "month": "2026-04",
       "stage": "Allocated",
-      "description": "I am a casual worker with 7 childrens and a wife \nJust lost my job today  . Earning 900-1100 a week with 600 rental ,250-350 for food and health of family ,plus bills around 150 per week not including petrol and kids opal cards left me without any savings even for week rental and groceries \nI will not be able to next week rental without help \nThat the readon i seek help while i am doing my best to secure job as soon as posdible",
-      "last_paid_date": "Nov 03, 2022 11:55 AM",
-      "return_gap_days": 258,
+      "description": "Returning client. First assisted 8 months ago with food and essentials. Now presenting with housing instability due to landlord issuing notice to vacate.",
+      "notes_summary": "Single parent household. Was working casually but lost hours. Seeking rental bond assistance.",
+      "return_gap_days": 240,
       "return_gap_band": "6\u201312 months",
-      "days_since_last_case": 258,
-      "prior_case_count": 10,
-      "last_case_date": "Jul 28, 2025 08:41 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "My children is all the time sponsored by nzf gor their MIA Liverpool Quran college and Madrasah studies \nSister Halimah informed me to now apply directly to nzf \nMy Children are as follows \nNurul Halimah Az Zakiah \nUmmi Atiyah Al Aaliyah \nAs\u2019ad Hammam Bin Ahmad Nassir \nShaima Binti Ahmad Nassir \nSaf",
-      "ai_case_summary": "Previous children's Islamic education sponsorship was funded through MIA Liverpool. Now seeks help after losing casual job supporting eight family members."
+      "last_paid_date": "2025-08-10T00:00:00+00:00"
     },
     {
-      "zoho_record_id": "981539000277016117",
-      "case_id": "201730360",
-      "client_id": "981539000274637006",
-      "created": "Apr 13, 2026 02:28 PM",
+      "case_id": "C-003",
+      "client_name": "Sample Client C",
+      "created": "2026-04-05T14:00:00+00:00",
       "month": "2026-04",
-      "stage": "Closed - Not Funded",
-      "description": "Financial hardship need to pay bond and rent my son school fee year 1 enrolment, I need $6000, I already submitted my details in email , time is running out, property manager call us about payment ,thanks \nJazak Allah khair.",
-      "last_paid_date": null,
-      "return_gap_days": 16,
-      "return_gap_band": "< 1 month",
-      "days_since_last_case": 16,
-      "prior_case_count": 1,
-      "last_case_date": "Mar 28, 2026 12:41 PM",
-      "last_case_stage": "Follow Up",
-      "last_case_description": "Housing rent bound and school enrolment year 1 for my son. My intention is when I capable I return back, In sha Allah.",
-      "ai_case_summary": "Previous housing bond and school enrollment assistance is under follow-up. Now urgently requests $6000 for bond, rent, and school fees."
+      "stage": "TL Approval",
+      "description": "Client previously assisted with debts 6 months ago. Returning due to job loss. Needs help with essential food and utility bills while seeking new employment.",
+      "notes_summary": "Lost employment 3 weeks ago. Centrelink has been applied for. Immediate need is food and electricity bill overdue.",
+      "return_gap_days": 182,
+      "return_gap_band": "6\u201312 months",
+      "last_paid_date": "2025-10-05T00:00:00+00:00"
     },
     {
-      "zoho_record_id": "981539000276969095",
-      "case_id": "201730359",
-      "client_id": "981539000231160013",
-      "created": "Apr 13, 2026 12:40 PM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "Hi i am asylum seeker with bridging visa, due to disability it\u2019s limiting me to find work. I am currently staying with my friend and was wondering if you could help me with some money.",
-      "last_paid_date": "Sep 29, 2025 02:13 PM",
-      "return_gap_days": 149,
-      "return_gap_band": "3\u20136 months",
-      "days_since_last_case": 149,
-      "prior_case_count": 2,
-      "last_case_date": "Nov 14, 2025 01:22 PM",
-      "last_case_stage": "Closed - NO Response",
-      "last_case_description": "I have disability which limits me to finding work. I need help with food, utilities, medical, transportation.",
-      "ai_case_summary": "Previous disability support request for food and utilities received no response. Now seeks money assistance as asylum seeker with disability."
-    },
-    {
-      "zoho_record_id": "981539000277071020",
-      "case_id": "201730358",
-      "client_id": "981539000277044016",
-      "created": "Apr 13, 2026 12:40 PM",
-      "month": "2026-04",
-      "stage": "Closed - Not Funded",
-      "description": "I Shahnaz Latifi am facing financial hardships to pay the funeral debt of my father. I am on BV and dont have any other source of incone except SRSS income support which i use for my rent sharing, medication and my daily needs. I will be thank ful if you could help me please.",
-      "last_paid_date": null,
-      "return_gap_days": 17,
-      "return_gap_band": "< 1 month",
-      "days_since_last_case": 17,
-      "prior_case_count": 3,
-      "last_case_date": "Mar 27, 2026 09:27 AM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "We are going through financial stress and we are in need of food vouchers and some help with paying phone and electricity bills",
-      "ai_case_summary": "Previous food voucher and bill assistance request was not funded. Now seeks help paying father's funeral debt on bridging visa."
-    },
-    {
-      "zoho_record_id": "981539000277070027",
-      "case_id": "201730356",
-      "client_id": "981539000277024038",
-      "created": "Apr 13, 2026 11:14 AM",
-      "month": "2026-04",
+      "case_id": "C-004",
+      "client_name": "Sample Client D",
+      "created": "2026-03-22T09:30:00+00:00",
+      "month": "2026-03",
       "stage": "Funding",
-      "description": "Alsalam Alekoum I had contacted NZF regarding a tough family situation.. i need to talk to case manager regarding an incident happening now ... I need help with accommodation as I left my accommodation already and living in a nearby motel and now  with a friend need to relocate regarding the poor living condition with two kids with Anxiety and stress regarding the situation.  Im in need of help to get food and transport and contributing to accommodation...I made several call since last week rega",
-      "last_paid_date": "May 31, 2019 10:12 AM",
-      "return_gap_days": 234,
-      "return_gap_band": "6\u201312 months",
-      "days_since_last_case": 234,
-      "prior_case_count": 14,
-      "last_case_date": "Aug 21, 2025 02:00 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "Alsalam alekoum ...I'm in need of talking to a case worker as I'm in a terrible family situation... taking that the risk of one of my kids could be taken away from me ... jazakoum Allah khair .",
-      "ai_case_summary": "Previous family situation assistance regarding child custody risk was funded. Now needs accommodation help after leaving due to domestic violence incident."
-    },
-    {
-      "zoho_record_id": "981539000277072016",
-      "case_id": "201730355",
-      "client_id": "981539000205097030",
-      "created": "Apr 13, 2026 11:04 AM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "i am a sile mum with 7 kids , need assistance with food vouchers and assistance with eletricity bill. if possile i need a washig mashine , beds and matresses. i am in debt of $6000 as shown on the statutory Declaration.",
-      "last_paid_date": "Feb 19, 2025 11:15 AM",
-      "return_gap_days": 210,
-      "return_gap_band": "6\u201312 months",
-      "days_since_last_case": 210,
-      "prior_case_count": 3,
-      "last_case_date": "Sep 15, 2025 10:30 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "reports to be victim-survivor of dv",
-      "ai_case_summary": "Previous domestic violence victim support request was funded. Now requests food vouchers, electricity bill help, and household items for seven children."
-    },
-    {
-      "zoho_record_id": "981539000276991005",
-      "case_id": "201730354",
-      "client_id": "981539000016361016",
-      "created": "Apr 13, 2026 09:38 AM",
-      "month": "2026-04",
-      "stage": "Ready For Allocation P2",
-      "description": "Nil income, CL payments still processing. Has debts. Needs help with daily living costs.",
-      "last_paid_date": null,
-      "return_gap_days": 2996,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 2996,
-      "prior_case_count": 2,
-      "last_case_date": "Jan 28, 2018 12:36 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "I need funds to buy a washer and dryer my dad has severe dementia and he messes his clothes and wears nappy i cant afford to buy both",
-      "ai_case_summary": "Previous washer/dryer request for dementia father care was not funded. Now seeks daily living cost help with no income while Centrelink processes."
-    },
-    {
-      "zoho_record_id": "981539000277035002",
-      "case_id": "201730350",
-      "client_id": "981539000027857001",
-      "created": "Apr 11, 2026 10:55 PM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "I\u2019m currently facing dv hardship.\nI need assistance with transportation as well.",
-      "last_paid_date": "Sep 30, 2019 01:28 PM",
-      "return_gap_days": 1814,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1814,
-      "prior_case_count": 15,
-      "last_case_date": "Apr 23, 2021 12:59 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "Client called 1300 requesting assistance with food and bills",
-      "ai_case_summary": "Previous food and bills assistance phone request was not funded. Now requests transportation assistance while facing domestic violence hardship."
-    },
-    {
-      "zoho_record_id": "981539000276982007",
-      "case_id": "201730349",
-      "client_id": "981539000178864002",
-      "created": "Apr 11, 2026 10:04 PM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "I urgently need zakat assistance to prevent homelessness, and continue fighting to bring my children back into my care and support their wellbeing.",
-      "last_paid_date": null,
-      "return_gap_days": 805,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 805,
-      "prior_case_count": 1,
-      "last_case_date": "Jan 27, 2024 06:46 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "in a complex legal battle for custody of her children; asking for help to pay her mortgage",
-      "ai_case_summary": "Previous mortgage assistance during custody battle was not funded. Now urgently requests zakat to prevent homelessness and support children."
-    },
-    {
-      "zoho_record_id": "981539000276955001",
-      "case_id": "201730346",
-      "client_id": "981539000187691003",
-      "created": "Apr 11, 2026 09:32 AM",
-      "month": "2026-04",
-      "stage": "Allocated",
-      "description": "Unemployed for a month. Though wife works, income is not enough for other basic needs",
-      "last_paid_date": "Apr 24, 2025 06:27 PM",
-      "return_gap_days": 447,
+      "description": "Client returning after 14 months. Previous assistance was for funeral debt. Now has new housing crisis \u2014 family evicted from private rental.",
+      "notes_summary": "Family of 5. Currently staying with relatives temporarily. Need urgent bond and first month rent support.",
+      "return_gap_days": 425,
       "return_gap_band": "1\u20132 years",
-      "days_since_last_case": 447,
-      "prior_case_count": 3,
-      "last_case_date": "Jan 18, 2025 03:47 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "I am currently facing a challenging period, as I have been unemployed since early December 2024. Despite actively applying for various positions and employment.I have unfortunately not received any responses or interviews to date.\nMy wife is employed full-time; however, her income is not sufficient ",
-      "ai_case_summary": "Previous unemployment assistance since December 2024 was funded. Now requests help as wife's income insufficient for basic needs."
-    },
-    {
-      "zoho_record_id": "981539000276940001",
-      "case_id": "201730345",
-      "client_id": "981539000132611011",
-      "created": "Apr 11, 2026 05:26 AM",
-      "month": "2026-04",
-      "stage": "Intake",
-      "description": "Abandoned by husband. Needs help with paying food, rent and bills.",
-      "last_paid_date": "Nov 03, 2022 11:55 AM",
-      "return_gap_days": 1024,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1024,
-      "prior_case_count": 2,
-      "last_case_date": "Jun 21, 2023 03:25 PM",
-      "last_case_stage": "Closed - NO Response",
-      "last_case_description": "1 have 8 month baby and currently not working,my husband lose job nearly 3 week and i have big fight with him about finances and now after big fight 3 week ago he havent come back and not giving me money even doest pay rent nearly 3 week,i also lost concant with now,today i got reminder arrear due d",
-      "ai_case_summary": "Previous assistance request after husband left with baby received no response. Now needs help with food, rent, bills after abandonment."
-    },
-    {
-      "zoho_record_id": "981539000276915001",
-      "case_id": "201730344",
-      "client_id": "981539000273590002",
-      "created": "Apr 11, 2026 04:45 AM",
-      "month": "2026-04",
-      "stage": "Closed - NO Response",
-      "description": "Returning for new Muslim support.",
-      "last_paid_date": null,
-      "return_gap_days": 21,
-      "return_gap_band": "< 1 month",
-      "days_since_last_case": 21,
-      "prior_case_count": 1,
-      "last_case_date": "Mar 20, 2026 05:35 AM",
-      "last_case_stage": "Closed - NO Response",
-      "last_case_description": "New Muslim support",
-      "ai_case_summary": "Previous new Muslim support request received no response. Now returns requesting new Muslim support again."
-    },
-    {
-      "zoho_record_id": "981539000276844001",
-      "case_id": "201730342",
-      "client_id": "981539000269288259",
-      "created": "Apr 10, 2026 05:30 PM",
-      "month": "2026-04",
-      "stage": "Closed - Not Funded",
-      "description": "I have arrived in Australia 5 months, my Visa 449 has expired on the 2nd of April 2026- I am here with my wife and 4 children. \nI am in need of financial assistance with rent being the main one and daily living expenses as my Centrelink has not been approved. \nI would like to also mention that I have a few injuries, the bone in my left leg has gotten very weak, and my left hand as well - due to being in the war torn zone of Gaza my ears have also become affected and injured.\njazakAllahu Khair fo",
-      "last_paid_date": "Nov 20, 2025 01:17 PM",
-      "return_gap_days": 45,
-      "return_gap_band": "1\u20133 months",
-      "days_since_last_case": 45,
-      "prior_case_count": 2,
-      "last_case_date": "Feb 24, 2026 03:33 PM",
-      "last_case_stage": "Ongoing Funding",
-      "last_case_description": "Hi I\u2019m Yaser I\u2019m a father for 4 kids my hardship is the rent of the house and financial support",
-      "ai_case_summary": "Previous rent and financial support for four children is ongoing. Now requests assistance as Visa 449 holder with rent and daily expenses."
-    },
-    {
-      "zoho_record_id": "981539000276779001",
-      "case_id": "201730341",
-      "client_id": "981539000226952002",
-      "created": "Apr 10, 2026 04:19 PM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "I lost my job and if possible please kindly help me",
-      "last_paid_date": "Jul 02, 2025 09:29 PM",
-      "return_gap_days": 399,
-      "return_gap_band": "1\u20132 years",
-      "days_since_last_case": 399,
-      "prior_case_count": 1,
-      "last_case_date": "Mar 07, 2025 03:59 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "Urgent Financial Assistance Request for Rent \u2013 Small Muslim Family in Need\n\nAssalamu Alaikum wa Rahmatullahi wa Barakatuh,\n\nI hope you are doing well. My name is  maseera, and I am reaching out for urgent financial assistance. My husband recently lost his job, and we are struggling to pay our rent. ",
-      "ai_case_summary": "Previous urgent rent assistance for small Muslim family was funded. Now requests help after losing job."
-    },
-    {
-      "zoho_record_id": "981539000276685033",
-      "case_id": "201730340",
-      "client_id": "981539000236541005",
-      "created": "Apr 10, 2026 02:11 PM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "I am currently in financial hardship due to domestic violence, a workplace injury, unemployment.",
-      "last_paid_date": null,
-      "return_gap_days": 319,
-      "return_gap_band": "6\u201312 months",
-      "days_since_last_case": 319,
-      "prior_case_count": 1,
-      "last_case_date": "May 25, 2025 06:47 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "new migrant support - debt",
-      "ai_case_summary": "Previous new migrant debt support request was not funded. Now faces hardship from domestic violence, workplace injury, and unemployment."
-    },
-    {
-      "zoho_record_id": "981539000276586036",
-      "case_id": "201730338",
-      "client_id": "981539000274501101",
-      "created": "Apr 10, 2026 12:51 PM",
-      "month": "2026-04",
-      "stage": "Follow Up",
-      "description": "On student visa. Single mum to 1. Needs help with daily living costs.",
-      "last_paid_date": null,
-      "return_gap_days": 13,
-      "return_gap_band": "< 1 month",
-      "days_since_last_case": 13,
-      "prior_case_count": 1,
-      "last_case_date": "Mar 27, 2026 01:41 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "I am a single mother of my 15 month daughter, Eva. I recently moved to Sydney after divorcing my husband due to domestic violence in Melbourne.",
-      "ai_case_summary": "Previous single mother support after domestic violence divorce was not funded. Now requests daily living cost help as student visa holder."
-    },
-    {
-      "zoho_record_id": "981539000276672002",
-      "case_id": "201730335",
-      "client_id": "981539000266598001",
-      "created": "Apr 10, 2026 12:36 PM",
-      "month": "2026-04",
-      "stage": "Closed - NO Response",
-      "description": "help with bond and rent; unable to work due to an injury",
-      "last_paid_date": "Mar 30, 2026 03:05 PM",
-      "return_gap_days": 42,
-      "return_gap_band": "1\u20133 months",
-      "days_since_last_case": 42,
-      "prior_case_count": 2,
-      "last_case_date": "Feb 27, 2026 04:58 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "rent arrears, bills, food support",
-      "ai_case_summary": "Previous rent arrears, bills, and food support was funded. Now needs bond/rent help due to work injury preventing employment."
-    },
-    {
-      "zoho_record_id": "981539000276617070",
-      "case_id": "201730333",
-      "client_id": "981539000187073059",
-      "created": "Apr 10, 2026 09:36 AM",
-      "month": "2026-04",
-      "stage": "Funding",
-      "description": "Late Fitr 2026 payment",
-      "last_paid_date": "Sep 25, 2024 02:03 PM",
-      "return_gap_days": 707,
-      "return_gap_band": "1\u20132 years",
-      "days_since_last_case": 707,
-      "prior_case_count": 2,
-      "last_case_date": "May 02, 2024 03:14 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "My sister and family came from GAZA with nothing I need all the support they can get please.",
-      "ai_case_summary": "Previous Gaza family support request was not funded. Now requests late Fitr 2026 payment."
-    },
-    {
-      "zoho_record_id": "981539000276674002",
-      "case_id": "201730332",
-      "client_id": "981539000150327219",
-      "created": "Apr 10, 2026 09:21 AM",
-      "month": "2026-04",
-      "stage": "Closed - NO Response",
-      "description": "I need Food Voucher for food and clothes. My children don't take care of me. I pay all the bills and rent and the kids do not contribute anything.",
-      "last_paid_date": null,
-      "return_gap_days": 1043,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 1043,
-      "prior_case_count": 3,
-      "last_case_date": "Jun 02, 2023 12:47 AM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "I'm staying at the moment at a friend's house at 20 Aldridge Rd wyndvale with my friend we can only stay here for a short time there isn't another room I have three children Michael 16 Bailey 15 and renada 7 we have fleed my unit 10_64/74 Graham St broadmeadows my invervention is under my maiden nam",
-      "ai_case_summary": "Previous temporary housing assistance with three children was not funded. Now needs food voucher as children don't contribute to expenses."
-    },
-    {
-      "zoho_record_id": "981539000276632001",
-      "case_id": "201730331",
-      "client_id": "981539000237703027",
-      "created": "Apr 10, 2026 08:26 AM",
-      "month": "2026-04",
-      "stage": "Ready for Allocation",
-      "description": "My two children islamic school",
-      "last_paid_date": "Oct 03, 2025 05:11 PM",
-      "return_gap_days": 311,
-      "return_gap_band": "6\u201312 months",
-      "days_since_last_case": 311,
-      "prior_case_count": 1,
-      "last_case_date": "Jun 02, 2025 06:02 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "Salam alaikum, my situation for applying is mainly for applying for divorce, and help with my children's islamic studies",
-      "ai_case_summary": "Previous divorce and children's Islamic studies assistance was funded. Now requests help with two children's Islamic school costs."
-    },
-    {
-      "zoho_record_id": "981539000276586001",
-      "case_id": "201730330",
-      "client_id": "981539000004228035",
-      "created": "Apr 10, 2026 05:03 AM",
-      "month": "2026-04",
-      "stage": "Waiting On Client",
-      "description": "Has been unemployed since March '26. Seeks urgent help with overdue rent and bills",
-      "last_paid_date": "Jan 01, 2019 01:40 PM",
-      "return_gap_days": 3362,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 3362,
-      "prior_case_count": 3,
-      "last_case_date": "Jan 24, 2017 01:54 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "Client has 3 children.  2 in Secondary school and 1 in Primary school",
-      "ai_case_summary": "Previous assistance for client with three school children was funded. Now urgently needs help with overdue rent/bills after March unemployment."
-    },
-    {
-      "zoho_record_id": "981539000276545001",
-      "case_id": "201730329",
-      "client_id": "981539000056503008",
-      "created": "Apr 09, 2026 08:26 PM",
-      "month": "2026-04",
-      "stage": "Closed - NO Response",
-      "description": "I need support due to having a medical condition that is exceeding my income, travel medication and everyday income is higher than what I earn. I do work however with high levels of pain am not able to work full shifts I can barely work 2 days a week and struggling financially.",
-      "last_paid_date": null,
-      "return_gap_days": 2121,
-      "return_gap_band": "2+ years",
-      "days_since_last_case": 2121,
-      "prior_case_count": 1,
-      "last_case_date": "Jun 18, 2020 01:00 PM",
-      "last_case_stage": "Closed - Not Funded",
-      "last_case_description": "Single mum, not currently working  and trying to buy furniture",
-      "ai_case_summary": "Previous furniture purchase assistance as single unemployed mother was not funded. Now seeks support for medical condition exceeding work income capacity."
-    },
-    {
-      "zoho_record_id": "981539000276512001",
-      "case_id": "201730328",
-      "client_id": "981539000021385370",
-      "created": "Apr 09, 2026 06:04 PM",
-      "month": "2026-04",
-      "stage": "Waiting On Client",
-      "description": "I am seeking assistance\u2022 $700 for a Functional Capacity Assessment required by Centrelink &\n$116.34 for my overdue vehicle registration",
-      "last_paid_date": "Dec 31, 2018 12:00 PM",
-      "return_gap_days": 122,
-      "return_gap_band": "3\u20136 months",
-      "days_since_last_case": 122,
-      "prior_case_count": 3,
-      "last_case_date": "Dec 08, 2025 08:29 AM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "Limited Centrelink. Recieved a Notice to Vacate",
-      "ai_case_summary": "Previous limited Centrelink assistance with vacation notice was funded. Now seeks $700 Functional Capacity Assessment and $116.34 vehicle registration help."
-    },
-    {
-      "zoho_record_id": "981539000276481165",
-      "case_id": "201730327",
-      "client_id": "981539000154093369",
-      "created": "Apr 09, 2026 02:45 PM",
-      "month": "2026-04",
-      "stage": "Funding",
-      "description": "D96012",
-      "last_paid_date": "May 05, 2023 02:56 PM",
-      "return_gap_days": 56,
-      "return_gap_band": "1\u20133 months",
-      "days_since_last_case": 56,
-      "prior_case_count": 3,
-      "last_case_date": "Feb 12, 2026 12:16 PM",
-      "last_case_stage": "Phase 4: Monitoring & Impact",
-      "last_case_description": "SCRIPTURE: A NSW Islamic public high schools and the urgent need for expansion to reach the thousands of Muslim students currently without spiritual guidance.",
-      "ai_case_summary": "Previous NSW Islamic high school expansion project is in monitoring phase. Now submits case D96012."
-    },
-    {
-      "zoho_record_id": "981539000276479004",
-      "case_id": "201730326",
-      "client_id": "981539000194236042",
-      "created": "Apr 09, 2026 01:17 PM",
-      "month": "2026-04",
-      "stage": "Ready For Allocation P2",
-      "description": "I graduated from the College of Engineering in Gaza. I was working for Uber in the past period, but I stopped about two months ago. Currently, I am looking for a job in my field of study. For around the past two months, I have been spending all the money I had saved, and now I have nothing left. I am not receiving any government support.",
-      "last_paid_date": "Sep 13, 2024 05:19 PM",
-      "return_gap_days": 672,
-      "return_gap_band": "1\u20132 years",
-      "days_since_last_case": 672,
-      "prior_case_count": 1,
-      "last_case_date": "Jun 05, 2024 06:44 PM",
-      "last_case_stage": "Closed - Funded",
-      "last_case_description": "I come from gaza then i went to egypt by pay 5000 american dollars and then i came to australia\nMy father doesn\u2019t has this cost so he sell his car and pay to me for travel \nHe still in gaza with my family becouse he doesn\u2019t has any money to come and he support me becouse i am fresh engineer so he ne",
-      "ai_case_summary": "Previous Gaza refugee assistance after selling father's car for travel was funded. Now seeks help while job searching after stopping Uber work."
+      "last_paid_date": "2025-01-26T00:00:00+00:00"
     }
-  ],
-  "ai_analysis": {
-    "summary": "Clients are returning for assistance primarily due to ongoing chronic financial hardship where their underlying structural circumstances haven't changed, or they face new crises while still in vulnerable situations. The pattern shows people cycling through poverty with recurring basic needs remaining unmet.",
-    "themes": [
-      {
-        "label": "Chronic Ongoing Hardship",
-        "description": "Clients remain in underlying poverty with same structural issues (single parenthood, unemployment, disability) leading to recurring basic needs for food, bills, and living costs.",
-        "count_estimate": "~45% of cases"
-      },
-      {
-        "label": "New Crisis While Still Vulnerable",
-        "description": "Clients face fresh emergencies (robbery, injury, housing transition) while still in precarious financial situations from previous assistance periods.",
-        "count_estimate": "~30% of cases"
-      },
-      {
-        "label": "Progressive Life Needs",
-        "description": "Clients advance from one life stage to another (homelessness to housed, needing furniture; basic survival to professional licensing) requiring different types of support.",
-        "count_estimate": "~15% of cases"
-      },
-      {
-        "label": "Immediate Urgent Needs",
-        "description": "Clients return for time-sensitive assistance (car registration, exam fees, fines) that cannot be delayed regardless of previous help received.",
-        "count_estimate": "~10% of cases"
-      }
-    ],
-    "generated_at": "2026-04-23T02:56:28.250805+00:00"
-  }
+  ]
 }
