@@ -1,404 +1,698 @@
-"""
-fetch_cases_data.py
-────────────────────
-Builds /data/cases.json for the Cases Report dashboard.
-
-Priority Intelligence:
-  1. Unprioritized alert — cases >24h with no priority, latest 20, AI summaries
-  2. Priority accuracy analysis — AI review of recent assignments vs framework
-
-PII policy:
-  No client names, caseworker names, or personal identifiers are stored.
-  All records identified by CRM record IDs only.
-  AI summaries are instructed to omit personal names.
-"""
-
-import os, json, sys, requests
-from datetime import datetime, timezone, timedelta
-from collections import defaultdict
-
-sys.path.insert(0, os.path.dirname(__file__))
-import zoho_analytics_client as zac
-
-DATA_DIR          = os.path.join(os.path.dirname(__file__), "..", "data")
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-os.makedirs(DATA_DIR, exist_ok=True)
-
-# ── Load rules ────────────────────────────────────────────────────
-RULES          = zac.RULES
-_pri_rules     = RULES["case_priorities"]
-_periods       = RULES["reporting_periods"]
-_meta          = RULES["_meta"]
-
-PRIORITY_MAP         = [(e["prefix"].upper(), e["label"]) for e in _pri_rules["prefix_map"]]
-NO_PRIORITY          = _pri_rules["no_priority_label"]
-PRIORITY_ORDER       = _pri_rules["order"]
-PRIORITY_COLS        = _pri_rules["colours"]
-WINDOW_MONTHS        = _periods["client_report_window_months"]
-TREND_MONTHS         = _periods["trend_display_months"]
-UNPRIORITIZED_HOURS  = _pri_rules.get("unprioritized_alert_hours", 24)
-CLASSIFICATION_GUIDE = _pri_rules.get("classification_guide", {})
-CRM_BASE_URL         = _meta.get("zoho_crm_base_url", "")
-AI_MODEL             = RULES.get("ai", {}).get("model", "claude-sonnet-4-20250514")
-
-# ── Priority normalisation ────────────────────────────────────────
-def normalise_priority(raw):
-    if not raw or not raw.strip():
-        return NO_PRIORITY
-    s = raw.strip().upper()
-    for prefix, label in PRIORITY_MAP:
-        if s.startswith(prefix):
-            return label
-    return NO_PRIORITY
-
-# ── Date helpers ──────────────────────────────────────────────────
-def cutoff_n_months(n):
-    now = datetime.now(timezone.utc)
-    m, y = now.month - (n - 1), now.year
-    while m <= 0: m += 12; y -= 1
-    return datetime(y, m, 1, tzinfo=timezone.utc)
-
-def last_n_months(n):
-    now = datetime.now(timezone.utc)
-    result, seen = [], set()
-    for i in range(n + 1):
-        m, y = now.month - i, now.year
-        while m <= 0: m += 12; y -= 1
-        mk = f"{y}-{m:02d}"
-        if mk not in seen:
-            seen.add(mk); result.append(mk)
-    result.reverse()
-    return result[-n:]
-
-# ── Anthropic API helper ──────────────────────────────────────────
-def call_claude(prompt, max_tokens=1500):
-    """Single Claude API call. Returns parsed JSON dict or None on failure."""
-    if not ANTHROPIC_API_KEY:
-        return None
-    try:
-        res = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key":         ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type":      "application/json",
-            },
-            json={
-                "model":    AI_MODEL,
-                "max_tokens": max_tokens,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=60,
-        )
-        res.raise_for_status()
-        raw = res.json()["content"][0]["text"]
-        return json.loads(raw.replace("```json", "").replace("```", "").strip())
-    except Exception as e:
-        print(f"  WARNING: Claude API call failed: {e}")
-        return None
-
-# ── Unprioritized alert ────────────────────────────────────────────
-def build_unprioritized_alert(all_cases):
-    """
-    Find cases with no priority assigned that are >threshold hours old.
-    Returns latest 20, sorted newest first (most actionable).
-    Zoho record ID stored for CRM deep links.
-    """
-    now       = datetime.now(timezone.utc)
-    threshold = timedelta(hours=UNPRIORITIZED_HOURS)
-    flagged   = []
-
-    for c in all_cases:
-        if normalise_priority(c.get("case_urgency", "")) != NO_PRIORITY:
-            continue
-        created_dt = zac.parse_dt(c.get("created_time", ""))
-        if not created_dt:
-            continue
-        age = now - created_dt
-        if age <= threshold:
-            continue
-
-        flagged.append({
-            "zoho_record_id": c.get("id", ""),        # For CRM link
-            "case_id":        c.get("case_id") or c.get("case-id", ""),
-            "client_id":      c.get("client_name", ""),  # Value is Zoho record ID
-            "created":        c.get("created_time", ""),
-            "created_dt":     created_dt,
-            "age_hours":      round(age.total_seconds() / 3600, 1),
-            "age_days":       round(age.total_seconds() / 86400, 1),
-            "stage":          c.get("stage", "").strip(),
-            "description":    (c.get("description") or "").strip(),
-        })
-
-    # Sort newest first — most recently submitted unanswered cases
-    flagged.sort(key=lambda x: x["created_dt"], reverse=True)
-    flagged = flagged[:20]
-
-    # Remove non-serialisable datetime field
-    for f in flagged:
-        del f["created_dt"]
-
-    return flagged
-
-def run_unprioritized_summaries(cases):
-    """
-    Batch AI call: generate a 1-sentence urgency summary for each
-    unprioritized case. Explicitly no personal names in output.
-    Returns dict: case_id -> summary string.
-    """
-    cases_with_desc = [c for c in cases if c.get("description")]
-    if not cases_with_desc or not ANTHROPIC_API_KEY:
-        return {}
-
-    lines = "\n".join(
-        f'ID:{c["case_id"]} DESC:{c["description"][:300]}'
-        for c in cases_with_desc
-    )
-
-    prompt = f"""You are a caseworker assistant for NZF (National Zakat Foundation Australia).
-
-For each case below, write ONE concise sentence (max 20 words) describing:
-- What assistance is needed
-- How urgent it appears to be
-
-IMPORTANT: Do NOT include any personal names, locations or identifying details.
-Write in third person, professional tone.
-
-Respond ONLY with valid JSON:
-{{"CASE_ID": "one sentence summary", ...}}
-
-Cases:
-{lines}"""
-
-    result = call_claude(prompt, max_tokens=1000)
-    if result:
-        print(f"  Case summaries: {len(result)} generated")
-    return result or {}
-
-# ── AI priority accuracy analysis ─────────────────────────────────
-def run_priority_analysis(recent_cases):
-    """
-    Reviews recent cases (any priority including No Priority) against
-    the classification framework to detect misassignment.
-    """
-    if not ANTHROPIC_API_KEY:
-        print("  INFO: ANTHROPIC_API_KEY not set — skipping priority analysis")
-        return None
-
-    # Include ALL cases with descriptions — both assigned and unassigned
-    cases_with_desc = [c for c in recent_cases if c.get("description")][:60]
-
-    if len(cases_with_desc) < 3:
-        print(f"  INFO: Only {len(cases_with_desc)} cases with descriptions — skipping analysis")
-        return None
-
-    guide_text = "\n".join(
-        f"  {p}: {desc}"
-        for p, desc in CLASSIFICATION_GUIDE.items()
-        if not p.startswith("_")
-    )
-
-    case_lines = "\n".join(
-        f'ID:{c["case_id"]} PRIORITY:{c["priority"]} DESC:{c["description"][:250]}'
-        for c in cases_with_desc
-    )
-
-    prompt = f"""You are a quality assurance analyst for NZF (National Zakat Foundation Australia), a Zakat charity.
-
-PRIORITY FRAMEWORK:
-{guide_text}
-
-Review {len(cases_with_desc)} recent cases. Each shows the assigned priority and the client's description.
-
-Identify cases where the priority appears INCORRECT — especially:
-1. Descriptions showing P1-level crisis (homeless, no food, DV, eviction today) assigned P3/P4/No Priority
-2. Cases assigned too high a priority given the description
-3. No Priority cases that clearly should have been prioritised immediately
-
-Respond ONLY with valid JSON (no markdown):
-{{
-  "quality_score": "Good|Fair|Poor",
-  "quality_summary": "2-3 sentence assessment of priority assignment quality across these cases",
-  "total_reviewed": {len(cases_with_desc)},
-  "flags": [
-    {{
-      "case_id": "string",
-      "assigned_priority": "P1/P2/P3/P4/P5/No Priority",
-      "suggested_priority": "P1/P2/P3/P4/P5",
-      "severity": "High|Medium|Low",
-      "reason": "One sentence — no personal names"
-    }}
-  ],
-  "patterns": ["pattern observed", "another pattern if applicable"]
-}}
-
-Limit flags to the 10 most significant. Do not include personal names in any field.
-
-Cases:
-{case_lines}"""
-
-    result = call_claude(prompt, max_tokens=2000)
-    if result:
-        print(f"  AI analysis: {result.get('quality_score')} — "
-              f"{len(result.get('flags', []))} flags from {len(cases_with_desc)} cases")
-        return {**result, "generated_at": datetime.now(timezone.utc).isoformat()}
-    return None
-
-# ── Build report ──────────────────────────────────────────────────
-def build_cases_report(token):
-    cutoff = cutoff_n_months(WINDOW_MONTHS)
-    months = last_n_months(TREND_MONTHS)
-
-    print("\n  Fetching Analytics views...")
-    all_cases = zac.fetch_view(token, zac.VIEW_CASES, label="Cases")
-
-    window_cases = []
-    for c in all_cases:
-        dt = zac.parse_dt(c.get("created_time", ""))
-        if dt and dt >= cutoff:
-            window_cases.append((c, dt))
-    print(f"  Cases in window: {len(window_cases):,} (of {len(all_cases):,} total)")
-
-    current_month  = months[-1]
-    previous_month = months[-2]
-
-    total_by_month    = defaultdict(int)
-    priority_by_month = defaultdict(lambda: defaultdict(int))
-
-    for c, dt in window_cases:
-        mk = zac.month_key(dt)
-        if not mk or mk not in months:
-            continue
-        priority = normalise_priority(c.get("case_urgency", "") or c.get("priority", ""))
-        total_by_month[mk]              += 1
-        priority_by_month[mk][priority] += 1
-
-    trend = [{"month": m, "count": total_by_month.get(m, 0)} for m in months]
-
-    priority_trend = {
-        "months": months,
-        "series": [
-            {
-                "priority": p,
-                "colour":   PRIORITY_COLS.get(p, "#9F9393"),
-                "data":     [priority_by_month.get(m, {}).get(p, 0) for m in months],
-            }
-            for p in PRIORITY_ORDER
-        ]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cases Report — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!--
+    ENTRA ID — When enabling auth, uncomment:
+    <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js"></script>
+  -->
+  <style>
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 32px 0 20px;
+    }
+    .section-divider-bar {
+      width: 4px;
+      height: 28px;
+      border-radius: 2px;
+      background: var(--section-color, var(--color-primary));
+      flex-shrink: 0;
+    }
+    .section-divider h2 {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text-primary);
+    }
+    .section-divider p {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 2px;
     }
 
-    curr_total = total_by_month.get(current_month, 0)
-    prev_total = total_by_month.get(previous_month, 0)
-    total_12m  = sum(total_by_month.get(m, 0) for m in months)
-
-    def pct(c, p):
-        return round(((c - p) / p) * 100, 1) if p else None
-
-    def priority_kpis(mk):
-        return {p: priority_by_month.get(mk, {}).get(p, 0) for p in PRIORITY_ORDER}
-
-    priority_12m = {
-        p: sum(priority_by_month.get(m, {}).get(p, 0) for m in months)
-        for p in PRIORITY_ORDER
+    /* Priority pill badges */
+    .pri-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
     }
 
-    # ── Priority intelligence ─────────────────────────────────────
-    print("\n  Building priority intelligence...")
+    /* Priority Intelligence */
+    .alert-banner {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px; border-radius: var(--radius-lg);
+      margin-bottom: 16px; font-family: 'Cambay', sans-serif;
+    }
+    .alert-banner.alert { background: rgba(238,53,38,0.08); border: 1px solid rgba(238,53,38,0.25); }
+    .alert-banner.warn  { background: rgba(253,185,19,0.1);  border: 1px solid rgba(253,185,19,0.4);  }
+    .alert-banner.ok    { background: rgba(73,169,66,0.08);  border: 1px solid rgba(73,169,66,0.3);   }
+    .alert-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .alert-text { font-size: 0.88rem; color: var(--text-primary); }
+    .alert-text strong { font-weight: 700; }
 
-    unprioritized = build_unprioritized_alert(all_cases)
-    print(f"  Unprioritized (>{UNPRIORITIZED_HOURS}h): {len(unprioritized):,} cases")
+    .quality-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px; border-radius: 20px;
+      font-family: 'Cambay', sans-serif; font-size: 0.78rem; font-weight: 700;
+    }
+    .quality-badge.good { background: rgba(73,169,66,0.12);  color: #2d7a27; }
+    .quality-badge.fair { background: rgba(253,185,19,0.15); color: #7a5c00; }
+    .quality-badge.poor { background: rgba(238,53,38,0.1);   color: var(--color-primary); }
 
-    # AI summaries for unprioritized table
-    summaries = run_unprioritized_summaries(unprioritized)
-    for c in unprioritized:
-        c["ai_summary"] = summaries.get(c["case_id"], "")
+    .ai-summary-text {
+      font-family: 'Cambay', sans-serif; font-size: 0.88rem;
+      color: var(--text-secondary); line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .ai-patterns {
+      font-family: 'Cambay', sans-serif; font-size: 0.82rem;
+      color: var(--text-muted); margin-bottom: 16px;
+    }
+    .ai-patterns li { margin-bottom: 4px; }
 
-    # AI priority accuracy — last 30 days, all priorities including No Priority
-    cutoff_30d    = datetime.now(timezone.utc) - timedelta(days=30)
-    recent_sample = [
-        {
-            "case_id":        c.get("case_id") or c.get("case-id", ""),
-            "zoho_record_id": c.get("id", ""),
-            "priority":       normalise_priority(c.get("case_urgency", "")),
-            "description":    (c.get("description") or "").strip(),
-        }
-        for c, dt in window_cases
-        if dt >= cutoff_30d and (c.get("description") or "").strip()
-    ]
-
-    # Lookup: case_id → zoho_record_id (for CRM deep links in the HTML)
-    case_id_lookup = {
-        s["case_id"]: s["zoho_record_id"]
-        for s in recent_sample if s["case_id"] and s["zoho_record_id"]
+    .flag-card {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 12px 16px; margin-bottom: 10px;
+      background: var(--surface);
+    }
+    .flag-card.high { border-left: 4px solid var(--color-primary); }
+    .flag-card.medium { border-left: 4px solid var(--color-yellow); }
+    .flag-card.low  { border-left: 4px solid var(--color-mid-grey); }
+    .flag-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+    .flag-case-id {
+      font-family: 'Cambay', sans-serif; font-size: 0.8rem;
+      font-weight: 700; color: var(--color-primary);
+    }
+    .flag-arrow { color: var(--text-muted); font-size: 0.9rem; }
+    .flag-reason {
+      font-family: 'Cambay', sans-serif; font-size: 0.82rem;
+      color: var(--text-secondary); line-height: 1.5;
+    }
+    .generated-note {
+      font-family: 'Cambay', sans-serif; font-size: 0.72rem;
+      color: var(--text-muted); margin-top: 16px;
+      padding-top: 12px; border-top: 1px solid var(--border-subtle);
     }
 
-    print(f"  Cases for AI review: {len(recent_sample):,} (last 30 days with descriptions)")
-    ai_analysis = run_priority_analysis(recent_sample)
-
-    return {
-        "meta": {
-            "last_updated":   datetime.now(timezone.utc).isoformat(),
-            "record_count":   len(window_cases),
-            "months_covered": months,
-            "current_month":  current_month,
-            "previous_month": previous_month,
-            "crm_base_url":   CRM_BASE_URL,
-        },
-        "summary": {
-            "current_month":  curr_total,
-            "previous_month": prev_total,
-            "pct_change":     pct(curr_total, prev_total),
-            "total_12m":      total_12m,
-            "monthly_avg":    round(total_12m / len(months), 1),
-        },
-        "trend":          trend,
-        "priority": {
-            "order":          PRIORITY_ORDER,
-            "colours":        PRIORITY_COLS,
-            "current_month":  priority_kpis(current_month),
-            "previous_month": priority_kpis(previous_month),
-            "total_12m":      priority_12m,
-            "monthly_avg":    {p: round(priority_12m[p] / len(months), 1) for p in PRIORITY_ORDER},
-        },
-        "priority_trend": priority_trend,
-        "priority_intelligence": {
-            "unprioritized_alert": {
-                "threshold_hours": UNPRIORITIZED_HOURS,
-                "count":           len(unprioritized),
-                "cases":           unprioritized,
-            },
-            "case_id_lookup": case_id_lookup,
-            "ai_analysis":    ai_analysis,
-        },
+    /* Priority KPI grid — 6 cards (P1–P5 + No Priority) */
+    .priority-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
     }
 
-# ── Main ──────────────────────────────────────────────────────────
-def main():
-    print("=" * 55)
-    print("NZF -- Cases Report  |  Zoho Analytics")
-    print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
-    print(f"AI analysis: {'enabled (' + AI_MODEL + ')' if ANTHROPIC_API_KEY else 'disabled (no API key)'}")
-    print("=" * 55)
+    .pri-kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--pri-colour, var(--color-primary));
+    }
+    .pri-kpi-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .pri-kpi-value {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.8rem;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .pri-kpi-sub {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
 
-    token = zac.get_access_token()
-    data  = build_cases_report(token)
+<div class="layout">
+  <div id="sidebar-mount"></div>
 
-    out = os.path.join(DATA_DIR, "cases.json")
-    with open(out, "w") as f:
-        json.dump(data, f, indent=2, default=str)
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="draft-disclaimer">All dashboards are in draft stage and data may not be accurate. For questions contact <a href="mailto:farooq.syed@nzf.org.au">Farooq</a>.</div>
 
-    s  = data["summary"]
-    pi = data["priority_intelligence"]
-    ai = pi["ai_analysis"]
-    print(f"\nDone. cases.json written")
-    print(f"  Cases in window:     {data['meta']['record_count']:,}")
-    print(f"  Current month:       {s['current_month']}")
-    print(f"  12-month total:      {s['total_12m']:,}")
-    print(f"  Unprioritized >24h:  {pi['unprioritized_alert']['count']}")
-    if ai:
-        print(f"  Priority quality:    {ai.get('quality_score')} "
-              f"({len(ai.get('flags', []))} flags)")
-    print("=" * 55)
+    <div class="page-content">
 
-if __name__ == "__main__":
-    main()
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Cases Report</h1>
+          <p>Cases created — volume, trends and priority breakdown.</p>
+        </div>
+        <div id="month-label" style="text-align:right;"></div>
+      </div>
+
+      <!-- ── SECTION 1: Cases Created ──────────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-primary);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Cases Created</h2>
+          <p>All cases created, regardless of stage or outcome</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-2col" id="total-kpis">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <div class="chart-grid" style="grid-template-columns:1fr;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Cases Created — 12 Month Trend</div>
+              <div class="chart-card-subtitle">Total cases created per month</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:240px;">
+            <canvas id="chart-total-trend"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: Priority Breakdown ────────────────────── -->
+      <div class="section-divider" style="--section-color: var(--color-yellow); margin-top:36px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Priority Breakdown</h2>
+          <p>Cases by urgency level (Case Urgency field) — P1 is highest priority</p>
+        </div>
+      </div>
+
+      <!-- Current month priority cards -->
+      <div class="section-divider" style="margin:0 0 12px; --section-color:transparent;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">
+          Current Month — <span id="current-month-label"></span>
+        </div>
+      </div>
+      <div class="priority-kpi-grid" id="pri-kpis-current">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Previous month priority cards -->
+      <div class="section-divider" style="margin:16px 0 12px; --section-color:transparent;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">
+          Previous Month — <span id="previous-month-label"></span>
+        </div>
+      </div>
+      <div class="priority-kpi-grid" id="pri-kpis-previous">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- 12-month priority cards -->
+      <div class="section-divider" style="margin:16px 0 12px; --section-color:transparent;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">
+          Last 12 Months — Total &amp; Monthly Avg
+        </div>
+      </div>
+      <div class="priority-kpi-grid" id="pri-kpis-12m">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Priority trend chart -->
+      <div class="chart-grid" style="grid-template-columns:1fr; margin-top:24px;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Monthly Cases by Priority — 12 Month Trend</div>
+              <div class="chart-card-subtitle">One line per priority level — hover to compare</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:300px;">
+            <canvas id="chart-priority-trend"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3: Priority Intelligence ─────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-primary);margin-top:36px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Priority Intelligence</h2>
+          <p>AI-powered analysis of priority assignment accuracy and timeliness alerts</p>
+        </div>
+      </div>
+
+      <!-- Unprioritized alert banner -->
+      <div id="unprioritized-banner"></div>
+
+      <!-- AI analysis -->
+      <div class="chart-card" style="margin-bottom:20px;">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Priority Accuracy Analysis</div>
+            <div class="chart-card-subtitle">AI review of recent case descriptions vs assigned priorities — last 30 days</div>
+          </div>
+          <span id="ai-quality-badge"></span>
+        </div>
+        <div id="ai-priority-analysis" style="padding:20px;">
+          <div class="loading-overlay"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Unprioritized cases table -->
+      <div id="unprioritized-table-wrap"></div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+
+// ── Brand palette & chart defaults ────────────────────────────────
+const C = {
+  red:    '#EE3526', redLight:  'rgba(238,53,38,0.08)',
+  blue:   '#0081C6', blueLight: 'rgba(0,129,198,0.08)',
+  yellow: '#FDB913', green:     '#49A942',
+  grey:   '#9F9393', dark:      '#231F1F',
+};
+
+const CHART_DEFAULTS = {
+  font: { family: 'Cambay', size: 11 },
+  grid: { color: '#F0EEEE' },
+};
+
+// ── Main ─────────────────────────────────────────────────────────
+(async () => {
+  await requireAuth();
+  renderNav("Cases Report");
+
+  let data;
+  try {
+    const _ctl = new AbortController();
+    const _timer = setTimeout(() => _ctl.abort(), 8000);
+    let res;
+    try { res = await fetch('/data/cases.json', { signal: _ctl.signal }); }
+    finally { clearTimeout(_timer); }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+    window.__NZF_META = data.meta;
+  } catch(e) {
+    document.getElementById('total-kpis').innerHTML =
+      `<div style="padding:20px;font-family:'Cambay';color:var(--text-muted);">
+        ⚠ cases.json not yet available. Run the data refresh action.
+       </div>`;
+    return;
+  }
+
+  renderMonthLabel(data);
+  renderTotalKPIs(data);
+  renderTotalTrendChart(data);
+  renderPriorityKPIs(data);
+  renderPriorityTrendChart(data);
+  renderPriorityIntelligence(data);
+})();
+
+// ── Helpers ───────────────────────────────────────────────────────
+function fmt(n)   { return (n ?? 0).toLocaleString('en-AU'); }
+function fmtDec(n){ return (n ?? 0).toLocaleString('en-AU', {minimumFractionDigits:1, maximumFractionDigits:1}); }
+
+function friendlyMonth(ym) {
+  if (!ym) return '';
+  const [y, m] = ym.split('-');
+  return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'long', year: 'numeric' });
+}
+
+function changeBadge(pct) {
+  if (pct === null || pct === undefined) return '';
+  const cls   = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+  const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '—';
+  return `<div class="kpi-change ${cls}">${arrow} ${Math.abs(pct)}% vs prev month</div>`;
+}
+
+function renderMonthLabel(data) {
+  const m = data.meta;
+  document.getElementById('month-label').innerHTML = `
+    <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">Current month</div>
+    <div style="font-family:'Bree Serif';font-size:1rem;color:var(--text-primary)">${friendlyMonth(m.current_month)}</div>`;
+  document.getElementById('current-month-label').textContent  = friendlyMonth(m.current_month);
+  document.getElementById('previous-month-label').textContent = friendlyMonth(m.previous_month);
+}
+
+// ── Total Cases KPIs ──────────────────────────────────────────────
+function renderTotalKPIs(data) {
+  const s = data.summary;
+  document.getElementById('total-kpis').innerHTML = `
+    <div class="kpi-card accent-red">
+      <div class="kpi-label">Cases Created — ${friendlyMonth(data.meta.current_month)}</div>
+      <div class="kpi-value">${fmt(s.current_month)}</div>
+      ${changeBadge(s.pct_change)}
+    </div>
+    <div class="kpi-card accent-red" style="--kpi-color:var(--color-mid-grey)">
+      <div class="kpi-label">Cases Created — ${friendlyMonth(data.meta.previous_month)}</div>
+      <div class="kpi-value">${fmt(s.previous_month)}</div>
+    </div>
+    <div class="kpi-card accent-yellow">
+      <div class="kpi-label">12-Month Total</div>
+      <div class="kpi-value">${fmt(s.total_12m)}</div>
+    </div>
+    <div class="kpi-card accent-green">
+      <div class="kpi-label">Monthly Average</div>
+      <div class="kpi-value">${fmtDec(s.monthly_avg)}</div>
+    </div>`;
+}
+
+// ── Total trend line ──────────────────────────────────────────────
+function renderTotalTrendChart(data) {
+  const labels = data.trend.map(t => {
+    const [y, m] = t.month.split('-');
+    return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'short', year: '2-digit' });
+  });
+  new Chart(document.getElementById('chart-total-trend'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label:                'Cases Created',
+        data:                 data.trend.map(t => t.count),
+        borderColor:          C.red,
+        backgroundColor:      C.redLight,
+        fill:                 true,
+        tension:              0.35,
+        pointBackgroundColor: C.red,
+        pointRadius:          3,
+        pointHoverRadius:     5,
+        borderWidth:          2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true },
+      }
+    }
+  });
+}
+
+// ── Priority KPI cards ────────────────────────────────────────────
+function renderPriorityKPIs(data) {
+  const p      = data.priority;
+  const order  = p.order;
+  const colours = p.colours;
+
+  function priCards(countMap, subFn) {
+    return order.map(pri => `
+      <div class="pri-kpi-card" style="--pri-colour:${colours[pri] || '#9F9393'}">
+        <div class="pri-kpi-label">${pri}</div>
+        <div class="pri-kpi-value">${fmt(countMap[pri] ?? 0)}</div>
+        <div class="pri-kpi-sub">${subFn ? subFn(pri) : ''}</div>
+      </div>`).join('');
+  }
+
+  document.getElementById('pri-kpis-current').innerHTML =
+    priCards(p.current_month, pri => {
+      const prev = p.previous_month[pri] ?? 0;
+      const curr = p.current_month[pri]  ?? 0;
+      if (!prev) return '';
+      const diff = curr - prev;
+      const cls  = diff > 0 ? 'color:var(--color-alert)' : diff < 0 ? 'color:var(--color-success)' : 'color:var(--text-muted)';
+      const arrow= diff > 0 ? '▲' : diff < 0 ? '▼' : '—';
+      return `<span style="${cls}">${arrow} ${Math.abs(diff)} vs prev month</span>`;
+    });
+
+  document.getElementById('pri-kpis-previous').innerHTML =
+    priCards(p.previous_month);
+
+  document.getElementById('pri-kpis-12m').innerHTML =
+    priCards(p.total_12m, pri =>
+      `Avg ${fmtDec(p.monthly_avg[pri] ?? 0)} / month`
+    );
+}
+
+// ── Priority trend — multi-line ────────────────────────────────────
+function renderPriorityTrendChart(data) {
+  const pt = data.priority_trend;
+  const labels = pt.months.map(m => {
+    const [y, mo] = m.split('-');
+    return new Date(y, mo - 1, 1).toLocaleString('en-AU', { month: 'short', year: '2-digit' });
+  });
+
+  const datasets = pt.series.map(s => ({
+    label:                s.priority,
+    data:                 s.data,
+    borderColor:          s.colour,
+    backgroundColor:      s.colour,
+    borderWidth:          2,
+    pointRadius:          3,
+    pointHoverRadius:     5,
+    tension:              0.3,
+    fill:                 false,
+  }));
+
+  new Chart(document.getElementById('chart-priority-trend'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive:          true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font:          CHART_DEFAULTS.font,
+            padding:       14,
+            boxWidth:      24,
+            boxHeight:     2,
+            usePointStyle: false,
+          }
+        },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        x: { ticks: { font: CHART_DEFAULTS.font }, grid: { display: false } },
+        y: { ticks: { font: CHART_DEFAULTS.font, precision: 0 }, grid: CHART_DEFAULTS.grid, beginAtZero: true },
+      }
+    }
+  });
+}
+// ── Priority Intelligence ─────────────────────────────────────────
+function renderPriorityIntelligence(data) {
+  const pi = data.priority_intelligence;
+  if (!pi) return;
+
+  renderUnprioritizedBanner(pi.unprioritized_alert);
+  renderAIAnalysis(pi.ai_analysis, pi.case_id_lookup || {});
+  renderUnprioritizedTable(pi.unprioritized_alert);
+}
+
+function renderUnprioritizedBanner(alert) {
+  const el    = document.getElementById('unprioritized-banner');
+  const count = alert?.count ?? 0;
+  const hrs   = alert?.threshold_hours ?? 24;
+
+  if (count === 0) {
+    el.innerHTML = `
+      <div class="alert-banner ok">
+        <span class="alert-icon">&#10003;</span>
+        <span class="alert-text">All recent cases have been assigned a priority within ${hrs} hours.</span>
+      </div>`;
+    return;
+  }
+
+  const cls = count > 10 ? 'alert' : 'warn';
+  el.innerHTML = `
+    <div class="alert-banner ${cls}">
+      <span class="alert-icon">${cls === 'alert' ? '&#9888;' : '&#9888;'}</span>
+      <span class="alert-text">
+        <strong>${count} case${count !== 1 ? 's' : ''} have not been assigned a priority
+        within ${hrs} hours of application.</strong>
+        These require immediate attention from a caseworker.
+      </span>
+    </div>`;
+}
+
+function renderAIAnalysis(analysis, caseIdLookup) {
+  const el    = document.getElementById('ai-priority-analysis');
+  const badge = document.getElementById('ai-quality-badge');
+
+  if (!analysis) {
+    el.innerHTML = `
+      <p style="font-family:'Cambay';font-size:0.85rem;color:var(--text-muted)">
+        AI analysis will appear after the next data refresh once
+        <code>ANTHROPIC_API_KEY</code> is set in GitHub secrets.
+      </p>`;
+    return;
+  }
+
+  const score   = (analysis.quality_score || '').toLowerCase();
+  const badgeMap = {
+    good: { cls: 'good', icon: '&#10003;', label: 'Good' },
+    fair: { cls: 'fair', icon: '&#9654;',  label: 'Fair' },
+    poor: { cls: 'poor', icon: '!',        label: 'Needs Attention' },
+  };
+  const b = badgeMap[score] || badgeMap.fair;
+  badge.innerHTML = `<span class="quality-badge ${b.cls}">${b.icon} ${b.label}</span>`;
+
+  const flags    = analysis.flags || [];
+  const patterns = analysis.patterns || [];
+
+  const flagsHtml = flags.length === 0
+    ? `<p style="font-family:'Cambay';font-size:0.85rem;color:var(--text-muted)">No significant misclassifications detected.</p>`
+    : `<div style="margin-top:12px;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px;">
+          Flagged Cases (${flags.length})
+        </div>
+        ${flags.map(f => {
+          const sev = (f.severity || 'medium').toLowerCase();
+          const priColours = {P1:'#EE3526',P2:'#E8732A',P3:'#FDB913',P4:'#0081C6',P5:'#49A942','No Priority':'#9F9393'};
+          const priPill = p => `<span style="display:inline-block;padding:1px 8px;border-radius:12px;
+            background:${priColours[p]||'#ccc'}20;border:1px solid ${priColours[p]||'#ccc'}60;
+            font-family:'Cambay';font-size:0.72rem;font-weight:700;color:${priColours[p]||'#666'}">${p}</span>`;
+          const crmBase   = window.__NZF_META?.crm_base_url || '';
+          const zohoId    = (caseIdLookup || {})[f.case_id] || '';
+          const idDisplay = crmBase && zohoId
+            ? `<a href="${crmBase}/Potentials/${zohoId}" target="_blank" rel="noopener"
+                style="color:var(--color-primary);font-weight:700;font-size:0.82rem;text-decoration:none"
+                title="Open in CRM">${f.case_id} &#8599;</a>`
+            : `<span class="flag-case-id">${f.case_id}</span>`;
+          return `
+            <div class="flag-card ${sev}">
+              <div class="flag-row">
+                ${idDisplay}
+                ${priPill(f.assigned_priority)}
+                <span class="flag-arrow">&#8594;</span>
+                ${priPill(f.suggested_priority)}
+                <span style="font-family:'Cambay';font-size:0.7rem;font-weight:700;
+                  text-transform:uppercase;letter-spacing:.04em;
+                  color:${sev==='high'?'var(--color-primary)':sev==='medium'?'#7a5c00':'var(--text-muted)'}">
+                  ${f.severity}
+                </span>
+              </div>
+              <div class="flag-reason">${f.reason}</div>
+            </div>`;
+        }).join('')}
+      </div>`;
+
+  const patternsHtml = patterns.length
+    ? `<div style="margin-top:16px;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px;">Patterns Observed</div>
+        <ul class="ai-patterns">${patterns.map(p => `<li>${p}</li>`).join('')}</ul>
+       </div>`
+    : '';
+
+  el.innerHTML = `
+    <p class="ai-summary-text">${analysis.quality_summary || ''}</p>
+    ${patternsHtml}
+    ${flagsHtml}
+    <div class="generated-note">
+      Analysis of ${analysis.total_reviewed || 0} cases from the last 30 days.
+      Generated: ${analysis.generated_at
+        ? new Date(analysis.generated_at).toLocaleString('en-AU',
+            {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+        : 'unknown'}
+    </div>`;
+}
+
+function renderUnprioritizedTable(alert) {
+  const wrap  = document.getElementById('unprioritized-table-wrap');
+  const cases = (alert?.cases || [])
+    .filter(c => !c.stage?.toLowerCase().includes('closed'));  // Hide closed cases
+
+  if (cases.length === 0) return;
+
+  const crmBase = (window.__NZF_META?.crm_base_url || '');
+
+  function fmtAge(hours) {
+    if (hours < 48) return `${Math.round(hours)}h`;
+    return `${(hours/24).toFixed(1)}d`;
+  }
+
+  function caseLink(c) {
+    const label = c.case_id || c.zoho_record_id || '—';
+    if (crmBase && c.zoho_record_id) {
+      return `<a href="${crmBase}/Potentials/${c.zoho_record_id}"
+        target="_blank" rel="noopener"
+        style="color:var(--color-primary);font-weight:700;font-size:0.85rem;text-decoration:none"
+        title="Open in Zoho CRM">${label} &#8599;</a>`;
+    }
+    return `<span style="font-weight:700;color:var(--color-primary);font-size:0.85rem">${label}</span>`;
+  }
+
+  function clientLink(c) {
+    const id = c.client_id;
+    if (!id) return '—';
+    if (crmBase && id) {
+      return `<a href="${crmBase}/Contacts/${id}"
+        target="_blank" rel="noopener"
+        style="font-size:0.8rem;color:var(--color-blue);text-decoration:none"
+        title="Open client in Zoho CRM">${id.slice(-6)} &#8599;</a>`;
+    }
+    return `<span style="font-size:0.8rem">${id.slice(-6)}</span>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Cases Without Priority Assignment</div>
+          <div class="chart-card-subtitle">
+            Latest ${cases.length} open cases — click Case ID or Client ID to open in CRM. Newest first.
+          </div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Case ID</th>
+            <th>Client ID</th>
+            <th>Created</th>
+            <th>Age</th>
+            <th>Stage</th>
+            <th>Summary</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${cases.map(c => `
+            <tr>
+              <td style="white-space:nowrap">${caseLink(c)}</td>
+              <td style="white-space:nowrap">${clientLink(c)}</td>
+              <td style="white-space:nowrap">${c.created
+                ? new Date(c.created).toLocaleDateString('en-AU',
+                    {day:'numeric',month:'short',year:'numeric'})
+                : '—'}</td>
+              <td><span style="font-weight:700;color:${c.age_hours>72
+                ?'var(--color-primary)':'var(--text-primary)'}">${fmtAge(c.age_hours)}</span></td>
+              <td><span class="badge badge-grey">${c.stage || '—'}</span></td>
+              <td style="font-size:0.82rem;color:var(--text-secondary);max-width:360px;line-height:1.5">
+                ${c.ai_summary || (c.description
+                  ? c.description.substring(0,100) + (c.description.length>100?'…':'')
+                  : '<em style="color:var(--text-muted)">No description provided</em>')}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+</script>
+</body>
+</html>
