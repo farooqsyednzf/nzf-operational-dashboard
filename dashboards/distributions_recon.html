@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Distribution Reconciliation — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <style>
+    /* ── KPI strip ─────────────────────────────────────────────── */
+    .recon-kpis {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 1100px) { .recon-kpis { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 700px)  { .recon-kpis { grid-template-columns: repeat(2, 1fr); } }
+
+    .recon-kpi {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .recon-kpi::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .recon-kpi.k-total::before    { background: var(--color-blue); }
+    .recon-kpi.k-paid::before     { background: #49A942; }
+    .recon-kpi.k-overdue::before  { background: var(--color-primary); }
+    .recon-kpi.k-urgent::before   { background: #FDB913; }
+    .recon-kpi.k-nobill::before   { background: #7B3FA0; }
+    .recon-kpi.k-unpaid::before   { background: #2E4A78; }
+
+    .recon-kpi-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .recon-kpi-value {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.9rem;
+      font-weight: 400;
+      line-height: 1;
+      color: var(--text-primary);
+    }
+    .recon-kpi.k-overdue .recon-kpi-value { color: var(--color-primary); }
+    .recon-kpi.k-urgent  .recon-kpi-value { color: #7a5c00; }
+    .recon-kpi.k-nobill  .recon-kpi-value { color: #7B3FA0; }
+    .recon-kpi.k-paid    .recon-kpi-value { color: #2d7a27; }
+    .recon-kpi-sub {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── Filter toolbar ─────────────────────────────────────────── */
+    .recon-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 10px 16px;
+      margin-bottom: 14px;
+    }
+    .recon-tab {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.12s;
+      white-space: nowrap;
+    }
+    .recon-tab:hover { border-color: var(--color-blue); color: var(--color-blue); }
+    .recon-tab.active { background: #1F3864; color: #fff; border-color: #1F3864; }
+    .recon-tab.t-overdue.active { background: var(--color-primary); border-color: var(--color-primary); }
+    .recon-tab.t-urgent.active  { background: #FDB913; color: #3a2e00; border-color: #FDB913; }
+    .recon-tab.t-paid.active    { background: #49A942; border-color: #49A942; }
+    .recon-tab.t-nobill.active  { background: #7B3FA0; border-color: #7B3FA0; }
+
+    .recon-search {
+      margin-left: auto;
+      padding: 5px 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.78rem;
+      background: var(--surface);
+      color: var(--text-primary);
+      width: 200px;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+    .recon-search:focus { border-color: var(--color-blue); }
+
+    /* ── Info banner ─────────────────────────────────────────────── */
+    .recon-info {
+      background: rgba(0,129,198,0.06);
+      border: 1px solid rgba(0,129,198,0.2);
+      border-radius: var(--radius-lg);
+      padding: 10px 16px;
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.8rem;
+      color: #005a8e;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Status badges ───────────────────────────────────────────── */
+    .s-paid    { background:rgba(73,169,66,0.1);  color:#2d7a27; border:1px solid rgba(73,169,66,0.3); }
+    .s-overdue { background:rgba(238,53,38,0.08); color:#c0392b; border:1px solid rgba(238,53,38,0.3); }
+    .s-urgent  { background:rgba(253,185,19,0.12);color:#7a5c00; border:1px solid rgba(253,185,19,0.4); }
+    .s-pending { background:rgba(0,129,198,0.08); color:#005a8e; border:1px solid rgba(0,129,198,0.25); }
+    .s-nobill  { background:rgba(123,63,160,0.1); color:#7B3FA0; border:1px solid rgba(123,63,160,0.3); }
+
+    /* ── Hours indicator ─────────────────────────────────────────── */
+    .h-ok     { color:#2d7a27; font-weight:700; }
+    .h-warn   { color:#7a5c00; font-weight:700; }
+    .h-danger { color:#c0392b; font-weight:700; }
+    .h-na     { color:var(--text-muted); }
+
+    /* ── Xero status ─────────────────────────────────────────────── */
+    .xero-paid    { color:#2d7a27; font-size:0.78rem; }
+    .xero-pending { color:var(--text-muted); font-size:0.78rem; font-style:italic; }
+    .xero-missing { color:#7B3FA0; font-size:0.78rem; font-style:italic; }
+
+    /* ── Table footer ────────────────────────────────────────────── */
+    .recon-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border-subtle);
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: var(--surface-2);
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="draft-disclaimer">All dashboards are in draft stage and data may not be accurate. For questions contact <a href="mailto:farooq.syed@nzf.org.au">Farooq</a>.</div>
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Distribution Reconciliation</h1>
+          <p>CRM distributions cross-referenced against Xero payments — Zakat, last 30 days</p>
+        </div>
+        <div id="refreshed-label" style="text-align:right;"></div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="recon-kpis" id="kpi-strip">
+        <div class="recon-kpi k-total">
+          <div class="recon-kpi-label">Total distributions</div>
+          <div class="recon-kpi-value" id="kpi-total">—</div>
+          <div class="recon-kpi-sub" id="kpi-total-sub">Last 30 days · Zakat</div>
+        </div>
+        <div class="recon-kpi k-paid">
+          <div class="recon-kpi-label">Confirmed paid in Xero</div>
+          <div class="recon-kpi-value" id="kpi-paid">—</div>
+          <div class="recon-kpi-sub" id="kpi-paid-sub">Independent of CRM status</div>
+        </div>
+        <div class="recon-kpi k-overdue">
+          <div class="recon-kpi-label">Overdue &gt;72h</div>
+          <div class="recon-kpi-value" id="kpi-overdue">—</div>
+          <div class="recon-kpi-sub">Requires immediate action</div>
+        </div>
+        <div class="recon-kpi k-urgent">
+          <div class="recon-kpi-label">Due soon (48–72h)</div>
+          <div class="recon-kpi-value" id="kpi-urgent">—</div>
+          <div class="recon-kpi-sub">Monitor today</div>
+        </div>
+        <div class="recon-kpi k-nobill">
+          <div class="recon-kpi-label">No Xero bill</div>
+          <div class="recon-kpi-value" id="kpi-nobill">—</div>
+          <div class="recon-kpi-sub">Possible bypass — investigate</div>
+        </div>
+        <div class="recon-kpi k-unpaid">
+          <div class="recon-kpi-label">Unpaid total</div>
+          <div class="recon-kpi-value" id="kpi-unpaid">—</div>
+          <div class="recon-kpi-sub" id="kpi-unpaid-sub">AUD outstanding</div>
+        </div>
+      </div>
+
+      <!-- Info banner -->
+      <div class="recon-info">
+        <strong>How this works:</strong> Xero payment status is the source of truth — CRM "Paid" status is not used for reconciliation.
+        The 72-hour SLA clock starts from <em>Approved Date</em> (or Created Time if no approval date).
+        "No Xero bill" means a distribution exists in CRM with no matching bill in Xero — this is the control bypass pattern to investigate.
+        Data refreshes 4× daily at 8AM, 12PM, 4PM and 9PM AEST.
+      </div>
+
+      <!-- Filter tabs + search -->
+      <div class="recon-toolbar">
+        <button class="recon-tab active" id="tab-all"     onclick="setFilter('all',this)">All <span id="c-all"></span></button>
+        <button class="recon-tab t-overdue" id="tab-overdue" onclick="setFilter('overdue',this)">Overdue &gt;72h <span id="c-overdue"></span></button>
+        <button class="recon-tab t-urgent"  id="tab-urgent"  onclick="setFilter('urgent',this)">Due soon <span id="c-urgent"></span></button>
+        <button class="recon-tab"           id="tab-pending" onclick="setFilter('pending',this)">Pending <span id="c-pending"></span></button>
+        <button class="recon-tab t-nobill"  id="tab-nobill"  onclick="setFilter('nobill',this)">No bill <span id="c-nobill"></span></button>
+        <button class="recon-tab t-paid"    id="tab-paid"    onclick="setFilter('paid',this)">Paid in Xero <span id="c-paid"></span></button>
+        <input  class="recon-search" type="text" id="searchBox" placeholder="Search ID / subject / payee…" oninput="renderTable()">
+      </div>
+
+      <!-- Table -->
+      <div class="chart-card" style="overflow:hidden;padding:0;">
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Dist. ID</th>
+                <th>Subject / Payee</th>
+                <th style="text-align:right">Amount</th>
+                <th>Approved / Created</th>
+                <th style="text-align:center">Hours elapsed</th>
+                <th>Xero payment date</th>
+                <th>CRM status</th>
+                <th>Xero bill</th>
+              </tr>
+            </thead>
+            <tbody id="recon-tbody">
+              <tr><td colspan="9"><div style="padding:60px;text-align:center;color:var(--text-muted)">
+                <div class="spinner" style="margin:0 auto 16px"></div>Loading reconciliation data…
+              </div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="recon-footer">
+          <span id="footer-left">—</span>
+          <span>Zoho Analytics · Distributions (CRM) × Bills (Xero) · Zakat · last 30 days</span>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div>
+</div>
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+let _rows       = [];
+let _filter     = 'all';
+
+// ── Bootstrap ─────────────────────────────────────────────────────
+(async () => {
+  await requireAuth();
+  renderNav('Distribution Reconciliation');
+
+  let data;
+  try {
+    const res = await fetch('/data/reconciliation.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+    window.__NZF_META = data.meta;
+  } catch(e) {
+    document.getElementById('recon-tbody').innerHTML =
+      `<tr><td colspan="9" style="padding:40px;text-align:center;font-family:'Cambay';color:var(--text-muted)">
+        reconciliation.json not yet available — run the data refresh workflow first.
+       </td></tr>`;
+    return;
+  }
+
+  if (data.meta?.last_updated) {
+    document.getElementById('refreshed-label').innerHTML = `
+      <div style="font-family:'Cambay';font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Data as of</div>
+      <div style="font-family:'Bree Serif';font-size:0.88rem;color:var(--text-primary)">
+        ${new Date(data.meta.last_updated).toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
+      </div>`;
+  }
+
+  _rows = data.rows || [];
+  updateKPIs(data.summary);
+  updateTabCounts(data.summary);
+  renderTable();
+})();
+
+// ── Helpers ───────────────────────────────────────────────────────
+function fmtMoney(n) {
+  return '$' + Math.round(n).toLocaleString('en-AU');
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-AU', {day:'numeric', month:'short', year:'numeric'});
+}
+
+// ── KPIs ──────────────────────────────────────────────────────────
+function updateKPIs(s) {
+  if (!s) return;
+  document.getElementById('kpi-total').textContent    = s.total;
+  document.getElementById('kpi-total-sub').textContent = fmtMoney(s.total_aud) + ' total';
+  document.getElementById('kpi-paid').textContent     = s.paid;
+  document.getElementById('kpi-paid-sub').textContent  = fmtMoney(s.paid_aud) + ' confirmed';
+  document.getElementById('kpi-overdue').textContent  = s.overdue;
+  document.getElementById('kpi-urgent').textContent   = s.urgent;
+  document.getElementById('kpi-nobill').textContent   = s.nobill;
+  document.getElementById('kpi-unpaid').textContent   = fmtMoney(s.unpaid_aud);
+  document.getElementById('kpi-unpaid-sub').textContent =
+    (s.overdue + s.urgent + s.pending + s.nobill) + ' distributions pending';
+}
+
+function updateTabCounts(s) {
+  if (!s) return;
+  document.getElementById('c-all').textContent     = `(${s.total})`;
+  document.getElementById('c-overdue').textContent = `(${s.overdue})`;
+  document.getElementById('c-urgent').textContent  = `(${s.urgent})`;
+  document.getElementById('c-pending').textContent = `(${s.pending})`;
+  document.getElementById('c-paid').textContent    = `(${s.paid})`;
+  document.getElementById('c-nobill').textContent  = `(${s.nobill})`;
+}
+
+// ── Filter ────────────────────────────────────────────────────────
+function setFilter(f, el) {
+  _filter = f;
+  document.querySelectorAll('.recon-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+// ── Table ─────────────────────────────────────────────────────────
+const STATUS_CFG = {
+  paid:    { label:'Paid in Xero',   cls:'s-paid'    },
+  overdue: { label:'Overdue >72h',   cls:'s-overdue' },
+  urgent:  { label:'Due soon',       cls:'s-urgent'  },
+  pending: { label:'Pending',        cls:'s-pending' },
+  nobill:  { label:'No Xero bill',   cls:'s-nobill'  },
+};
+
+function renderTable() {
+  const search = document.getElementById('searchBox').value.toLowerCase();
+  const crmBase = window.__NZF_META?.crm_base_url || '';
+
+  const filtered = _rows.filter(r => {
+    if (_filter !== 'all' && r._status !== _filter) return false;
+    if (search) {
+      return (r.dist_id||'').toLowerCase().includes(search)
+          || (r.subject||'').toLowerCase().includes(search)
+          || (r.xero_payee||r.crm_payee||'').toLowerCase().includes(search);
+    }
+    return true;
+  });
+
+  const tbody = document.getElementById('recon-tbody');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="padding:50px;text-align:center;
+      font-family:'Cambay';color:var(--text-muted)">No records match this filter</td></tr>`;
+    document.getElementById('footer-left').textContent = '0 records';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => {
+    const cfg    = STATUS_CFG[r._status] || STATUS_CFG.pending;
+    const hrs    = r._hours;
+    const payee  = r.xero_payee || r.crm_payee || r.subject || '—';
+    const base   = r.approved_date || r.created_time;
+    const dated  = r.approved_date ? 'approved' : 'created';
+
+    const hrsHtml = hrs === null
+      ? `<span class="h-na">—</span>`
+      : hrs > 72
+        ? `<span class="h-danger">${hrs}h</span>`
+        : hrs > 48
+          ? `<span class="h-warn">${hrs}h</span>`
+          : `<span class="h-ok">${hrs}h</span>`;
+
+    const xeroHtml = r.xero_payment_date
+      ? `<span class="xero-paid">&#10003; ${fmtDate(r.xero_payment_date)}</span>`
+      : r.xero_bill_num
+        ? `<span class="xero-pending">Bill raised &middot; awaiting payment</span>`
+        : `<span class="xero-missing">No bill in Xero</span>`;
+
+    const billHtml = r.xero_bill_num
+      ? `<span style="font-family:'Courier New',monospace;font-size:0.75rem;color:var(--text-secondary)">${r.xero_bill_num}</span>`
+      : `<span style="color:var(--text-muted);font-style:italic;font-size:0.78rem">—</span>`;
+
+    const distLink = crmBase
+      ? `<a href="${crmBase}/Purchase_Orders/${r.dist_id}" target="_blank" rel="noopener"
+          style="font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700;
+                 color:var(--color-primary);text-decoration:none"
+          title="Open in CRM">${r.dist_id} &#8599;</a>`
+      : `<span style="font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700;
+                      color:var(--color-primary)">${r.dist_id}</span>`;
+
+    return `<tr>
+      <td><span class="badge ${cfg.cls}" style="padding:3px 9px;border-radius:12px;
+        font-family:'Cambay';font-size:0.7rem;font-weight:700;white-space:nowrap">${cfg.label}</span></td>
+      <td style="white-space:nowrap">${distLink}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+                 font-size:0.82rem" title="${payee}">${payee}</td>
+      <td style="text-align:right;font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700">
+        ${r.amount || '—'}</td>
+      <td style="font-size:0.8rem;white-space:nowrap">
+        ${fmtDate(base)}<br>
+        <span style="font-size:0.7rem;color:var(--text-muted)">${dated}</span>
+      </td>
+      <td style="text-align:center">${hrsHtml}</td>
+      <td>${xeroHtml}</td>
+      <td style="font-size:0.78rem;color:var(--text-secondary)">${r.crm_status || '—'}</td>
+      <td>${billHtml}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('footer-left').textContent =
+    `Showing ${filtered.length} of ${_rows.length} distributions`;
+}
+</script>
+</body>
+</html>
