@@ -314,12 +314,13 @@ function renderAttentionTable(cases) {
   const nMisclassified = cases.filter(c => c.flag_type === 'misclassified').length;
   const nUnassigned    = cases.filter(c => c.flag_type === 'unassigned').length;
 
-  function makeSelect(id, label, opts) {
+  function makeSelect(id, opts, width='130px') {
     return `<select id="${id}" onchange="applyFilters()"
-      style="font-family:'Cambay';font-size:0.75rem;padding:4px 8px;border-radius:6px;
-             border:1px solid var(--border-subtle);background:var(--surface);
-             color:var(--text-secondary);cursor:pointer;min-width:130px;">
-      <option value="">All ${label}</option>
+      style="font-family:'Cambay';font-size:0.72rem;padding:3px 6px;
+             border-radius:4px;border:1px solid var(--border-subtle);
+             background:var(--surface);color:var(--text-secondary);
+             cursor:pointer;width:${width};margin-top:4px;display:block;">
+      <option value="">All</option>
       ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
     </select>`;
   }
@@ -336,23 +337,11 @@ function renderAttentionTable(cases) {
             last 30 days
           </div>
         </div>
-      </div>
-      <!-- Filter bar -->
-      <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px;
-                  border-bottom:1px solid var(--border-subtle);background:var(--surface-2);
-                  align-items:center;">
-        <span style="font-family:'Cambay';font-size:0.72rem;font-weight:700;
-                     text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);
-                     margin-right:4px;">Filter:</span>
-        ${makeSelect('filter-flag',      'Severities',   severities)}
-        ${makeSelect('filter-cur-pri',   'Current Pri',  curPris)}
-        ${makeSelect('filter-rec-pri',   'Rec. Priority',recPris)}
-        ${makeSelect('filter-stage',     'Stages',       stages)}
         <button onclick="clearFilters()"
           style="font-family:'Cambay';font-size:0.72rem;font-weight:700;
                  padding:4px 12px;border-radius:6px;border:1px solid var(--border-subtle);
-                 background:transparent;color:var(--text-muted);cursor:pointer;">
-          Clear
+                 background:transparent;color:var(--text-muted);cursor:pointer;align-self:center;">
+          Clear filters
         </button>
       </div>
       <table id="attention-table">
@@ -361,10 +350,10 @@ function renderAttentionTable(cases) {
             <th>Case ID</th>
             <th>Client ID</th>
             <th>Created</th>
-            <th>Current Priority</th>
-            <th>Flag</th>
-            <th>Recommended Priority</th>
-            <th>Stage</th>
+            <th>Current Priority<br>${makeSelect('filter-cur-pri', curPris, '120px')}</th>
+            <th>Flag<br>${makeSelect('filter-flag', severities, '100px')}</th>
+            <th>Recommended Priority<br>${makeSelect('filter-rec-pri', recPris, '140px')}</th>
+            <th>Stage<br>${makeSelect('filter-stage', stages, '160px')}</th>
             <th>Summary</th>
           </tr>
         </thead>
