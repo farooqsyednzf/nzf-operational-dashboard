@@ -93,6 +93,43 @@
     @keyframes pulse {
       0%,100% { opacity:1; } 50% { opacity:0.3; }
     }
+  
+    /* ── Table UX styles ─────────────────────────────────────── */
+    /* P1 overdue row — whole row alert */
+    tr.row-p1-alert { background: rgba(238,53,38,0.04); }
+    tr.row-p1-alert td:first-child { border-left: 3px solid #EE3526; }
+
+    /* SLA cell colours */
+    .sla-overdue  { color:#c0392b; font-weight:700; }
+    .sla-at-risk  { color:#7a5c00; font-weight:700; }
+    .sla-ok       { color:#2d7a27; }
+    .sla-responded{ color:#2d7a27; }
+    .sla-na       { color:var(--text-muted); }
+
+    /* Combined priority cell */
+    .pri-cell { display:flex; align-items:center; gap:5px; }
+    .pri-arrow { color:var(--text-muted); font-size:0.7rem; }
+
+    /* Age chip */
+    .age-chip {
+      display:inline-block; font-family:'Cambay'; font-size:0.68rem;
+      font-weight:700; padding:1px 6px; border-radius:8px; margin-left:4px;
+      background:rgba(159,147,147,0.12); color:var(--text-muted);
+    }
+    .age-chip.urgent { background:rgba(238,53,38,0.1); color:#c0392b; }
+
+    /* Row hover */
+    tbody tr { transition: background 0.12s; }
+    tbody tr:hover { background: var(--surface-2); }
+
+    /* Tighter table padding */
+    #attention-table td, #attention-table th {
+      padding: 10px 12px;
+    }
+
+    /* SLA column min-width */
+    .sla-col { min-width: 110px; white-space:nowrap; }
+
   </style>
 </head>
 <body>
@@ -313,39 +350,113 @@ function renderAIAnalysis(analysis, combinedCases) {
 }
 
 // ── Cases Requiring Attention table ──────────────────────────────
-let _allCases = [];  // Store full dataset for re-filtering
+// ── Priority Intelligence Table ───────────────────────────────
+let _allCases = [];
 
+const PRI_COLS = {
+  P1:'#EE3526', P2:'#E8732A', P3:'#FDB913', P4:'#49A942',
+  'No Priority':'#9F9393', 'Assign Priority':'#9F9393',
+};
+
+function fmtAge(hours) {
+  if (hours === null || hours === undefined) return '—';
+  if (hours < 1)  return `${Math.round(hours * 60)}m`;
+  if (hours < 48) return `${Math.round(hours)}h`;
+  return `${(hours / 24).toFixed(1)}d`;
+}
+
+function slaDisplay(status, remainingHours) {
+  if (status === 'responded') return `<span class="sla-responded">&#10003; Responded</span>`;
+  if (!status) return `<span class="sla-na">—</span>`;
+  const h   = Math.abs(remainingHours || 0);
+  const str = h < 48 ? `${Math.round(h)}h` : `${(h/24).toFixed(1)}d`;
+  if (status === 'overdue')  return `<span class="sla-overdue">&#9888; Overdue ${str}</span>`;
+  if (status === 'at_risk')  return `<span class="sla-at-risk">&#9650; ${str} left</span>`;
+  return `<span class="sla-ok">&#10003; ${str} left</span>`;
+}
+
+function priPill(p) {
+  const col = PRI_COLS[p] || '#9F9393';
+  return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;
+    background:${col}20;border:1px solid ${col}60;
+    font-family:'Cambay';font-size:0.72rem;font-weight:700;
+    color:${col};white-space:nowrap">${p || '—'}</span>`;
+}
+
+function priCell(assigned, suggested) {
+  // If same, just show one pill. If different, show current → recommended.
+  if (!assigned || assigned === suggested) return priPill(suggested || assigned || '—');
+  return `<div class="pri-cell">${priPill(assigned)}<span class="pri-arrow">&#8594;</span>${priPill(suggested)}</div>`;
+}
+
+function flagBadge(c) {
+  if (c.flag_type === 'no_interaction')
+    return `<span class="no-interaction-badge">No Interaction</span>`;
+  const sev = (c.flag_severity || 'low').toLowerCase();
+  const col = sev==='high'?'#c0392b':sev==='medium'?'#7a5c00':'#555';
+  const bg  = sev==='high'?'rgba(238,53,38,0.1)':sev==='medium'?'rgba(253,185,19,0.12)':'rgba(159,147,147,0.1)';
+  return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;
+    background:${bg};border:1px solid ${col}40;
+    font-family:'Cambay';font-size:0.7rem;font-weight:700;
+    color:${col};white-space:nowrap">${sev.charAt(0).toUpperCase()+sev.slice(1)}</span>`;
+}
+
+function stagePill(stage) {
+  const s = (stage || '').toLowerCase();
+  let cls;
+  if (s === 'closed - funded')     cls = 'badge-stage-closed-funded';
+  else if (s.startsWith('closed')) cls = 'badge-stage-closed-other';
+  else if (['intake','interview','allocated','ready for allocation',
+            'funding','ongoing funding','assessment','assesment'].some(v => s.includes(v)))
+                                   cls = 'badge-stage-active';
+  else                             cls = 'badge-stage-pending';
+  return `<span class="badge ${cls}">${stage || '—'}</span>`;
+}
+
+function caseLink(c) {
+  const base = window.__NZF_META?.crm_base_url || '';
+  const label = c.case_id || '—';
+  return base && c.zoho_record_id
+    ? `<a href="${base}/Potentials/${c.zoho_record_id}" target="_blank" rel="noopener"
+        style="color:var(--color-primary);font-weight:700;font-size:0.85rem;text-decoration:none"
+        title="Open in CRM">${label} &#8599;</a>`
+    : `<span style="font-weight:700;color:var(--color-primary);font-size:0.85rem">${label}</span>`;
+}
+
+function clientLink(c) {
+  const base = window.__NZF_META?.crm_base_url || '';
+  const id = c.client_id || '';
+  if (!id) return '—';
+  return base
+    ? `<a href="${base}/Contacts/${id}" target="_blank" rel="noopener"
+        style="font-size:0.78rem;color:var(--color-blue);text-decoration:none">${id.slice(-6)} &#8599;</a>`
+    : `<span style="font-size:0.78rem">${id.slice(-6)}</span>`;
+}
+
+// ── Main render ───────────────────────────────────────────────
 function renderAttentionTable(cases) {
   const wrap = document.getElementById('attention-table-wrap');
-
   if (!cases || cases.length === 0) {
-    wrap.innerHTML = `
-      <div class="chart-card" style="padding:24px;font-family:'Cambay';color:var(--text-muted)">
-        No cases requiring attention at this time.
-      </div>`;
+    wrap.innerHTML = `<div class="chart-card" style="padding:24px;font-family:'Cambay';color:var(--text-muted)">
+      No cases requiring attention at this time.</div>`;
     return;
   }
-
   _allCases = cases;
 
-  // Build unique filter values from data
-  const stages    = [...new Set(cases.map(c => c.stage || '').filter(Boolean))].sort();
-  const curPris   = [...new Set(cases.map(c => c.assigned_priority || '').filter(Boolean))].sort();
-  const recPris   = [...new Set(cases.map(c => c.suggested_priority || '').filter(Boolean))].sort();
-  const flagOpts  = ['No Interaction', 'High', 'Medium', 'Low'];
+  const stages   = [...new Set(cases.map(c => c.stage || '').filter(Boolean))].sort();
+  const recPris  = [...new Set(cases.map(c => c.suggested_priority || '').filter(Boolean))].sort();
+  const flagOpts = ['No Interaction','High','Medium','Low'];
+  const nNoInt   = cases.filter(c => c.flag_type === 'no_interaction').length;
+  const nMisc    = cases.filter(c => c.flag_type === 'misclassified').length;
+  const nUnasn   = cases.filter(c => c.flag_type === 'unassigned').length;
 
-  const nNoInteraction = cases.filter(c => c.flag_type === 'no_interaction').length;
-  const nMisclassified = cases.filter(c => c.flag_type === 'misclassified').length;
-  const nUnassigned    = cases.filter(c => c.flag_type === 'unassigned').length;
-
-  function makeSelect(id, opts, width='130px') {
+  function sel(id, opts, w='120px') {
     return `<select id="${id}" onchange="applyFilters()"
-      style="font-family:'Cambay';font-size:0.72rem;padding:3px 6px;
-             border-radius:4px;border:1px solid var(--border-subtle);
-             background:var(--surface);color:var(--text-secondary);
-             cursor:pointer;width:${width};margin-top:4px;display:block;">
+      style="font-family:'Cambay';font-size:0.72rem;padding:3px 6px;border-radius:4px;
+             border:1px solid var(--border-subtle);background:var(--surface);
+             color:var(--text-secondary);cursor:pointer;width:${w};margin-top:4px;display:block;">
       <option value="">All</option>
-      ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
+      ${opts.map(o=>`<option value="${o}">${o}</option>`).join('')}
     </select>`;
   }
 
@@ -356,159 +467,104 @@ function renderAttentionTable(cases) {
           <div class="chart-card-title">Cases Requiring Attention</div>
           <div class="chart-card-subtitle" id="table-subtitle">
             ${cases.length} cases &mdash;
-            ${nNoInteraction > 0 ? `${nNoInteraction} no interaction, ` : ''}${nMisclassified} misclassified (P1/P2 suggested),
-            ${nUnassigned} unassigned &mdash;
-            last 30 days
+            ${nNoInt > 0 ? `<strong>${nNoInt} no interaction</strong>, ` : ''}${nMisc} misclassified, ${nUnasn} unassigned &mdash; last 30 days
           </div>
         </div>
-        <button onclick="clearFilters()"
-          style="font-family:'Cambay';font-size:0.72rem;font-weight:700;
-                 padding:4px 12px;border-radius:6px;border:1px solid var(--border-subtle);
-                 background:transparent;color:var(--text-muted);cursor:pointer;align-self:center;">
+        <button onclick="clearFilters()" style="font-family:'Cambay';font-size:0.72rem;font-weight:700;
+          padding:4px 12px;border-radius:6px;border:1px solid var(--border-subtle);
+          background:transparent;color:var(--text-muted);cursor:pointer;align-self:center;">
           Clear filters
         </button>
       </div>
       <table id="attention-table">
         <thead>
           <tr>
-            <th>Case ID</th>
-            <th>Client ID</th>
-            <th>Created</th>
-            <th>Current Priority<br>${makeSelect('filter-cur-pri', curPris, '120px')}</th>
-            <th>Flag<br>${makeSelect('filter-flag', flagOpts, '130px')}</th>
-            <th>Recommended Priority<br>${makeSelect('filter-rec-pri', recPris, '140px')}</th>
-            <th>Stage<br>${makeSelect('filter-stage', stages, '160px')}</th>
+            <th style="min-width:110px">Case</th>
+            <th style="min-width:90px">Client</th>
+            <th style="min-width:140px">
+              Priority<br>
+              <span style="font-size:0.65rem;font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0">Current &#8594; Recommended</span><br>
+              ${sel('filter-rec-pri', recPris, '140px')}
+            </th>
+            <th style="min-width:110px">Flag<br>${sel('filter-flag', flagOpts, '120px')}</th>
+            <th style="min-width:120px">Stage<br>${sel('filter-stage', stages, '150px')}</th>
+            <th class="sla-col">Response SLA</th>
+            <th class="sla-col">Resolution SLA</th>
             <th>Summary</th>
           </tr>
         </thead>
         <tbody id="attention-tbody"></tbody>
       </table>
-      <div id="no-results" style="display:none;padding:20px;
-           font-family:'Cambay';font-size:0.85rem;color:var(--text-muted);text-align:center">
-        No cases match the selected filters.
-      </div>
+      <div id="no-results" style="display:none;padding:20px;font-family:'Cambay';font-size:0.85rem;
+           color:var(--text-muted);text-align:center">No cases match the selected filters.</div>
     </div>`;
 
   renderTableRows(_allCases);
 }
 
+function renderTableRows(cases) {
+  const tbody = document.getElementById('attention-tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = cases.map(c => {
+    const isP1Overdue = c.suggested_priority === 'P1' && c.response_sla_status === 'overdue';
+    const rowCls      = isP1Overdue ? 'row-p1-alert' : '';
+    const ageH        = c.age_hours;
+    const ageStr      = fmtAge(ageH);
+    const ageUrgent   = ageH !== null && ageH > 48;
+
+    return `<tr class="${rowCls}">
+      <td>
+        <div style="white-space:nowrap">${caseLink(c)}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">
+          ${c.created ? new Date(c.created).toLocaleDateString('en-AU',{day:'numeric',month:'short'}) : '—'}
+          <span class="age-chip${ageUrgent?' urgent':''}">${ageStr}</span>
+        </div>
+      </td>
+      <td style="white-space:nowrap">${clientLink(c)}</td>
+      <td>${priCell(c.assigned_priority, c.suggested_priority)}</td>
+      <td>${flagBadge(c)}</td>
+      <td>${stagePill(c.stage)}</td>
+      <td class="sla-col" style="font-size:0.8rem">${slaDisplay(c.response_sla_status, c.response_sla_remaining)}</td>
+      <td class="sla-col" style="font-size:0.8rem">${slaDisplay(c.resolution_sla_status, c.resolution_sla_remaining)}</td>
+      <td style="font-size:0.8rem;color:var(--text-secondary);max-width:280px;line-height:1.6">${c.ai_summary || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
 function applyFilters() {
-  const flag    = document.getElementById('filter-flag')?.value    || '';
-  const curPri  = document.getElementById('filter-cur-pri')?.value || '';
-  const recPri  = document.getElementById('filter-rec-pri')?.value || '';
-  const stage   = document.getElementById('filter-stage')?.value   || '';
+  const flag   = document.getElementById('filter-flag')?.value    || '';
+  const recPri = document.getElementById('filter-rec-pri')?.value || '';
+  const stage  = document.getElementById('filter-stage')?.value   || '';
 
   const filtered = _allCases.filter(c => {
-    // Flag filter: "No Interaction" matches flag_type, severities match flag_severity
     const flagMatch = !flag
       || (flag === 'No Interaction' && c.flag_type === 'no_interaction')
       || (flag !== 'No Interaction' && (c.flag_severity || '') === flag);
     return flagMatch
-      && (!curPri || (c.assigned_priority || '') === curPri)
       && (!recPri || (c.suggested_priority || '') === recPri)
       && (!stage  || (c.stage || '') === stage);
   });
 
   renderTableRows(filtered);
 
-  // Update subtitle count
   const sub = document.getElementById('table-subtitle');
   if (sub) {
-    const active = [flag, curPri, recPri, stage].filter(Boolean).length;
-    sub.textContent = active
+    const active = [flag, recPri, stage].filter(Boolean).length;
+    sub.innerHTML = active
       ? `${filtered.length} of ${_allCases.length} cases shown (${active} filter${active!==1?'s':''} active)`
       : `${_allCases.length} cases — last 30 days`;
   }
-
-  document.getElementById('no-results').style.display = filtered.length === 0 ? 'block' : 'none';
-  document.getElementById('attention-table').style.display = filtered.length === 0 ? 'none' : '';
+  document.getElementById('no-results').style.display      = filtered.length === 0 ? 'block' : 'none';
+  document.getElementById('attention-table').style.display = filtered.length === 0 ? 'none'  : '';
 }
 
 function clearFilters() {
-  ['filter-flag','filter-cur-pri','filter-rec-pri','filter-stage']
+  ['filter-flag','filter-rec-pri','filter-stage']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   applyFilters();
 }
 
-function renderTableRows(cases) {
-  const crmBase    = window.__NZF_META?.crm_base_url || '';
-  const priColours = {
-    P1:'#EE3526', P2:'#E8732A', P3:'#FDB913',
-    P4:'#0081C6', P5:'#49A942',
-    'No Priority':'#9F9393', 'Assign Priority':'#9F9393',
-  };
-
-  function priPill(p) {
-    const col = priColours[p] || '#9F9393';
-    return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;
-      background:${col}20;border:1px solid ${col}60;
-      font-family:'Cambay';font-size:0.72rem;font-weight:700;
-      color:${col};white-space:nowrap">${p || '—'}</span>`;
-  }
-
-  function flagBadge(c) {
-    if (c.flag_type === 'no_interaction') {
-      return `<span class="no-interaction-badge">No Interaction</span>`;
-    }
-    const sev   = (c.flag_severity || 'low').toLowerCase();
-    const col   = sev==='high'?'#c0392b':sev==='medium'?'#7a5c00':'#555';
-    const bg    = sev==='high'?'rgba(238,53,38,0.1)':sev==='medium'?'rgba(253,185,19,0.12)':'rgba(159,147,147,0.1)';
-    const label = sev.charAt(0).toUpperCase() + sev.slice(1);
-    return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;
-      background:${bg};border:1px solid ${col}40;
-      font-family:'Cambay';font-size:0.7rem;font-weight:700;
-      color:${col};white-space:nowrap">${label}</span>`;
-  }
-
-  function caseLink(c) {
-    const label = c.case_id || '—';
-    return crmBase && c.zoho_record_id
-      ? `<a href="${crmBase}/Potentials/${c.zoho_record_id}" target="_blank" rel="noopener"
-          style="color:var(--color-primary);font-weight:700;font-size:0.85rem;text-decoration:none"
-          title="Open in CRM">${label} &#8599;</a>`
-      : `<span style="font-weight:700;color:var(--color-primary);font-size:0.85rem">${label}</span>`;
-  }
-
-  function clientLink(c) {
-    const id = c.client_id || '';
-    if (!id) return '—';
-    return crmBase
-      ? `<a href="${crmBase}/Contacts/${id}" target="_blank" rel="noopener"
-          style="font-size:0.8rem;color:var(--color-blue);text-decoration:none">${id.slice(-6)} &#8599;</a>`
-      : `<span style="font-size:0.8rem">${id.slice(-6)}</span>`;
-  }
-
-  function stagePill(stage) {
-    const s = (stage || '').toLowerCase();
-    let cls;
-    if (s === 'closed - funded')     cls = 'badge-stage-closed-funded';
-    else if (s.startsWith('closed')) cls = 'badge-stage-closed-other';
-    else if (['intake','interview','allocated','ready for allocation',
-              'funding','ongoing funding','assessment','assesment'].some(v => s.includes(v)))
-                                     cls = 'badge-stage-active';
-    else                             cls = 'badge-stage-pending';
-    return `<span class="badge ${cls}">${stage || '—'}</span>`;
-  }
-
-  const tbody = document.getElementById('attention-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = cases.map(c => `
-    <tr>
-      <td style="white-space:nowrap">${caseLink(c)}</td>
-      <td style="white-space:nowrap">${clientLink(c)}</td>
-      <td style="white-space:nowrap;font-size:0.82rem">${c.created
-        ? new Date(c.created).toLocaleDateString('en-AU',
-            {day:'numeric',month:'short',year:'numeric'})
-        : '—'}</td>
-      <td>${priPill(c.assigned_priority)}</td>
-      <td>${flagBadge(c)}</td>
-      <td>${priPill(c.suggested_priority)}</td>
-      <td>${stagePill(c.stage)}</td>
-      <td style="font-size:0.8rem;color:var(--text-secondary);max-width:300px;line-height:1.6">
-        ${c.ai_summary || '—'}
-      </td>
-    </tr>`).join('');
-}
 </script>
 </body>
 </html>
