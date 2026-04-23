@@ -1,46 +1,71 @@
 # NZF CRM Dashboards
 
-Live reports built from Zoho Analytics, hosted on Netlify, auto-refreshed via GitHub Actions.
+Live operational dashboards for National Zakat Foundation Australia, built on
+Zoho Analytics data, hosted on Netlify, auto-refreshed via GitHub Actions.
 
 ---
 
 ## Architecture
 
 ```
-Zoho CRM  →  Zoho Analytics (auto-sync)
-                    ↓  SQL export (3 API calls)
-             GitHub Actions (every 6 hrs)
-                    ↓  commits JSON files
+Zoho CRM  →  Zoho Analytics (auto-sync nightly)
+                    ↓  View fetch API (ZohoAnalytics.data.read)
+             GitHub Actions (every 6 hours)
+                    ↓  Python scripts write JSON to /data/
               GitHub Repository
-                    ↓  auto-deploy
+                    ↓  Netlify auto-deploys on every commit
                   Netlify
 ```
 
 ---
 
-## Why Zoho Analytics (not CRM API directly)
+## Dashboards
 
-| | CRM API | Zoho Analytics |
-|---|---|---|
-| API calls per refresh | 27+ | 3 |
-| Record limits | 2,000 per query | None |
-| JOINs | Not supported | Full MySQL SQL |
-| Notes | Separate call per case | Pre-joined tables |
+| Dashboard | URL | Data file | Script |
+|---|---|---|---|
+| Home | `/dashboards/index.html` | `meta.json` | — |
+| Client Report | `/dashboards/clients.html` | `clients.json` | `fetch_clients_data.py` |
+| Cases Report | `/dashboards/cases.html` | `cases.json` | `fetch_cases_data.py` |
+| Cases Performance | `/dashboards/cases_perf.html` | `cases_perf.json` | `fetch_cases_perf_data.py` |
+| Distributions | `/dashboards/distributions.html` | `distributions.json` | `fetch_distributions_data.py` |
+
+---
+
+## Business Rules
+
+All business logic lives in one place:
+
+```
+config/nzf_rules.json
+```
+
+This file is the single source of truth for:
+- New vs returning client definitions
+- Same-instance case exclusions (ILA keywords, ongoing stages)
+- Priority classification guide (used by AI analysis)
+- SLA targets (response and resolution, by priority)
+- Distribution paid status rules
+- Working hours definition (for P1 business-hours SLA)
+- Reporting window sizes
+- Zoho view IDs and org identifiers
+
+**To change any business rule — edit `nzf_rules.json` and re-run the workflow.**
+No Python or HTML changes needed.
+
+**For Claude AI context** — upload `nzf_rules.json` to the Claude project so
+Claude always has full NZF business definitions when building new dashboards.
 
 ---
 
 ## GitHub Secrets Required
 
-Go to: **GitHub repo → Settings → Secrets and variables → Actions**
-
 | Secret | Value |
 |---|---|
 | `ZOHO_CLIENT_ID` | From Zoho API Console → Self Client |
 | `ZOHO_CLIENT_SECRET` | From Zoho API Console → Self Client |
-| `ZOHO_REFRESH_TOKEN` | See setup steps below |
+| `ZOHO_REFRESH_TOKEN` | Generated via the Setup workflow (scope: `ZohoAnalytics.data.read`) |
 | `ZOHO_ACCOUNTS_URL` | `https://accounts.zoho.com` |
-
-> `ZOHO_API_DOMAIN` is no longer needed — you can delete it if it exists.
+| `ANTHROPIC_API_KEY` | From console.anthropic.com — enables AI analysis on Cases + Clients |
 
 ---
 
@@ -48,33 +73,38 @@ Go to: **GitHub repo → Settings → Secrets and variables → Actions**
 
 ### Step 1 — Get a Refresh Token
 
-1. Go to [api-console.zoho.com](https://api-console.zoho.com)
-2. Open your **Self Client**
-3. Click **Generate Code** tab
-4. Scope: `ZohoAnalytics.data.read`
-5. Duration: `10 minutes` → click **Create** → copy the code
-6. Go to GitHub → your repo → **Actions** → **🔑 Setup — Generate Refresh Token**
-7. Click **Run workflow** → paste the code → click **Run workflow**
-8. Open the job logs → copy the `refresh_token` value
-9. Save it as the `ZOHO_REFRESH_TOKEN` GitHub secret
+1. Go to [api-console.zoho.com](https://api-console.zoho.com) → Self Client
+2. Click **Generate Code** → Scope: `ZohoAnalytics.data.read` → Duration: 10 minutes
+3. GitHub → Actions → **Setup - Generate Refresh Token** → Run workflow → paste code
+4. Copy the `refresh_token` from the logs → save as `ZOHO_REFRESH_TOKEN` secret
 
 ### Step 2 — Connect Netlify
 
-1. Netlify → **Add new site → Import from GitHub**
-2. Select this repo
-3. Build command: *(leave blank)*
-4. Publish directory: `.`
-5. Deploy
+1. Netlify → Add new site → Import from GitHub → select this repo
+2. Build command: *(leave blank)*
+3. Publish directory: `.`
 
 ### Step 3 — First data refresh
 
-GitHub → Actions → **Refresh Zoho CRM Data** → **Run workflow**
-
-Netlify auto-deploys within ~30 seconds of each data commit.
+GitHub → Actions → **Refresh CRM Data** → Run workflow → select `all`
 
 ---
 
-## Analytics Workspace
+## Workflow Options
+
+The refresh workflow can be triggered manually with a specific report:
+
+| Option | What runs |
+|---|---|
+| `all` | All 4 scripts |
+| `clients` | Client report only |
+| `cases` | Cases report only |
+| `cases-perf` | Cases performance only |
+| `distributions` | Distributions only |
+
+---
+
+## Zoho Analytics Workspace
 
 | Setting | Value |
 |---|---|
@@ -82,28 +112,45 @@ Netlify auto-deploys within ~30 seconds of each data commit.
 | Workspace | Zoho CRM Analytics - Marketing |
 | Workspace ID | `1715382000001002475` |
 
-Key tables used:
-- `Cases` — all case records synced from CRM
-- `Distributions` — all distribution records
-- `Cases x Distribution x Notes - All` — pre-joined view with notes
+Key views used (all IDs in `nzf_rules.json`):
 
----
-
-## Client Report — Data Logic
-
-| Metric | Logic |
+| View | ID |
 |---|---|
-| **New clients** | Cases where client has NO paid/extracted distribution before this case |
-| **Returning clients** | Cases where client HAS at least one prior paid/extracted distribution |
-| **Excluded stages** | Ongoing Funding, Post Funding - Follow Up, Post=Follow-Up, etc. |
-| **Last assistance date** | MAX(COALESCE(Paid Date, Extracted Date, Created Time)) per client, before this case |
-| **Return gap** | Days between last paid distribution and this case's Created Time |
+| Cases | `1715382000001002494` |
+| Clients | `1715382000001002492` |
+| Distributions | `1715382000001002628` |
+| Case Notes | `1715382000012507001` |
 
 ---
 
-## Enabling Entra ID Auth (when ready)
+## AI Features
+
+Two dashboards use the Anthropic API (`ANTHROPIC_API_KEY` GitHub secret):
+
+**Client Report** — qualitative analysis of why returning clients are coming back,
+plus per-case summaries in the Returning Cases table. Runs at refresh time.
+
+**Cases Report** — priority accuracy analysis detecting potential misclassifications,
+plus alert for cases with no priority assigned for >24 hours. Runs at refresh time.
+
+Both use `claude-haiku-4-5-20251001` for cost efficiency.
+
+---
+
+## Enabling Auth (Entra ID SSO)
+
+Auth hooks are built into every dashboard but currently disabled.
+To enable:
 
 1. Register an App in Azure → Entra ID → App Registrations
-2. In `assets/js/auth.js` set `AUTH_ENABLED: true` + add Client ID + Tenant ID
+2. In `assets/js/auth.js` set `AUTH_ENABLED: true` and add `ENTRA_CLIENT_ID` + `ENTRA_TENANT_ID`
 3. Uncomment the MSAL script tag in each dashboard HTML
 4. Uncomment the redirect blocks in `netlify.toml`
+
+---
+
+## Disclaimer
+
+All dashboards are in draft stage. Data may not be accurate.
+For questions contact Farooq (farooq.syed@nzf.org.au).
+

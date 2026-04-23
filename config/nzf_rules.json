@@ -228,6 +228,19 @@
 
   "case_priorities": {
     "_description": "Normalisation rules for the Case Urgency field. Raw values in Zoho CRM are inconsistent — these prefix matches normalise them to clean labels for reporting.",
+
+    "classification_guide": {
+      "_description": "Used by AI to assess whether priority assignments match case descriptions.",
+      "P1": "Same-day crisis: client homeless tonight, no food today, domestic violence, medical emergency, eviction notice for today, utility disconnection with immediate health risk, family with children in immediate danger.",
+      "P2": "Urgent 1-3 days: imminent eviction, utility disconnection notice, rent arrears with landlord threatening action, single parent with children in financial crisis, upcoming medical procedure with no funds.",
+      "P3": "Significant hardship 4-6 days: general financial hardship, food insecurity not immediately acute, bills overdue but not at disconnection, employment loss, general rental stress.",
+      "P4": "Moderate hardship 7-10 days: general assistance request, planning ahead for upcoming bills, non-urgent support.",
+      "P5": "Non-urgent 6-14 days: general enquiry, documentation support, planning assistance.",
+      "No Priority": "Priority not yet assigned - should be assigned within 24 hours of application."
+    },
+
+    "unprioritized_alert_hours": 24,
+
     "prefix_map": [
       { "prefix": "PRIORITY 1", "label": "P1", "display": "P1 — Same Day"     },
       { "prefix": "PRIORITY 2", "label": "P2", "display": "P2 — 1–3 Days"     },
