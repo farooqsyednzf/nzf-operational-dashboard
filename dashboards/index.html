@@ -107,7 +107,11 @@ async function loadDataStatus() {
   try {
     const rows = await Promise.all(datasets.map(async d => {
       try {
-        const r    = await fetch(d.file);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 5000);
+        const r    = await fetch(d.file, { signal: controller.signal });
+        clearTimeout(timer);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const json = await r.json();
         return {
           ...d,
