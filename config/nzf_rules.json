@@ -239,7 +239,7 @@
 
     "classification_guide": {
       "_description": "Used by AI to assess whether priority assignments match case descriptions.",
-      "P1": "Same-day crisis: client homeless tonight, no food today, domestic violence, medical emergency, eviction notice for today, utility disconnection with immediate health risk, family with children in immediate danger.",
+      "P1": "Same-day crisis: client homeless tonight, no food today, medical emergency, eviction notice for today, utility disconnection with immediate health risk, family with children in immediate danger. Domestic violence is P1 ONLY when the client is currently experiencing abuse, is in active danger, or faces imminent homelessness/removal from their home as a direct result — historical DV without current danger should be assessed under normal priority rules.",
       "P2": "Urgent 1-3 days: imminent eviction, utility disconnection notice, rent arrears with landlord threatening action, single parent with children in financial crisis, upcoming medical procedure with no funds.",
       "P3": "Significant hardship 4-6 days: general financial hardship, food insecurity not immediately acute, bills overdue but not at disconnection, employment loss, general rental stress.",
       "P4": "Moderate hardship 7-10 days: general assistance request, planning ahead for upcoming bills, non-urgent support.",
