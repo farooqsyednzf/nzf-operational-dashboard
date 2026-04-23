@@ -227,17 +227,16 @@ function fmtAge(hours) {
 // ── Banner ────────────────────────────────────────────────────────
 function renderBanner(pi) {
   const el            = document.getElementById('unprioritized-banner');
-  const noInteraction = pi.no_interaction_count  ?? 0;
-  const misclassified = pi.misclassified_count   ?? 0;
-  const unassigned    = pi.unassigned_count       ?? 0;
-  const allTimeUnpri  = pi.unprioritized_all_time ?? 0;
+  const noInteraction = pi.no_interaction_count ?? 0;
+  const misclassified = pi.misclassified_count  ?? 0;
+  const unassigned    = pi.unassigned_count      ?? 0;
   const total         = (pi.combined_cases || []).length;
 
   if (noInteraction === 0 && misclassified === 0 && unassigned === 0) {
     el.innerHTML = `
       <div class="alert-banner ok">
         <span class="alert-icon">&#10003;</span>
-        <span class="alert-text">No cases requiring immediate attention detected.</span>
+        <span class="alert-text">No cases requiring attention in the last 30 days.</span>
       </div>`;
     return;
   }
@@ -248,19 +247,14 @@ function renderBanner(pi) {
   if (misclassified > 0)
     parts.push(`<strong>${misclassified} potentially misclassified</strong> (AI suggests P1 or P2)`);
   if (unassigned > 0)
-    parts.push(`<strong>${unassigned} unassigned</strong> in the last 30 days`);
+    parts.push(`<strong>${unassigned} unassigned</strong>`);
 
   const cls = noInteraction > 0 ? 'alert' : 'warn';
   el.innerHTML = `
     <div class="alert-banner ${cls}">
       <span class="alert-icon">&#9888;</span>
       <div class="alert-text">
-        ${parts.join(' &mdash; ')}.&nbsp; Showing all ${total} cases below.
-        ${allTimeUnpri > 0
-          ? `<span style="display:block;color:var(--text-muted);font-size:0.78rem;margin-top:3px">
-              Also: ${allTimeUnpri} open cases have had no priority assigned for more than 24 hours (all time)
-             </span>`
-          : ''}
+        ${parts.join(' &mdash; ')}. Showing all ${total} cases below. Last 30 days only.
       </div>
     </div>`;
 }
