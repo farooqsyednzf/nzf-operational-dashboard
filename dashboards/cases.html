@@ -602,20 +602,13 @@ function renderCombinedTable(cases) {
   }
 
   function flagBadge(c) {
-    if (c.flag_type === 'misclassified') {
-      const sev = (c.flag_severity || 'medium').toLowerCase();
-      const col = sev==='high'?'#c0392b':sev==='medium'?'#7a5c00':'#555';
-      const bg  = sev==='high'?'rgba(238,53,38,0.1)':sev==='medium'?'rgba(253,185,19,0.12)':'rgba(159,147,147,0.1)';
-      return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;background:${bg};
-        border:1px solid ${col}40;font-family:'Cambay';font-size:0.7rem;font-weight:700;color:${col};white-space:nowrap">
-        Misclassified &bull; ${c.flag_severity}</span>`;
-    }
-    const age = c.age_hours || 0;
-    const col = age > 72 ? '#c0392b' : '#7a5c00';
-    const bg  = age > 72 ? 'rgba(238,53,38,0.1)' : 'rgba(253,185,19,0.12)';
+    const sev = (c.flag_severity || 'low').toLowerCase();
+    const col = sev==='high'?'#c0392b':sev==='medium'?'#7a5c00':'#555';
+    const bg  = sev==='high'?'rgba(238,53,38,0.1)':sev==='medium'?'rgba(253,185,19,0.12)':'rgba(159,147,147,0.1)';
+    const label = sev.charAt(0).toUpperCase() + sev.slice(1);
     return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;background:${bg};
-      border:1px solid ${col}40;font-family:'Cambay';font-size:0.7rem;font-weight:700;color:${col};white-space:nowrap">
-      No Priority &bull; ${fmtAge(age)}</span>`;
+      border:1px solid ${col}40;font-family:'Cambay';font-size:0.7rem;font-weight:700;
+      color:${col};white-space:nowrap">${label}</span>`;
   }
 
   function caseLink(c) {
