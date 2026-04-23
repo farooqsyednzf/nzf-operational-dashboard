@@ -26,44 +26,49 @@
         </div>
       </div>
 
-      <!-- Dashboard cards ─────────────────────────────────────── -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:32px;">
-
+      <!-- ── CLIENTS ─────────────────────────────────────────── -->
+      <div class="section-label">Clients</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px;">
         <a href="/dashboards/clients.html" class="dashboard-card" style="--card-color:var(--color-primary);">
           <div class="dashboard-card-section">Clients</div>
           <div class="dashboard-card-title">Client Report</div>
-          <div class="dashboard-card-desc">New and returning clients — current month, previous month and 12-month trend. Includes qualitative analysis of why clients are returning and time-to-return metrics.</div>
+          <div class="dashboard-card-desc">New and returning clients — current month, previous month and 12-month trend. Qualitative AI analysis of why clients are returning.</div>
         </a>
+      </div>
 
-        <a href="/dashboards/pipeline.html" class="dashboard-card" style="--card-color:var(--color-blue);">
-          <div class="dashboard-card-section">Cases</div>
-          <div class="dashboard-card-title">Case Pipeline</div>
-          <div class="dashboard-card-desc">Open cases by stage, caseworker and urgency across the active pipeline.</div>
-        </a>
-
+      <!-- ── CASES ───────────────────────────────────────────── -->
+      <div class="section-label">Cases</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:28px;">
         <a href="/dashboards/cases.html" class="dashboard-card" style="--card-color:var(--color-blue);">
           <div class="dashboard-card-section">Cases</div>
-          <div class="dashboard-card-title">Case Summary</div>
-          <div class="dashboard-card-desc">Case volume, funding decisions, outcomes and trends over time.</div>
+          <div class="dashboard-card-title">Cases Report</div>
+          <div class="dashboard-card-desc">Cases created by month — volume, monthly average and priority breakdown across P1–P5.</div>
         </a>
+        <a href="/dashboards/cases_perf.html" class="dashboard-card" style="--card-color:var(--color-yellow);">
+          <div class="dashboard-card-section">Cases</div>
+          <div class="dashboard-card-title">Cases Performance</div>
+          <div class="dashboard-card-desc">Response SLA and Resolution SLA by priority — with business-hours tracking for P1. Closure time, funding rate and backlog health.</div>
+        </a>
+      </div>
 
+      <!-- ── DISTRIBUTIONS ──────────────────────────────────── -->
+      <div class="section-label">Distributions</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:36px;">
         <a href="/dashboards/distributions.html" class="dashboard-card" style="--card-color:var(--color-green);">
           <div class="dashboard-card-section">Distributions</div>
           <div class="dashboard-card-title">Distributions</div>
-          <div class="dashboard-card-desc">Payment volumes, Zakat categories, amounts distributed and payment status tracking.</div>
+          <div class="dashboard-card-desc">Total AUD distributed — monthly trends, breakdown by type, program, state and payment category.</div>
         </a>
-
       </div>
 
-      <!-- Data refresh status ──────────────────────────────────── -->
+      <!-- ── DATA REFRESH STATUS ────────────────────────────── -->
       <div class="chart-card">
         <div class="chart-card-header">
           <div>
             <div class="chart-card-title">Data Refresh Status</div>
-            <div class="chart-card-subtitle">GitHub Actions pulls from Zoho CRM on a 6-hour schedule — Netlify redeploys automatically on each refresh</div>
+            <div class="chart-card-subtitle">GitHub Actions pulls from Zoho Analytics on a 6-hour schedule — Netlify redeploys automatically on each refresh</div>
           </div>
-          <button
-            class="btn btn-secondary"
+          <button class="btn btn-secondary"
             style="font-size:0.78rem;padding:6px 14px;"
             onclick="window.location.reload()">
             ↻ Refresh
@@ -92,24 +97,24 @@
 
 async function loadDataStatus() {
   const el = document.getElementById('data-status');
+  const datasets = [
+    { label:'Client Report',      file:'/data/clients.json',      href:'/dashboards/clients.html'     },
+    { label:'Cases Report',       file:'/data/cases.json',         href:'/dashboards/cases.html'       },
+    { label:'Cases Performance',  file:'/data/cases_perf.json',    href:'/dashboards/cases_perf.html'  },
+    { label:'Distributions',      file:'/data/distributions.json', href:'/dashboards/distributions.html'},
+  ];
+
   try {
-    const res  = await fetch('/data/meta.json');
-    const meta = await res.json();
-    window.__NZF_META = meta;
-
-    const datasets = [
-      { key: 'clients',  label: 'Client Report',  file: '/data/clients.json',  href: '/dashboards/clients.html'  },
-      { key: 'pipeline', label: 'Case Pipeline',   file: '/data/pipeline.json', href: '/dashboards/pipeline.html' },
-    ];
-
-    // Try fetching each data file to get its own meta
     const rows = await Promise.all(datasets.map(async d => {
       try {
         const r    = await fetch(d.file);
         const json = await r.json();
-        const updated = json.meta?.last_updated || meta.last_updated;
-        const count   = json.meta?.record_count ?? '—';
-        return { ...d, updated, count, ok: true };
+        return {
+          ...d,
+          updated: json.meta?.last_updated || null,
+          count:   json.meta?.record_count ?? '—',
+          ok:      true,
+        };
       } catch(e) {
         return { ...d, updated: null, count: '—', ok: false };
       }
@@ -117,8 +122,8 @@ async function loadDataStatus() {
 
     const fmtDt = s => s
       ? new Date(s).toLocaleString('en-AU', {
-          day: 'numeric', month: 'short', year: 'numeric',
-          hour: '2-digit', minute: '2-digit'
+          day:'numeric', month:'short', year:'numeric',
+          hour:'2-digit', minute:'2-digit'
         })
       : '—';
 
@@ -137,20 +142,19 @@ async function loadDataStatus() {
           ${rows.map(r => `
             <tr>
               <td><strong>${r.label}</strong></td>
-              <td style="font-family:'Cambay',sans-serif;">${r.count.toLocaleString?.() ?? r.count}</td>
+              <td style="font-family:'Cambay',sans-serif;">${r.count?.toLocaleString?.() ?? r.count}</td>
               <td>${fmtDt(r.updated)}</td>
               <td>
                 ${r.ok
                   ? '<span class="badge badge-success">Current</span>'
-                  : '<span class="badge badge-alert">Not Available</span>'}
+                  : '<span class="badge badge-alert">Not yet available</span>'}
               </td>
               <td>
                 ${r.ok
                   ? `<a href="${r.href}" class="btn btn-secondary" style="font-size:0.75rem;padding:4px 12px;">View →</a>`
                   : ''}
               </td>
-            </tr>
-          `).join('')}
+            </tr>`).join('')}
         </tbody>
       </table>`;
 
@@ -159,7 +163,7 @@ async function loadDataStatus() {
       <div style="padding:24px;font-family:'Cambay',sans-serif;font-size:0.875rem;">
         <strong style="color:var(--color-alert);">⚠ Data not yet available</strong><br>
         <span style="color:var(--text-muted);">
-          Run the GitHub Action to fetch data from Zoho CRM for the first time.
+          Run the GitHub Actions workflow to fetch data from Zoho for the first time.
         </span>
       </div>`;
   }
