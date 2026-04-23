@@ -460,7 +460,9 @@ def main():
     print(f"  Cases in window:     {data['meta']['record_count']:,}")
     print(f"  Current month:       {s['current_month']}")
     print(f"  12-month total:      {s['total_12m']:,}")
-    print(f"  Unprioritized >24h:  {pi['unprioritized_alert']['count']}")
+    print(f"  Unprioritized >24h:  {pi['unprioritized_count']}")
+    print(f"  Flagged by AI:       {pi['flagged_count']}")
+    print(f"  Combined table rows: {len(pi['combined_cases'])}")
     if ai:
         print(f"  Priority quality:    {ai.get('quality_score')} "
               f"({len(ai.get('flags', []))} flags)")
