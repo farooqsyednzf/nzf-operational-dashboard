@@ -290,6 +290,8 @@ function renderAIAnalysis(analysis, combinedCases) {
 }
 
 // ── Cases Requiring Attention table ──────────────────────────────
+let _allCases = [];  // Store full dataset for re-filtering
+
 function renderAttentionTable(cases) {
   const wrap = document.getElementById('attention-table-wrap');
 
@@ -301,6 +303,117 @@ function renderAttentionTable(cases) {
     return;
   }
 
+  _allCases = cases;
+
+  // Build unique filter values from data
+  const stages    = [...new Set(cases.map(c => c.stage || '').filter(Boolean))].sort();
+  const curPris   = [...new Set(cases.map(c => c.assigned_priority || '').filter(Boolean))].sort();
+  const recPris   = [...new Set(cases.map(c => c.suggested_priority || '').filter(Boolean))].sort();
+  const severities= ['High','Medium','Low'];
+
+  const nMisclassified = cases.filter(c => c.flag_type === 'misclassified').length;
+  const nUnassigned    = cases.filter(c => c.flag_type === 'unassigned').length;
+
+  function makeSelect(id, label, opts) {
+    return `<select id="${id}" onchange="applyFilters()"
+      style="font-family:'Cambay';font-size:0.75rem;padding:4px 8px;border-radius:6px;
+             border:1px solid var(--border-subtle);background:var(--surface);
+             color:var(--text-secondary);cursor:pointer;min-width:130px;">
+      <option value="">All ${label}</option>
+      ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
+    </select>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Cases Requiring Attention</div>
+          <div class="chart-card-subtitle" id="table-subtitle">
+            ${cases.length} cases &mdash;
+            ${nMisclassified} misclassified (P1/P2 suggested),
+            ${nUnassigned} unassigned &mdash;
+            last 30 days
+          </div>
+        </div>
+      </div>
+      <!-- Filter bar -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px;
+                  border-bottom:1px solid var(--border-subtle);background:var(--surface-2);
+                  align-items:center;">
+        <span style="font-family:'Cambay';font-size:0.72rem;font-weight:700;
+                     text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);
+                     margin-right:4px;">Filter:</span>
+        ${makeSelect('filter-flag',      'Severities',   severities)}
+        ${makeSelect('filter-cur-pri',   'Current Pri',  curPris)}
+        ${makeSelect('filter-rec-pri',   'Rec. Priority',recPris)}
+        ${makeSelect('filter-stage',     'Stages',       stages)}
+        <button onclick="clearFilters()"
+          style="font-family:'Cambay';font-size:0.72rem;font-weight:700;
+                 padding:4px 12px;border-radius:6px;border:1px solid var(--border-subtle);
+                 background:transparent;color:var(--text-muted);cursor:pointer;">
+          Clear
+        </button>
+      </div>
+      <table id="attention-table">
+        <thead>
+          <tr>
+            <th>Case ID</th>
+            <th>Client ID</th>
+            <th>Created</th>
+            <th>Current Priority</th>
+            <th>Flag</th>
+            <th>Recommended Priority</th>
+            <th>Stage</th>
+            <th>Summary</th>
+          </tr>
+        </thead>
+        <tbody id="attention-tbody"></tbody>
+      </table>
+      <div id="no-results" style="display:none;padding:20px;
+           font-family:'Cambay';font-size:0.85rem;color:var(--text-muted);text-align:center">
+        No cases match the selected filters.
+      </div>
+    </div>`;
+
+  renderTableRows(_allCases);
+}
+
+function applyFilters() {
+  const flag    = document.getElementById('filter-flag')?.value    || '';
+  const curPri  = document.getElementById('filter-cur-pri')?.value || '';
+  const recPri  = document.getElementById('filter-rec-pri')?.value || '';
+  const stage   = document.getElementById('filter-stage')?.value   || '';
+
+  const filtered = _allCases.filter(c =>
+    (!flag   || (c.flag_severity || '') === flag)   &&
+    (!curPri || (c.assigned_priority || '') === curPri) &&
+    (!recPri || (c.suggested_priority || '') === recPri) &&
+    (!stage  || (c.stage || '') === stage)
+  );
+
+  renderTableRows(filtered);
+
+  // Update subtitle count
+  const sub = document.getElementById('table-subtitle');
+  if (sub) {
+    const active = [flag, curPri, recPri, stage].filter(Boolean).length;
+    sub.textContent = active
+      ? `${filtered.length} of ${_allCases.length} cases shown (${active} filter${active!==1?'s':''} active)`
+      : `${_allCases.length} cases — last 30 days`;
+  }
+
+  document.getElementById('no-results').style.display = filtered.length === 0 ? 'block' : 'none';
+  document.getElementById('attention-table').style.display = filtered.length === 0 ? 'none' : '';
+}
+
+function clearFilters() {
+  ['filter-flag','filter-cur-pri','filter-rec-pri','filter-stage']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  applyFilters();
+}
+
+function renderTableRows(cases) {
   const crmBase    = window.__NZF_META?.crm_base_url || '';
   const priColours = {
     P1:'#EE3526', P2:'#E8732A', P3:'#FDB913',
@@ -341,8 +454,7 @@ function renderAttentionTable(cases) {
     if (!id) return '—';
     return crmBase
       ? `<a href="${crmBase}/Contacts/${id}" target="_blank" rel="noopener"
-          style="font-size:0.8rem;color:var(--color-blue);text-decoration:none"
-          title="Open client in CRM">${id.slice(-6)} &#8599;</a>`
+          style="font-size:0.8rem;color:var(--color-blue);text-decoration:none">${id.slice(-6)} &#8599;</a>`
       : `<span style="font-size:0.8rem">${id.slice(-6)}</span>`;
   }
 
@@ -358,56 +470,24 @@ function renderAttentionTable(cases) {
     return `<span class="badge ${cls}">${stage || '—'}</span>`;
   }
 
-  // Count by type for subtitle
-  const nMisclassified = cases.filter(c => c.flag_type === 'misclassified').length;
-  const nUnassigned    = cases.filter(c => c.flag_type === 'unassigned').length;
-
-  wrap.innerHTML = `
-    <div class="chart-card">
-      <div class="chart-card-header">
-        <div>
-          <div class="chart-card-title">Cases Requiring Attention</div>
-          <div class="chart-card-subtitle">
-            ${cases.length} cases &mdash;
-            ${nMisclassified} misclassified (P1/P2 suggested),
-            ${nUnassigned} unassigned &mdash;
-            last 30 days, sorted by severity then newest first
-          </div>
-        </div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Case ID</th>
-            <th>Client ID</th>
-            <th>Created</th>
-            <th>Current Priority</th>
-            <th>Flag</th>
-            <th>Potential Priority</th>
-            <th>Stage</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${cases.map(c => `
-            <tr>
-              <td style="white-space:nowrap">${caseLink(c)}</td>
-              <td style="white-space:nowrap">${clientLink(c)}</td>
-              <td style="white-space:nowrap;font-size:0.82rem">${c.created
-                ? new Date(c.created).toLocaleDateString('en-AU',
-                    {day:'numeric',month:'short',year:'numeric'})
-                : '—'}</td>
-              <td>${priPill(c.assigned_priority)}</td>
-              <td>${flagBadge(c)}</td>
-              <td>${priPill(c.suggested_priority)}</td>
-              <td>${stagePill(c.stage)}</td>
-              <td style="font-size:0.8rem;color:var(--text-secondary);max-width:300px;line-height:1.5">
-                ${c.ai_summary || '—'}
-              </td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
+  const tbody = document.getElementById('attention-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = cases.map(c => `
+    <tr>
+      <td style="white-space:nowrap">${caseLink(c)}</td>
+      <td style="white-space:nowrap">${clientLink(c)}</td>
+      <td style="white-space:nowrap;font-size:0.82rem">${c.created
+        ? new Date(c.created).toLocaleDateString('en-AU',
+            {day:'numeric',month:'short',year:'numeric'})
+        : '—'}</td>
+      <td>${priPill(c.assigned_priority)}</td>
+      <td>${flagBadge(c)}</td>
+      <td>${priPill(c.suggested_priority)}</td>
+      <td>${stagePill(c.stage)}</td>
+      <td style="font-size:0.8rem;color:var(--text-secondary);max-width:300px;line-height:1.6">
+        ${c.ai_summary || '—'}
+      </td>
+    </tr>`).join('');
 }
 </script>
 </body>
