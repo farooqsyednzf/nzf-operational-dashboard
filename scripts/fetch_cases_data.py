@@ -184,9 +184,11 @@ def run_combined_analysis(recent_cases):
         (
             f'ID:{c["case_id"]} ASSIGNED:{c.get("priority","No Priority")} '
             f'STAGE:{c.get("stage","?")} '
-            f'DESC:{(c.get("description") or "")[:250]}'
-            + (f' | CW NOTE:{c.get("cw_recommendation","")[:100]}' if c.get("cw_recommendation") else "")
-            + (f' | NOT FUNDED REASON:{c.get("reason_not_funded","")}' if c.get("reason_not_funded") else "")
+            f'INTERACTION:{"YES" if c.get("has_cw_notes") else "NO - no caseworker notes"} '
+            f'DESC:{(c.get("description") or "")[:200]}'
+            + (f' | LATEST NOTE ({c.get("latest_note_title","")}):{c.get("latest_note","")[:150]}' if c.get("latest_note") else "")
+            + (f' | CW REC:{c.get("cw_recommendation","")[:100]}' if c.get("cw_recommendation") else "")
+            + (f' | NOT FUNDED:{c.get("reason_not_funded","")}' if c.get("reason_not_funded") else "")
         )
         for c in cases_with_desc
     )
@@ -196,18 +198,30 @@ def run_combined_analysis(recent_cases):
 PRIORITY FRAMEWORK:
 {guide_text}
 
-Review these {len(cases_with_desc)} cases. For EACH case you must:
-1. recommended_priority: The correct priority P1-P5 based strictly on the description.
-   If description is too vague, use "P3".
-2. summary: 1-2 plain-English sentences describing what the client needs and urgency.
-   No personal names, no locations. Third person, professional tone.
+Review these {len(cases_with_desc)} cases. Each case may include:
+- ASSIGNED: current priority, STAGE: workflow stage
+- INTERACTION: whether a caseworker has interacted (YES/NO)
+- DESC: client's application description
+- LATEST NOTE: most recent caseworker note (if any)
+- CW REC: caseworker recommendation
+- NOT FUNDED: reason if closed not funded
 
-Also assess overall quality of priority assignments and flag any significant misclassifications.
+For EACH case provide:
+1. recommended_priority: Correct priority P1-P5 based on description. Default P3 if vague.
+2. summary: 2-3 sentences covering ALL that apply:
+   - What the client needs and urgency level
+   - Current status (based on stage, latest note, CW recommendation)
+   - If INTERACTION is NO: state "No caseworker interaction recorded"
+   - If closed not funded: include the reason
+   - If closed funded: state the outcome
+   No personal names, locations, or identifying details. Third person, professional.
+
+Also assess overall priority assignment quality and flag significant misclassifications.
 
 Respond ONLY with valid JSON (no markdown):
 {{
   "quality_score": "Good|Fair|Poor",
-  "quality_summary": "2-3 sentence assessment",
+  "quality_summary": "2-3 sentence overall assessment",
   "total_reviewed": {len(cases_with_desc)},
   "flags": [
     {{
@@ -220,14 +234,14 @@ Respond ONLY with valid JSON (no markdown):
   ],
   "patterns": ["pattern 1"],
   "per_case": {{
-    "201730421": {{"recommended_priority": "P3", "summary": "Client requires..."}},
-    "201730432": {{"recommended_priority": "P1", "summary": "Client facing..."}}
+    "201730421": {{"recommended_priority": "P3", "summary": "Client requires rent assistance; caseworker has made contact and assessment is in progress."}},
+    "201730432": {{"recommended_priority": "P1", "summary": "Family violence situation with housing crisis; no caseworker interaction recorded."}}
   }}
 }}
 
 Rules:
 - per_case MUST contain ALL {len(cases_with_desc)} case IDs exactly as given
-- flags: top 10 most significant misclassifications only
+- flags: top 10 most significant only
 - No personal names in any field
 
 Cases:
@@ -306,130 +320,184 @@ def build_cases_report(token):
     }
 
     # ── Priority intelligence — LIVE CRM DATA ────────────────────
-    # Deliberately uses Zoho CRM REST API (not Analytics) because:
-    #   Analytics sync can be up to 24 hours delayed.
-    #   A P1 case created 2 hours ago would be invisible in Analytics.
-    #   Priority intelligence must detect urgent cases in near real-time.
     print("\n  Building priority intelligence (live CRM data)...")
 
-    # 1. Unprioritized open cases — directly from CRM, all-time (not just window)
+    # 1. All-time unprioritized open cases (for banner alert count)
     crm_unprioritized_raw = zcrm.fetch_all_open_cases_no_priority(
-        token,
-        threshold_hours=UNPRIORITIZED_HOURS,
-        max_pages=5,
+        token, threshold_hours=UNPRIORITIZED_HOURS, max_pages=5,
     )
     unprioritized = _build_unprioritized_from_crm(crm_unprioritized_raw)
-    print(f"  Unprioritized (>{UNPRIORITIZED_HOURS}h): {len(unprioritized):,} shown (of {len(crm_unprioritized_raw):,} total)")
+    print(f"  All-time unprioritized (>{UNPRIORITIZED_HOURS}h): {len(crm_unprioritized_raw):,}")
 
-    # 2. AI accuracy analysis — last 30 days, live from CRM
+    # 2. Last-30-days cases from live CRM
     crm_recent = zcrm.fetch_recent_cases(token, days=30, max_pages=5)
-    recent_sample = [
-        {
-            "case_id":            c.get("case_id", ""),
-            "zoho_record_id":     c.get("id", ""),
-            "priority":           normalise_priority(c.get("case_urgency", "")),
-            "description":        c.get("description", "").strip(),
-            "stage":              c.get("stage", ""),
-            "cw_recommendation":  c.get("cw_recommendation", ""),
-            "reason_not_funded":  c.get("reason_not_funded", ""),
-        }
-        for c in crm_recent
-        if c.get("description", "").strip()
-    ]
+
+    # 3. Notes for all recent cases — detect caseworker interaction
+    recent_zoho_ids = [c.get("id","") for c in crm_recent if c.get("id")]
+    notes_index = zcrm.fetch_notes_for_cases(token, recent_zoho_ids, days=30, max_pages=5)
+
+    # Auto note titles to exclude (same list as performance dashboard)
+    AUTO_TITLES = {t.lower() for t in RULES["case_performance"]["automated_note_titles"]["exact_match"]}
+
+    def get_caseworker_notes(zoho_id):
+        """Return list of genuine (non-automated) notes for a case."""
+        notes = notes_index.get(zoho_id, [])
+        return [n for n in notes if n.get("title","").strip().lower() not in AUTO_TITLES]
+
+    # 4. Build recent_sample with full context for AI
+    recent_sample = []
+    for c in crm_recent:
+        if not c.get("description","").strip():
+            continue
+        cw_notes = get_caseworker_notes(c.get("id",""))
+        latest_note = cw_notes[0] if cw_notes else None
+        recent_sample.append({
+            "case_id":            c.get("case_id",""),
+            "zoho_record_id":     c.get("id",""),
+            "priority":           normalise_priority(c.get("case_urgency","")),
+            "description":        c.get("description","").strip(),
+            "stage":              c.get("stage",""),
+            "cw_recommendation":  c.get("cw_recommendation",""),
+            "reason_not_funded":  c.get("reason_not_funded",""),
+            "has_cw_notes":       len(cw_notes) > 0,
+            "note_count":         len(cw_notes),
+            "latest_note_title":  latest_note["title"] if latest_note else "",
+            "latest_note":        (latest_note["content"] or "")[:200] if latest_note else "",
+        })
+
     case_id_lookup = {
         s["case_id"]: s["zoho_record_id"]
         for s in recent_sample if s["case_id"] and s["zoho_record_id"]
     }
 
-    # 3. Single merged AI call — accuracy analysis + per-case enrichment together
+    # 5. Single merged AI call
     print(f"  Running combined AI analysis ({len(recent_sample):,} cases, live CRM)...")
     combined_result = run_combined_analysis(recent_sample)
-
-    # Extract the two outputs from the single response
-    ai_analysis = combined_result  # flags, quality_score, patterns used by HTML
+    ai_analysis = combined_result
     per_case    = (combined_result or {}).get("per_case", {})
 
     # ── Build combined cases table ────────────────────────────────
-    SEV_ORDER     = {"High": 0, "Medium": 1, "Low": 2}
-    HIGH_PRI      = {"P1", "P2"}
-    now           = datetime.now(timezone.utc)
-    crm_index     = {c.get("case_id", ""): c for c in crm_recent if c.get("case_id")}
-    flags         = (ai_analysis or {}).get("flags", [])
-    combined      = []
-    seen_ids      = set()
+    SEV_ORDER = {"High": 0, "Medium": 1, "Low": 2}
+    HIGH_PRI  = {"P1", "P2"}
+    now       = datetime.now(timezone.utc)
+    crm_index = {c.get("case_id",""):  c for c in crm_recent if c.get("case_id")}
+    sample_idx= {s["case_id"]: s for s in recent_sample}
+    flags     = (ai_analysis or {}).get("flags", [])
+    combined  = []
+    seen_ids  = set()
 
-    # A. Misclassified cases where AI suggests P1 or P2
-    p1p2_flags = [f for f in flags if f.get("suggested_priority", "") in HIGH_PRI]
-    for f in sorted(p1p2_flags, key=lambda x: (
-        SEV_ORDER.get(x.get("severity", "Low"), 2),
-        -(zac.parse_dt(crm_index.get(x.get("case_id",""), {}).get("created_time","")) or now).timestamp()
-    )):
-        cid = f.get("case_id", "")
-        if not cid or cid in seen_ids:
-            continue
-        crm_c   = crm_index.get(cid, {})
-        created = crm_c.get("created_time", "")
+    def build_row(cid, crm_c, flag_type, flag_severity,
+                  assigned_priority, suggested_priority,
+                  ai_enr, flag_reason=""):
+        """Assemble one table row with full context."""
+        smp     = sample_idx.get(cid, {})
+        created = crm_c.get("created_time","")
         crdt    = zac.parse_dt(created)
         age_h   = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
-        enr = per_case.get(cid, {})
-        combined.append({
-            "zoho_record_id":     crm_c.get("id", "") or case_id_lookup.get(cid, ""),
+        # Summary: prefer AI, then build from available fields
+        summary = ai_enr.get("summary","")
+        if not summary:
+            parts = []
+            desc = _clean_description(crm_c.get("description",""))
+            if desc: parts.append(desc)
+            cw_rec = crm_c.get("cw_recommendation","")
+            if cw_rec: parts.append(f"CW note: {cw_rec[:120]}")
+            reason = crm_c.get("reason_not_funded","")
+            if reason: parts.append(f"Not funded: {reason}")
+            if not smp.get("has_cw_notes"):
+                parts.append("No caseworker interaction recorded.")
+            summary = " | ".join(parts) or flag_reason
+        return {
+            "zoho_record_id":     crm_c.get("id","") or case_id_lookup.get(cid,""),
             "case_id":            cid,
-            "client_id":          crm_c.get("client_name", ""),
+            "client_id":          crm_c.get("client_name",""),
             "created":            created,
             "created_ts":         crdt.timestamp() if crdt else 0,
             "age_hours":          age_h,
-            "stage":              crm_c.get("stage", ""),
-            "assigned_priority":  f.get("assigned_priority", ""),
-            "suggested_priority": f.get("suggested_priority", ""),
-            "flag_type":          "misclassified",
-            "flag_severity":      f.get("severity", "Medium"),
-            "ai_summary":         enr.get("summary") or _clean_description(crm_c.get("description","")),
-        })
+            "stage":              crm_c.get("stage",""),
+            "assigned_priority":  assigned_priority,
+            "suggested_priority": suggested_priority,
+            "flag_type":          flag_type,
+            "flag_severity":      flag_severity,
+            "no_interaction":     not smp.get("has_cw_notes", True),
+            "ai_summary":         summary,
+        }
+
+    # A. No caseworker interaction at all — highest alert
+    no_interaction_ids = {
+        c.get("case_id","")
+        for c in crm_recent
+        if not sample_idx.get(c.get("case_id",""), {}).get("has_cw_notes", True)
+        and c.get("case_id","")
+    }
+    for c in sorted(crm_recent,
+                    key=lambda x: zac.parse_dt(x.get("created_time","")) or now,
+                    reverse=True):
+        cid = c.get("case_id","")
+        if cid not in no_interaction_ids or cid in seen_ids:
+            continue
+        enr = per_case.get(cid, {})
+        pri = normalise_priority(c.get("case_urgency",""))
+        row = build_row(cid, c, "no_interaction", "High",
+                        pri or NO_PRIORITY,
+                        enr.get("recommended_priority","Assign Priority"),
+                        enr,
+                        "No caseworker interaction recorded on this case")
+        combined.append(row)
         seen_ids.add(cid)
 
-    # B. Last-30-day unassigned cases — use enrichment for both summary and recommended priority
+    # B. AI-flagged misclassifications suggesting P1 or P2
+    p1p2_flags = [f for f in flags if f.get("suggested_priority","") in HIGH_PRI]
+    for f in sorted(p1p2_flags, key=lambda x: (
+        SEV_ORDER.get(x.get("severity","Low"), 2),
+        -(zac.parse_dt(crm_index.get(x.get("case_id",""),{}).get("created_time","")) or now).timestamp()
+    )):
+        cid = f.get("case_id","")
+        if not cid or cid in seen_ids: continue
+        crm_c = crm_index.get(cid, {})
+        row   = build_row(cid, crm_c, "misclassified",
+                          f.get("severity","Medium"),
+                          f.get("assigned_priority",""),
+                          f.get("suggested_priority",""),
+                          per_case.get(cid,{}),
+                          f.get("reason",""))
+        combined.append(row)
+        seen_ids.add(cid)
+
+    # C. Last-30-day unassigned cases
     unassigned_30d = [
         c for c in crm_recent
-        if normalise_priority(c.get("case_urgency", "")) == NO_PRIORITY
-        and c.get("case_id", "") not in seen_ids
+        if normalise_priority(c.get("case_urgency","")) == NO_PRIORITY
+        and c.get("case_id","") not in seen_ids
     ]
     for c in unassigned_30d:
-        cid     = c.get("case_id", "")
-        created = c.get("created_time", "")
-        crdt    = zac.parse_dt(created)
-        age_h   = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
-        sev     = "High" if (age_h or 0) > 48 else "Medium" if (age_h or 0) > 24 else "Low"
-        enr = per_case.get(cid, {})
-        rec_pri = enr.get("recommended_priority", "Assign Priority")
-        combined.append({
-            "zoho_record_id":     c.get("id", ""),
-            "case_id":            cid,
-            "client_id":          c.get("client_name", ""),
-            "created":            created,
-            "created_ts":         crdt.timestamp() if crdt else 0,
-            "age_hours":          age_h,
-            "stage":              c.get("stage", ""),
-            "assigned_priority":  NO_PRIORITY,
-            "suggested_priority": rec_pri,
-            "flag_type":          "unassigned",
-            "flag_severity":      sev,
-            "ai_summary":         enr.get("summary") or _clean_description(c.get("description","")),
-        })
+        cid  = c.get("case_id","")
+        if not cid or cid in seen_ids: continue
+        crdt = zac.parse_dt(c.get("created_time",""))
+        age_h= round((now-crdt).total_seconds()/3600,1) if crdt else None
+        sev  = "High" if (age_h or 0)>48 else "Medium" if (age_h or 0)>24 else "Low"
+        enr  = per_case.get(cid,{})
+        row  = build_row(cid, c, "unassigned", sev,
+                         NO_PRIORITY,
+                         enr.get("recommended_priority","Assign Priority"),
+                         enr)
+        combined.append(row)
         seen_ids.add(cid)
 
-    # Sort: severity first, then newest first within each group
+    # Sort: no_interaction first, then by severity, then newest
     combined.sort(key=lambda x: (
-        SEV_ORDER.get(x.get("flag_severity", "Low"), 2),
+        0 if x["flag_type"]=="no_interaction" else SEV_ORDER.get(x["flag_severity"],"Low")+1,
         -x.get("created_ts", 0)
     ))
     for row in combined:
         row.pop("created_ts", None)
 
-    p1p2_count     = len(p1p2_flags)
-    unassign_count = len(unassigned_30d)
-    print(f"  Combined table: {len(combined)} rows "
-          f"({p1p2_count} flagged P1/P2, {unassign_count} unassigned last 30d)")
+    n_no_interaction = len([r for r in combined if r["flag_type"]=="no_interaction"])
+    n_misclassified  = len([r for r in combined if r["flag_type"]=="misclassified"])
+    n_unassigned     = len([r for r in combined if r["flag_type"]=="unassigned"])
+    print(f"  Combined table: {len(combined)} rows — "
+          f"{n_no_interaction} no interaction, {n_misclassified} misclassified, "
+          f"{n_unassigned} unassigned")
 
     return {
         "meta": {
@@ -454,17 +522,18 @@ def build_cases_report(token):
             "current_month":  priority_kpis(current_month),
             "previous_month": priority_kpis(previous_month),
             "total_12m":      priority_12m,
-            "monthly_avg":    {p: round(priority_12m[p] / len(months), 1) for p in PRIORITY_ORDER},
+            "monthly_avg":    {p: round(priority_12m[p]/len(months),1) for p in PRIORITY_ORDER},
         },
         "priority_trend": priority_trend,
         "priority_intelligence": {
-            "unprioritized_count": len(unprioritized),
-            "flagged_count":       len(flags),
-            "combined_cases":      combined,
-            "ai_analysis":         ai_analysis,
+            "unprioritized_all_time": len(crm_unprioritized_raw),
+            "no_interaction_count":   n_no_interaction,
+            "misclassified_count":    n_misclassified,
+            "unassigned_count":       n_unassigned,
+            "combined_cases":         combined,
+            "ai_analysis":            ai_analysis,
         },
     }
-
 # ── Main ──────────────────────────────────────────────────────────
 def main():
     print("=" * 55)
@@ -487,8 +556,9 @@ def main():
     print(f"  Cases in window:     {data['meta']['record_count']:,}")
     print(f"  Current month:       {s['current_month']}")
     print(f"  12-month total:      {s['total_12m']:,}")
-    print(f"  Unprioritized >24h:  {pi['unprioritized_count']}")
-    print(f"  Flagged by AI:       {pi['flagged_count']}")
+    print(f"  No interaction:      {pi['no_interaction_count']}")
+    print(f"  Misclassified P1/P2: {pi['misclassified_count']}")
+    print(f"  Unassigned 30d:      {pi['unassigned_count']}")
     print(f"  Combined table rows: {len(pi['combined_cases'])}")
     if ai:
         print(f"  Priority quality:    {ai.get('quality_score')} "
