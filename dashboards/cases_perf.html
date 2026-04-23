@@ -370,6 +370,12 @@ function fmt(n, dec=0) {
   return Number(n).toLocaleString('en-AU',
     {minimumFractionDigits:dec, maximumFractionDigits:dec});
 }
+// Display hours as days when value exceeds 8 hours
+function fmtHours(h) {
+  if (h===null||h===undefined) return '—';
+  if (h > 8) return fmt(h/24, 1) + 'd';
+  return fmt(h, 0) + 'h';
+}
 function friendlyMonth(ym) {
   if (!ym) return '';
   const [y,m] = ym.split('-');
@@ -410,6 +416,34 @@ function lineOpts(yLabel='') {
   };
 }
 
+// Variant for hour-based charts — axis ticks + tooltips use fmtHours
+function lineOptsHours() {
+  return {
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{position:'bottom',labels:{font:CD.font,padding:12,boxWidth:24,boxHeight:2}},
+      tooltip:{
+        mode:'index', intersect:false,
+        callbacks:{
+          label: ctx => {
+            const v = ctx.parsed.y;
+            return v===null ? null : ` ${ctx.dataset.label}: ${fmtHours(v)}`;
+          }
+        }
+      },
+    },
+    scales:{
+      x:{ticks:{font:CD.font},grid:{display:false}},
+      y:{
+        ticks:{font:CD.font, callback: v => fmtHours(v)},
+        grid:CD.grid, beginAtZero:true,
+        title:{display:true, text:'Time', font:{...CD.font,size:10}},
+      }
+    }
+  };
+}
+
 // ── Main ─────────────────────────────────────────────────────────
 (async()=>{
   await requireAuth();
@@ -432,8 +466,8 @@ function lineOpts(yLabel='') {
   renderExecStrip(data);
   renderSLACards('resp',  data.response_sla,   data.sla_definitions.response);
   renderSLACards('resol', data.resolution_sla,  data.sla_definitions.resolution);
-  renderSLATrendChart('chart-resp-trend',  data.response_sla.priority_trend_series,  'Hours');
-  renderSLATrendChart('chart-resol-trend', data.resolution_sla.priority_trend_series, 'Hours');
+  renderSLATrendChart('chart-resp-trend',  data.response_sla.priority_trend_series,  true);
+  renderSLATrendChart('chart-resol-trend', data.resolution_sla.priority_trend_series, true);
   renderSLABarChart('chart-resp-sla',   data.response_sla,   data.sla_definitions.response);
   renderSLABarChart('chart-resol-sla',  data.resolution_sla, data.sla_definitions.resolution);
   renderCloseOutcomeCards(data);
@@ -472,14 +506,14 @@ function renderExecStrip(data) {
     },
     {
       label:  'Median Response',
-      value:  es.resp_median_hours!==null ? fmt(es.resp_median_hours,0) : '—',
+      value:  es.resp_median_hours!==null ? fmtHours(es.resp_median_hours) : '—',
       unit:   'hours (current month)',
       colour: C.blue,
       extra:  '',
     },
     {
       label:  'Median Resolution',
-      value:  es.resol_median_hours!==null ? fmt(es.resol_median_hours,0) : '—',
+      value:  es.resol_median_hours!==null ? fmtHours(es.resol_median_hours) : '—',
       unit:   'hours to first resolution (curr mo)',
       colour: C.yellow,
       extra:  '',
@@ -515,7 +549,7 @@ function renderSLACards(prefix, slaSection, slaDefinitions) {
   document.getElementById(`${prefix}-pri-cards`).innerHTML =
     Object.entries(byPri).map(([p, d]) => {
       const cfg    = slaDefinitions[p];
-      const val    = d.median_hours!==null ? `${fmt(d.median_hours,0)}h` : '—';
+      const val    = d.median_hours!==null ? fmtHours(d.median_hours) : '—';
       const pct    = d.sla_compliance;
       const colour = PRI_COLOURS[p]||'#9F9393';
       const slaCol = slaColour(pct);
@@ -543,7 +577,7 @@ function renderSLACards(prefix, slaSection, slaDefinitions) {
 }
 
 // ── SLA trend line chart ──────────────────────────────────────────
-function renderSLATrendChart(canvasId, seriesData, yLabel) {
+function renderSLATrendChart(canvasId, seriesData, isHours) {
   new Chart(document.getElementById(canvasId), {
     type:'line',
     data:{
@@ -557,7 +591,7 @@ function renderSLATrendChart(canvasId, seriesData, yLabel) {
         tension:0.3, fill:false, spanGaps:true,
       }))
     },
-    options: lineOpts(yLabel)
+    options: isHours ? lineOptsHours() : lineOpts('Days')
   });
 }
 
