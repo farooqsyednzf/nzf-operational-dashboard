@@ -303,7 +303,12 @@ const CHART_DEFAULTS = {
 
   let data;
   try {
-    const res = await fetch('/data/cases.json');
+    const _ctl = new AbortController();
+    const _timer = setTimeout(() => _ctl.abort(), 8000);
+    let res;
+    try { res = await fetch('/data/cases.json', { signal: _ctl.signal }); }
+    finally { clearTimeout(_timer); }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     data = await res.json();
     window.__NZF_META = data.meta;
   } catch(e) {
@@ -685,7 +690,6 @@ function renderUnprioritizedTable(alert) {
         </tbody>
       </table>
     </div>`;
-}
 }
 
 </script>
