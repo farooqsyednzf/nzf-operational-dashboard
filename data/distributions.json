@@ -1,7 +1,7 @@
 {
   "meta": {
-    "last_updated": "2026-04-23T10:27:31.983231+00:00",
-    "record_count": 2448,
+    "last_updated": "2026-04-23T16:57:42.235367+00:00",
+    "record_count": 2475,
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -21,18 +21,18 @@
     "previous_month": "2026-03"
   },
   "summary": {
-    "current_month_amount": 525221.43,
+    "current_month_amount": 552509.43,
     "previous_month_amount": 922204.98,
-    "amount_pct_change": -43.0,
-    "total_12m_amount": 4327659.19,
-    "monthly_avg_amount": 332896.86,
-    "current_month_count": 216,
+    "amount_pct_change": -40.1,
+    "total_12m_amount": 4354947.19,
+    "monthly_avg_amount": 334995.94,
+    "current_month_count": 243,
     "previous_month_count": 366,
-    "count_pct_change": -41.0,
-    "total_12m_count": 2276,
-    "avg_distribution_amount": 1901.43,
-    "unique_cases_assisted": 1088,
-    "unique_clients_assisted": 989
+    "count_pct_change": -33.6,
+    "total_12m_count": 2303,
+    "avg_distribution_amount": 1890.99,
+    "unique_cases_assisted": 1090,
+    "unique_clients_assisted": 990
   },
   "trend": [
     {
@@ -97,15 +97,15 @@
     },
     {
       "month": "2026-04",
-      "amount": 525221.43,
-      "count": 216
+      "amount": 552509.43,
+      "count": 243
     }
   ],
   "by_type": {
     "amount": [
       {
         "label": "Zakat",
-        "value": 3117310.54
+        "value": 3144598.54
       },
       {
         "label": "Sadaqah",
@@ -123,7 +123,7 @@
     "count": [
       {
         "label": "Zakat",
-        "value": 1955
+        "value": 1982
       },
       {
         "label": "Fidya",
@@ -172,7 +172,7 @@
           261382.52,
           280408.89,
           691832.67,
-          419007.5
+          446295.5
         ]
       },
       {
@@ -238,7 +238,7 @@
     "amount": [
       {
         "label": "981539000139861240",
-        "value": 1565656.46
+        "value": 1571044.46
       },
       {
         "label": "981539000139861258",
@@ -246,19 +246,19 @@
       },
       {
         "label": "981539000147035242",
-        "value": 320193.3
+        "value": 327033.3
       },
       {
         "label": "981539000177652418",
-        "value": 315455.9
+        "value": 317155.9
       },
       {
         "label": "981539000139861249",
-        "value": 248371.0
+        "value": 251871.0
       },
       {
         "label": "981539000139861245",
-        "value": 241900.86
+        "value": 245300.86
       },
       {
         "label": "981539000139861248",
@@ -270,7 +270,7 @@
       },
       {
         "label": "981539000199508104",
-        "value": 178526.5
+        "value": 183286.5
       },
       {
         "label": "981539000272882021",
@@ -278,33 +278,33 @@
       },
       {
         "label": "Other",
-        "value": 426251.41
+        "value": 427951.41
       }
     ],
     "count": [
       {
         "label": "981539000139861240",
-        "value": 505
+        "value": 506
       },
       {
         "label": "981539000147035242",
-        "value": 328
+        "value": 336
       },
       {
         "label": "981539000177652418",
-        "value": 306
+        "value": 309
       },
       {
         "label": "981539000139861249",
-        "value": 240
+        "value": 245
       },
       {
         "label": "981539000199508104",
-        "value": 207
+        "value": 211
       },
       {
         "label": "981539000139861245",
-        "value": 188
+        "value": 192
       },
       {
         "label": "981539000172474281",
@@ -324,7 +324,7 @@
       },
       {
         "label": "Other",
-        "value": 241
+        "value": 243
       }
     ]
   },
@@ -376,7 +376,7 @@
       },
       {
         "label": "Other",
-        "value": 2946375.11
+        "value": 2973663.11
       }
     ],
     "count": [
@@ -414,7 +414,7 @@
       },
       {
         "label": "Cost of living payment",
-        "value": 35
+        "value": 36
       },
       {
         "label": "Gaza Settlement payment",
@@ -422,7 +422,7 @@
       },
       {
         "label": "Other",
-        "value": 1699
+        "value": 1725
       }
     ]
   }
