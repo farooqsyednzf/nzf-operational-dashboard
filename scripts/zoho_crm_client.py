@@ -26,7 +26,7 @@ CRM_API_BASE = "https://www.zohoapis.com/crm/v6"
 
 # Fields to request from the Potentials module
 # Contact_Name returns {"id": "...", "name": "..."} — we extract id only (PII)
-CRM_FIELDS = "id,CASE_ID,Stage,Priority,Description,Created_Time,Contact_Name"
+CRM_FIELDS = "id,CASE_ID,Stage,Priority,Description,Created_Time,Contact_Name,CW_Recommendation,Reason_for_Not_Funding"
 
 
 def _parse_crm_dt(s):
@@ -58,14 +58,16 @@ def _normalise_crm_record(rec):
         client_id = str(contact)
 
     return {
-        "id":           rec.get("id", ""),
-        "case_id":      rec.get("CASE_ID", ""),
-        "stage":        rec.get("Stage", "").strip(),
-        "case_urgency": rec.get("Priority", ""),       # API field is "Priority", UI label is "Case Urgency"
-        "description":  (rec.get("Description") or "").strip(),
-        "created_time": rec.get("Created_Time", ""),
-        "client_name":  client_id,
-        "_source":      "crm_live",
+        "id":                  rec.get("id", ""),
+        "case_id":             rec.get("CASE_ID", ""),
+        "stage":               rec.get("Stage", "").strip(),
+        "case_urgency":        rec.get("Priority", ""),       # API field is "Priority", UI label is "Case Urgency"
+        "description":         (rec.get("Description") or "").strip(),
+        "created_time":        rec.get("Created_Time", ""),
+        "client_name":         client_id,
+        "cw_recommendation":   (rec.get("CW_Recommendation") or "").strip(),
+        "reason_not_funded":   (rec.get("Reason_for_Not_Funding") or "").strip(),
+        "_source":             "crm_live",
     }
 
 
