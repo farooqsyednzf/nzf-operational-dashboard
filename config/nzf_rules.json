@@ -1,8 +1,16 @@
 {
+  "ai": {
+    "_description": "Anthropic API settings used by all data refresh scripts.",
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens_analysis": 1000,
+    "max_tokens_summaries": 2000
+  },
+
   "_meta": {
     "description": "NZF Dashboard Business Rules — single source of truth for all dashboard logic. Update this file to change how any metric is defined. Python scripts import this directly. Upload this file to Claude project context so Claude always has NZF business definitions when building new dashboards.",
     "organisation": "National Zakat Foundation Australia",
     "zoho_org_id": "org30478025",
+    "zoho_crm_base_url": "https://crm.zoho.com/crm/org30478025/tab",
     "analytics_org_id": "668395719",
     "analytics_workspace_id": "1715382000001002475",
     "last_updated": "2026-04-23",
