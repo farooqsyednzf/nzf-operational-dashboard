@@ -454,11 +454,14 @@ def build_cases_report(token):
                                   NO_PRIORITY, enr.get("recommended_priority","Assign Priority"), enr))
         seen_ids.add(cid)
 
-    # Sort: no_interaction first, then severity, then newest
+    # Sort: newest first, then recommended priority P1→P5
+    PRI_ORDER = {"P1":0,"P2":1,"P3":2,"P4":3,"P5":4}
     combined.sort(key=lambda x: (
-        0 if x["flag_type"] == "no_interaction" else SEV_ORDER.get(x["flag_severity"],"Low") + 1,
-        -x.pop("created_ts", 0)
+        -x.get("created_ts", 0),
+        PRI_ORDER.get(x.get("suggested_priority",""), 9)
     ))
+    for row in combined:
+        row.pop("created_ts", None)
 
     n_no_int = sum(1 for r in combined if r["flag_type"] == "no_interaction")
     n_misc   = sum(1 for r in combined if r["flag_type"] == "misclassified")
