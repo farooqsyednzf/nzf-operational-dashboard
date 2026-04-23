@@ -85,18 +85,50 @@ def call_claude(prompt, max_tokens=1500):
                 "content-type":      "application/json",
             },
             json={
-                "model":    AI_MODEL,
+                "model":      AI_MODEL,
                 "max_tokens": max_tokens,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages":   [{"role": "user", "content": prompt}],
             },
-            timeout=60,
+            timeout=90,
         )
         res.raise_for_status()
         raw = res.json()["content"][0]["text"]
-        return json.loads(raw.replace("```json", "").replace("```", "").strip())
-    except Exception as e:
-        print(f"  WARNING: Claude API call failed: {e}")
+        cleaned = raw.replace("```json", "").replace("```", "").strip()
+        result = json.loads(cleaned)
+        return result
+    except json.JSONDecodeError as e:
+        print(f"  WARNING: Claude returned invalid JSON: {e}")
+        print(f"  Raw response (first 300 chars): {raw[:300] if 'raw' in dir() else 'unavailable'}")
         return None
+    except Exception as e:
+        print(f"  WARNING: Claude API call failed: {type(e).__name__}: {e}")
+        return None
+
+
+def _clean_description(desc, max_len=150):
+    """
+    Strip common Islamic/informal greetings from the start of a description
+    and return a clean summary-ready excerpt. Used as fallback when AI is unavailable.
+    """
+    if not desc:
+        return ""
+    greetings = [
+        "salam alakoum", "salamu alaikum", "assalamu alaikum", "assalamualaikum",
+        "assalamualkum", "dear brothers and sisters", "dear sir", "dear madam",
+        "to whom it may concern", "hi,", "hello,", "hi ", "hello ",
+    ]
+    cleaned = desc.strip()
+    lower   = cleaned.lower()
+    for g in greetings:
+        if lower.startswith(g):
+            # Skip past the greeting and any punctuation/newline
+            cleaned = cleaned[len(g):].lstrip(" ,.\n\r")
+            break
+    # Take first max_len chars, end on a word boundary
+    if len(cleaned) > max_len:
+        cleaned = cleaned[:max_len].rsplit(" ", 1)[0] + "..."
+    return cleaned.strip()
+
 
 # ── Unprioritized alert ────────────────────────────────────────────
 def _build_unprioritized_from_crm(crm_cases, max_rows=20):
@@ -123,25 +155,21 @@ def _build_unprioritized_from_crm(crm_cases, max_rows=20):
 
 def run_combined_analysis(recent_cases):
     """
-    Single merged AI call that replaces the previous two separate calls
-    (run_priority_analysis + run_case_enrichment).
+    Single merged AI call returning accuracy analysis + per-case enrichment.
 
-    For every case with a description it returns:
-      - quality_score / quality_summary / patterns  (accuracy analysis)
-      - flags: cases with wrong priority assignment
-      - per_case: case_id -> {recommended_priority, summary}
+    For every case with a description returns:
+      quality_score, quality_summary, flags, patterns  (accuracy analysis)
+      per_case: case_id -> {recommended_priority, summary}
 
-    Using one call is cheaper, faster, and lets the model reason about
-    the overall picture while also writing per-case summaries.
-
-    Returns dict with keys: quality_score, quality_summary, total_reviewed,
-    flags, patterns, generated_at, per_case
+    Batches capped at 40 cases to avoid token truncation.
+    If the API call fails, returns None — downstream code uses raw
+    description as fallback summary.
     """
     if not ANTHROPIC_API_KEY:
         print("  INFO: ANTHROPIC_API_KEY not set — skipping AI analysis")
         return None
 
-    cases_with_desc = [c for c in recent_cases if (c.get("description") or "").strip()][:80]
+    cases_with_desc = [c for c in recent_cases if (c.get("description") or "").strip()][:40]
     if len(cases_with_desc) < 3:
         print(f"  INFO: Only {len(cases_with_desc)} cases with descriptions — skipping")
         return None
@@ -153,8 +181,13 @@ def run_combined_analysis(recent_cases):
     )
 
     case_lines = "\n".join(
-        f'ID:{c["case_id"]} ASSIGNED:{c.get("priority","No Priority")} '
-        f'DESC:{(c.get("description") or "")[:350]}'
+        (
+            f'ID:{c["case_id"]} ASSIGNED:{c.get("priority","No Priority")} '
+            f'STAGE:{c.get("stage","?")} '
+            f'DESC:{(c.get("description") or "")[:250]}'
+            + (f' | CW NOTE:{c.get("cw_recommendation","")[:100]}' if c.get("cw_recommendation") else "")
+            + (f' | NOT FUNDED REASON:{c.get("reason_not_funded","")}' if c.get("reason_not_funded") else "")
+        )
         for c in cases_with_desc
     )
 
@@ -164,20 +197,17 @@ PRIORITY FRAMEWORK:
 {guide_text}
 
 Review these {len(cases_with_desc)} cases. For EACH case you must:
-1. Determine the correct priority (P1-P5) based on the description
-2. Write a plain-English 1-2 sentence summary of the situation and urgency
-   - No personal names, locations, or identifying details
-   - Third person, professional tone
+1. recommended_priority: The correct priority P1-P5 based strictly on the description.
+   If description is too vague, use "P3".
+2. summary: 1-2 plain-English sentences describing what the client needs and urgency.
+   No personal names, no locations. Third person, professional tone.
 
-Also assess the OVERALL quality of priority assignments across all cases and flag
-any cases where the assigned priority appears significantly WRONG — especially:
-- Descriptions showing P1-level crisis (homeless, DV, eviction today) assigned P3/P4/No Priority
-- Cases assigned too high given the description
+Also assess overall quality of priority assignments and flag any significant misclassifications.
 
-Respond ONLY with valid JSON (no markdown, no preamble):
+Respond ONLY with valid JSON (no markdown):
 {{
   "quality_score": "Good|Fair|Poor",
-  "quality_summary": "2-3 sentence overall assessment",
+  "quality_summary": "2-3 sentence assessment",
   "total_reviewed": {len(cases_with_desc)},
   "flags": [
     {{
@@ -185,34 +215,35 @@ Respond ONLY with valid JSON (no markdown, no preamble):
       "assigned_priority": "P1/P2/P3/P4/P5/No Priority",
       "suggested_priority": "P1/P2/P3/P4/P5",
       "severity": "High|Medium|Low",
-      "reason": "One sentence — no personal names"
+      "reason": "One sentence, no personal names"
     }}
   ],
-  "patterns": ["pattern 1", "pattern 2"],
+  "patterns": ["pattern 1"],
   "per_case": {{
-    "CASE_ID_VALUE": {{
-      "recommended_priority": "P1",
-      "summary": "Client requires..."
-    }}
+    "201730421": {{"recommended_priority": "P3", "summary": "Client requires..."}},
+    "201730432": {{"recommended_priority": "P1", "summary": "Client facing..."}}
   }}
 }}
 
-Important:
-- per_case must contain ALL {len(cases_with_desc)} cases, not just flagged ones
-- flags: limit to the 10 most significant misclassifications
+Rules:
+- per_case MUST contain ALL {len(cases_with_desc)} case IDs exactly as given
+- flags: top 10 most significant misclassifications only
 - No personal names in any field
 
 Cases:
 {case_lines}"""
 
-    result = call_claude(prompt, max_tokens=6000)
+    print(f"  Calling Claude for {len(cases_with_desc)} cases...")
+    result = call_claude(prompt, max_tokens=8000)
     if result:
-        n_flags   = len(result.get("flags", []))
-        n_per_case= len(result.get("per_case", {}))
-        print(f"  Combined AI: {result.get('quality_score')} — "
-              f"{n_flags} flags, {n_per_case} case enrichments")
-        return {**result, "generated_at": __import__("datetime").datetime.now(
-            __import__("datetime").timezone.utc).isoformat()}
+        n_flags    = len(result.get("flags", []))
+        n_per_case = len(result.get("per_case", {}))
+        print(f"  Combined AI: {result.get('quality_score','?')} quality — "
+              f"{n_flags} flags, {n_per_case}/{len(cases_with_desc)} cases enriched")
+        if n_per_case == 0:
+            print("  WARNING: per_case is empty — summaries will fall back to raw description")
+        return {**result, "generated_at": datetime.now(timezone.utc).isoformat()}
+    print("  WARNING: Combined AI call returned None — check API key and logs above")
     return None
 
 
@@ -294,10 +325,13 @@ def build_cases_report(token):
     crm_recent = zcrm.fetch_recent_cases(token, days=30, max_pages=5)
     recent_sample = [
         {
-            "case_id":        c.get("case_id", ""),
-            "zoho_record_id": c.get("id", ""),
-            "priority":       normalise_priority(c.get("case_urgency", "")),
-            "description":    c.get("description", "").strip(),
+            "case_id":            c.get("case_id", ""),
+            "zoho_record_id":     c.get("id", ""),
+            "priority":           normalise_priority(c.get("case_urgency", "")),
+            "description":        c.get("description", "").strip(),
+            "stage":              c.get("stage", ""),
+            "cw_recommendation":  c.get("cw_recommendation", ""),
+            "reason_not_funded":  c.get("reason_not_funded", ""),
         }
         for c in crm_recent
         if c.get("description", "").strip()
@@ -350,7 +384,7 @@ def build_cases_report(token):
             "suggested_priority": f.get("suggested_priority", ""),
             "flag_type":          "misclassified",
             "flag_severity":      f.get("severity", "Medium"),
-            "ai_summary":         enr.get("summary", f.get("reason", "")),
+            "ai_summary":         enr.get("summary") or _clean_description(crm_c.get("description","")),
         })
         seen_ids.add(cid)
 
@@ -380,7 +414,7 @@ def build_cases_report(token):
             "suggested_priority": rec_pri,
             "flag_type":          "unassigned",
             "flag_severity":      sev,
-            "ai_summary":         enr.get("summary", (c.get("description") or "")[:100]),
+            "ai_summary":         enr.get("summary") or _clean_description(c.get("description","")),
         })
         seen_ids.add(cid)
 
