@@ -47,6 +47,7 @@ jobs:
           ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
           ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
           ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
+          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/fetch_cases_data.py
 
       - name: Fetch cases performance data
