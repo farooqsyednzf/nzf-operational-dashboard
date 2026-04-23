@@ -1,104 +1,315 @@
-/**
- * nav.js — Renders the sidebar and topbar, marks the active page.
- * Import this on every dashboard page.
- */
-
-const NAV_ITEMS = [
-  {
-    section: "Overview",
-    items: [
-      { label: "Home",             href: "/dashboards/index.html",    icon: "home" },
-    ]
+{
+  "_meta": {
+    "description": "NZF Dashboard Business Rules — single source of truth for all dashboard logic. Update this file to change how any metric is defined. Python scripts import this directly. Upload this file to Claude project context so Claude always has NZF business definitions when building new dashboards.",
+    "organisation": "National Zakat Foundation Australia",
+    "zoho_org_id": "org30478025",
+    "analytics_org_id": "668395719",
+    "analytics_workspace_id": "1715382000001002475",
+    "last_updated": "2026-04-23",
+    "maintained_by": "NZF Operations Team"
   },
-  {
-    section: "Clients",
-    items: [
-      { label: "Client Report",    href: "/dashboards/clients.html",  icon: "clients" },
-    ]
-  },
-  {
-    section: "Cases",
-    items: [
-      { label: "Cases Report",       href: "/dashboards/cases.html",      icon: "chart"    },
-      { label: "Cases Performance",  href: "/dashboards/cases_perf.html", icon: "pipeline" },
-    ]
-  },
-  {
-    section: "Distributions",
-    items: [
-      { label: "Distributions", href: "/dashboards/distributions.html", icon: "distributions" },
-    ]
-  },
-];
 
-const ICONS = {
-  home:          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-  clients:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`,
-  pipeline:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
-  chart:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
-  distributions: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/><path d="M16 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M8 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg>`,
-  activity:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-};
-
-function renderNav(pageTitle) {
-  const currentPath = window.location.pathname;
-
-  // Build sidebar HTML
-  const navHTML = NAV_ITEMS.map(section => `
-    <div class="nav-section-label">${section.section}</div>
-    ${section.items.map(item => {
-      const isActive = currentPath.endsWith(item.href.replace('/dashboards/', ''));
-      return `
-        <a href="${item.href}" class="nav-item ${isActive ? 'active' : ''}">
-          ${ICONS[item.icon] || ''}
-          <span>${item.label}</span>
-        </a>`;
-    }).join('')}
-  `).join('');
-
-  const authEnabled = typeof AUTH_CONFIG !== 'undefined' && AUTH_CONFIG.AUTH_ENABLED;
-
-  const sidebar = `
-    <aside class="sidebar">
-      <div class="sidebar-logo">
-        <div class="org-name">NZF</div>
-        <div class="org-sub">CRM Dashboards</div>
-      </div>
-      <nav class="sidebar-nav">
-        ${navHTML}
-      </nav>
-      <div class="sidebar-footer">
-        <div id="user-badge">
-          ${!authEnabled ? `<div class="auth-status-badge">Auth Disabled</div>` : ''}
-        </div>
-      </div>
-    </aside>`;
-
-  const lastUpdated = getLastUpdated();
-  const topbar = `
-    <header class="topbar">
-      <span class="topbar-title">${pageTitle}</span>
-      <div class="topbar-meta">
-        <span class="last-updated">Data refreshed: ${lastUpdated}</span>
-      </div>
-    </header>`;
-
-  // Inject into page
-  document.getElementById('sidebar-mount').innerHTML = sidebar;
-  document.getElementById('topbar-mount').innerHTML = topbar;
-}
-
-function getLastUpdated() {
-  // Will be populated from data JSON files (meta.last_updated)
-  // Falls back to a placeholder
-  try {
-    const meta = window.__NZF_META;
-    if (meta && meta.last_updated) {
-      return new Date(meta.last_updated).toLocaleString('en-NZ', {
-        day: 'numeric', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
+  "zoho_modules": {
+    "_description": "Mapping of NZF terms to Zoho CRM API module names. Zoho uses generic names; NZF has renamed them.",
+    "clients":       { "api_name": "Contacts",        "analytics_view_id": "1715382000001002492" },
+    "cases":         { "api_name": "Deals",            "analytics_view_id": "1715382000001002494" },
+    "distributions": { "api_name": "Purchase_Orders",  "analytics_view_id": "1715382000001002628" },
+    "notes":         { "api_name": "Notes",            "analytics_view_id": "1715382000012507001" },
+    "case_notes_joined": {
+      "_description": "Pre-built Analytics query table — Cases + Distributions + Notes already joined",
+      "analytics_view_id": "1715382000013839427",
+      "view_name": "Cases x Distribution x Notes - All"
     }
-  } catch(e) {}
-  return 'Not yet available';
+  },
+
+  "client_definitions": {
+    "_description": "How clients are classified for reporting purposes",
+
+    "new_client": {
+      "definition": "A client whose case in the reporting window is their first ever case across all time — no prior cases of any status or outcome.",
+      "logic": "Compare case Created Time against the earliest case date for that client across the full Cases table. If this case IS the earliest, the client is New.",
+      "month_attribution": "The month of the case Created Time field is used to attribute the client to a reporting month.",
+      "notes": [
+        "A client rejected on their first application is still New — case outcome does not affect classification.",
+        "The full Cases table (not just the reporting window) must be used to determine first-ever case."
+      ]
+    },
+
+    "returning_client": {
+      "definition": "A client who has at least one prior case and has submitted a genuine new application — not a continuation of the same instance of assistance.",
+      "logic": "Client has earlier cases on record AND the new case passes the same-instance exclusion checks.",
+      "month_attribution": "The month of the new case Created Time field is used.",
+      "notes": [
+        "Prior case outcome is irrelevant — a client who was previously not funded and reapplies is still Returning.",
+        "Same-instance cases (ILA payments, re-opened cases, follow-up instalments) are excluded from both New and Returning counts."
+      ]
+    },
+
+    "same_instance_exclusions": {
+      "_description": "Cases that are continuations of a previous assistance instance, not genuine new applications. These are excluded from both New and Returning counts.",
+      "definition": "A case is same-instance if it represents ongoing, linked, or instalment-based assistance from a prior approval — not a new request for help.",
+      "stage_exclusions": [
+        "Ongoing Funding",
+        "Post Funding - Follow Up",
+        "Post=Follow-Up",
+        "Post- Follow-Up",
+        "Phase 4: Monitoring & Impact"
+      ],
+      "description_keywords": [
+        "ila payment",
+        "ila instalment",
+        "ila installment",
+        "interest-free loan",
+        "interest free loan",
+        "ila repayment",
+        "ongoing ila",
+        "continuation of",
+        "continuation of previous",
+        "continuing support",
+        "linked to previous case",
+        "linked to case",
+        "linked to prior case",
+        "same case",
+        "re-open",
+        "reopen",
+        "reopened",
+        "re-opened",
+        "reopening of",
+        "same application",
+        "follow-up payment",
+        "follow up payment",
+        "follow-up instalment",
+        "follow up instalment",
+        "second instalment",
+        "third instalment",
+        "second payment",
+        "third payment",
+        "instalment of previous"
+      ],
+      "notes": [
+        "Keywords are checked against the case Description field (case-insensitive).",
+        "Add new keywords here as new ILA or continuation patterns are identified.",
+        "If a caseworker identifies a pattern not covered, add the keyword here — no code change needed."
+      ]
+    }
+  },
+
+  "distributions": {
+    "_description": "Rules for how distributions (payments to clients) are classified",
+
+    "paid_statuses": ["Paid", "Extracted"],
+
+    "paid_date_logic": {
+      "definition": "The effective payment date for a distribution.",
+      "rules": [
+        "If Status = 'Paid'      → use Paid Date field",
+        "If Status = 'Extracted' → use Extracted Date field",
+        "If the specific date field is blank → fall back to Created Time"
+      ],
+      "notes": "Some legacy distributions (pre-2019) may have blank date fields — Created Time is used as a proxy."
+    },
+
+    "last_assistance_date": {
+      "definition": "The date of a client's most recent completed payment, used to calculate how long they have been away before returning.",
+      "logic": "MAX(effective_paid_date) across all Paid or Extracted distributions for that client, where the date is before the new case's Created Time."
+    },
+
+    "return_gap_bands": {
+      "definition": "How time-since-last-assistance is grouped for reporting",
+      "bands": [
+        { "label": "< 1 month",   "days_from": 0,   "days_to": 29   },
+        { "label": "1–3 months",  "days_from": 30,  "days_to": 89   },
+        { "label": "3–6 months",  "days_from": 90,  "days_to": 179  },
+        { "label": "6–12 months", "days_from": 180, "days_to": 364  },
+        { "label": "1–2 years",   "days_from": 365, "days_to": 729  },
+        { "label": "2+ years",    "days_from": 730, "days_to": null  }
+      ]
+    }
+  },
+
+  "distributions": {
+    "_description": "Rules for how distributions (payments to clients) are classified",
+
+    "paid_statuses": ["Paid", "Extracted"],
+
+    "paid_date_logic": {
+      "definition": "The effective payment date for a distribution.",
+      "rules": [
+        "If Status = 'Paid'      → use Paid Date field",
+        "If Status = 'Extracted' → use Extracted Date field",
+        "If the specific date field is blank → fall back to Created Time"
+      ]
+    },
+
+    "amount_field": "grand_total",
+    "_amount_note": "Grand Total field — contains AU$ prefix that must be stripped before parsing as float",
+
+    "return_gap_bands": {
+      "definition": "How time-since-last-assistance is grouped for reporting",
+      "bands": [
+        { "label": "< 1 month",   "days_from": 0,   "days_to": 29   },
+        { "label": "1–3 months",  "days_from": 30,  "days_to": 89   },
+        { "label": "3–6 months",  "days_from": 90,  "days_to": 179  },
+        { "label": "6–12 months", "days_from": 180, "days_to": 364  },
+        { "label": "1–2 years",   "days_from": 365, "days_to": 729  },
+        { "label": "2+ years",    "days_from": 730, "days_to": null  }
+      ]
+    }
+  },
+
+  "case_performance": {
+    "_description": "Rules for the Cases Performance dashboard — response time, closure time, SLA targets, automated note exclusions.",
+
+    "sla_response": {
+      "_description": "Response SLA — time from case creation to first genuine caseworker note. P1 uses business hours only; P2-P4 use calendar hours.",
+      "P1": { "hours": 1,  "business_hours_only": true,  "display": "1 business hour"  },
+      "P2": { "hours": 48, "business_hours_only": false, "display": "2 days"            },
+      "P3": { "hours": 72, "business_hours_only": false, "display": "3 days"            },
+      "P4": { "hours": 72, "business_hours_only": false, "display": "3 days"            },
+      "P5": null,
+      "No Priority": null
+    },
+
+    "sla_resolution": {
+      "_description": "Resolution SLA — time from case creation to first resolution event: EITHER case closure OR first paid/extracted distribution (whichever comes first). Calendar hours.",
+      "P1": { "hours": 24,  "display": "24 hours"  },
+      "P2": { "hours": 72,  "display": "3 days"    },
+      "P3": { "hours": 144, "display": "6 days"    },
+      "P4": { "hours": 240, "display": "10 days"   },
+      "P5": null,
+      "No Priority": null
+    },
+
+    "working_hours": {
+      "start_hour": 9,
+      "end_hour":   17,
+      "timezone":   "Australia/Sydney",
+      "_description": "Used for P1 response SLA only. Clock pauses outside 9AM–5PM Mon–Fri AEST."
+    },
+
+    "automated_note_titles": {
+      "_description": "Note titles that represent system-generated or intake admin notes — NOT genuine caseworker actions. These are excluded from first-response time calculations. Add new patterns here as they are identified.",
+      "exact_match": [
+        "Case Allocation Notes",
+        "Online Application",
+        "Application:",
+        "Application",
+        "CCNR",
+        "CCUFR",
+        "CCF",
+        "RFA"
+      ],
+      "prefix_match": [
+        "Application:"
+      ]
+    },
+
+    "closed_stages": [
+      "Closed - Funded",
+      "Closed - Not Funded",
+      "Closed - NO Response"
+    ],
+
+    "closure_outcome_colours": {
+      "Closed - Funded":      "#49A942",
+      "Closed - Not Funded":  "#EE3526",
+      "Closed - NO Response": "#FDB913"
+    },
+
+    "closure_outcome_short": {
+      "Closed - Funded":      "Funded",
+      "Closed - Not Funded":  "Not Funded",
+      "Closed - NO Response": "No Response"
+    },
+
+    "trend_comparison_months": 3,
+    "_trend_note": "Number of months used for trend comparison (last N vs prior N months)"
+  },
+
+  "case_priorities": {
+    "_description": "Normalisation rules for the Case Urgency field. Raw values in Zoho CRM are inconsistent — these prefix matches normalise them to clean labels for reporting.",
+    "prefix_map": [
+      { "prefix": "PRIORITY 1", "label": "P1", "display": "P1 — Same Day"     },
+      { "prefix": "PRIORITY 2", "label": "P2", "display": "P2 — 1–3 Days"     },
+      { "prefix": "PRIORITY 3", "label": "P3", "display": "P3 — 4–6 Days"     },
+      { "prefix": "PRIORITY 4", "label": "P4", "display": "P4 — 7–10 Days"    },
+      { "prefix": "PRIORITY 5", "label": "P5", "display": "P5 — 6–14 Days"    }
+    ],
+    "no_priority_label": "No Priority",
+    "order": ["P1","P2","P3","P4","P5","No Priority"],
+    "colours": {
+      "P1":          "#EE3526",
+      "P2":          "#E8732A",
+      "P3":          "#FDB913",
+      "P4":          "#0081C6",
+      "P5":          "#49A942",
+      "No Priority": "#9F9393"
+    }
+  },
+
+  "case_stages": {
+    "_description": "Zoho CRM case stage definitions and groupings for reporting",
+
+    "closed_stages": [
+      "Closed - Funded",
+      "Closed - Not Funded",
+      "Closed - NO Response"
+    ],
+
+    "active_stages": [
+      "Intake",
+      "Ready for Allocation",
+      "Allocated",
+      "Assesment",
+      "Follow Up",
+      "Waiting On Client",
+      "TL Approval",
+      "NM Approval",
+      "Funding",
+      "Post Funding - Follow Up"
+    ],
+
+    "stage_groups": {
+      "_description": "Logical groupings of stages for dashboard summaries",
+      "intake":      ["Intake", "Ready for Allocation", "Ready for Allocation: Potential Fast Track"],
+      "assessment":  ["Allocated", "Assesment", "Follow Up", "Waiting On Client"],
+      "approval":    ["TL Approval", "NM Approval", "SDM Reviewed", "CEO Approval", "COO Approval"],
+      "funding":     ["Funding", "Ongoing Funding"],
+      "closed":      ["Closed - Funded", "Closed - Not Funded", "Closed - NO Response"]
+    }
+  },
+
+  "reporting_periods": {
+    "_description": "Standard time windows used across all reports",
+    "client_report_window_months": 14,
+    "trend_display_months": 13,
+    "pipeline_window_months": 13,
+    "distribution_history_years": 7
+  },
+
+  "zakat_categories": {
+    "_description": "The eight Quranic categories of Zakat eligibility used by NZF",
+    "categories": [
+      "Poor (Faqeer)",
+      "Needy (Miskeen)",
+      "Strengthen the Deen (Mualafa)",
+      "Captive / Prisoner (Riqab)",
+      "Debtor (Gharimin)",
+      "In the Way of Allah (Fi Sabilillah)",
+      "Wayfarer (Ibn al-Sabil)",
+      "Zakat Collector (Amileen)"
+    ]
+  },
+
+  "dashboard_notes": {
+    "_description": "Context for Claude when building or modifying dashboards",
+    "brand_guide": "See NZF_WebsiteFigma_Brand.png in project files for colours, typography and component styles.",
+    "primary_colour": "#EE3526",
+    "fonts": { "headings": "Bree Serif", "body": "Cambay" },
+    "currency": "AUD",
+    "timezone": "AEST / AEDT (Australia/Sydney)",
+    "audience": "NZF internal caseworkers, team leads and management — not public-facing",
+    "data_sensitivity": "All case data is sensitive. No client names or personal details should appear in aggregated reports.",
+    "auth_status": "Entra ID SSO hooks are built in but currently disabled. See assets/js/auth.js AUTH_ENABLED flag."
+  }
 }
