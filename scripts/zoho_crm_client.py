@@ -222,11 +222,11 @@ def fetch_all_open_cases_no_priority(token, threshold_hours=24, max_pages=5):
 
 def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages=5):
     """
-    Fetch notes created in the last `days` days for a set of case (Potential) record IDs.
-    Uses a single paginated CRM API call — not one call per case.
+    Fetch notes for a specific set of Potentials (case) record IDs.
+    Scoped to the Potentials module so we don't waste pages on notes
+    from Contacts, Leads, or other modules.
 
-    Returns dict: zoho_record_id -> list of note dicts sorted newest-first.
-    Each note dict: {title, content, created_time, created_by_id}
+    Returns dict: zoho_record_id -> list of note dicts, newest first.
     """
     if not zoho_record_ids:
         return {}
@@ -236,16 +236,17 @@ def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages=5):
     headers    = {"Authorization": f"Zoho-oauthtoken {token}"}
     all_notes  = []
 
-    print(f"  [CRM Live] Fetching notes (last {days} days) for {len(zoho_record_ids)} cases...")
+    print(f"  [CRM Live] Fetching notes for {len(zoho_record_ids)} cases (last {days} days)...")
 
     for page in range(1, max_pages + 1):
         params = {
-            "fields":    "id,Note_Title,Note_Content,Created_Time,Created_By,Parent_Id",
-            "criteria":  f"(Created_Time:greater_than:{cutoff_str})",
-            "sort_by":   "Created_Time",
-            "sort_order":"desc",
-            "per_page":  200,
-            "page":      page,
+            "fields":     "id,Note_Title,Note_Content,Created_Time,Created_By,Parent_Id",
+            "criteria":   f"(Created_Time:greater_than:{cutoff_str})",
+            "se_module":  "Potentials",   # ← scope to cases only
+            "sort_by":    "Created_Time",
+            "sort_order": "desc",
+            "per_page":   200,
+            "page":       page,
         }
         try:
             res = requests.get(
@@ -264,31 +265,30 @@ def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages=5):
             print(f"  [CRM Live] WARNING: Notes HTTP {res.status_code} on page {page}")
             break
 
-        records = res.json().get("data", [])
+        data    = res.json()
+        records = data.get("data", [])
         if not records:
             break
 
         all_notes.extend(records)
 
-        if not res.json().get("info", {}).get("more_records", False):
+        if not data.get("info", {}).get("more_records", False):
             break
 
-    # Index by parent record ID — only keep notes for our cases
-    id_set    = set(zoho_record_ids)
-    indexed   = {}
+    # Index by parent record ID, keeping only our case IDs
+    id_set  = set(zoho_record_ids)
+    indexed = {}
     for n in all_notes:
-        parent = (n.get("Parent_Id") or {}).get("id", "") if isinstance(n.get("Parent_Id"), dict) \
-                 else str(n.get("Parent_Id", ""))
-        if parent not in id_set:
+        pid_raw = n.get("Parent_Id")
+        parent  = pid_raw.get("id", "") if isinstance(pid_raw, dict) else str(pid_raw or "")
+        if not parent or parent not in id_set:
             continue
         indexed.setdefault(parent, []).append({
-            "title":      (n.get("Note_Title") or "").strip(),
-            "content":    (n.get("Note_Content") or "").strip(),
-            "created":    n.get("Created_Time", ""),
-            "author_id":  (n.get("Created_By") or {}).get("id", "") if isinstance(n.get("Created_By"), dict) \
-                          else "",
+            "title":   (n.get("Note_Title")   or "").strip(),
+            "content": (n.get("Note_Content") or "").strip(),
+            "created": n.get("Created_Time", ""),
         })
 
-    print(f"  [CRM Live] Notes indexed for {len(indexed)} cases "
-          f"(of {len(all_notes)} notes fetched)")
+    print(f"  [CRM Live] {len(all_notes)} Potential notes fetched, "
+          f"indexed for {len(indexed)} of {len(zoho_record_ids)} cases")
     return indexed
