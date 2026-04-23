@@ -26,7 +26,7 @@ CRM_API_BASE = "https://www.zohoapis.com/crm/v6"
 
 # Fields to request from the Potentials module
 # Contact_Name returns {"id": "...", "name": "..."} — we extract id only (PII)
-CRM_FIELDS = "id,CASE_ID,Stage,Case_Urgency,Description,Created_Time,Contact_Name"
+CRM_FIELDS = "id,CASE_ID,Stage,Priority,Description,Created_Time,Contact_Name"
 
 
 def _parse_crm_dt(s):
@@ -45,7 +45,7 @@ def _normalise_crm_record(rec):
         "id": "981539000123456789",
         "CASE_ID": "201730419",
         "Stage": "Intake",
-        "Case_Urgency": "Priority 1 - (SAME DAY)",
+        "Priority": "Priority 1 - (SAME DAY)",
         "Description": "Client is homeless ...",
         "Created_Time": "2026-04-23T09:15:00+10:00",
         "Contact_Name": {"id": "981539000098765432", "name": "Client Name"}
@@ -58,14 +58,14 @@ def _normalise_crm_record(rec):
         client_id = str(contact)
 
     return {
-        "id":           rec.get("id", ""),              # Zoho record ID
-        "case_id":      rec.get("CASE_ID", ""),          # Display CASE-ID
+        "id":           rec.get("id", ""),
+        "case_id":      rec.get("CASE_ID", ""),
         "stage":        rec.get("Stage", "").strip(),
-        "case_urgency": rec.get("Case_Urgency", ""),
+        "case_urgency": rec.get("Priority", ""),       # API field is "Priority", UI label is "Case Urgency"
         "description":  (rec.get("Description") or "").strip(),
-        "created_time": rec.get("Created_Time", ""),     # ISO 8601 — parse_dt handles it
-        "client_name":  client_id,                        # Only ID, never name (PII)
-        "_source":      "crm_live",                       # Tag so we know this is live data
+        "created_time": rec.get("Created_Time", ""),
+        "client_name":  client_id,
+        "_source":      "crm_live",
     }
 
 
@@ -146,7 +146,7 @@ def fetch_all_open_cases_no_priority(token, threshold_hours=24, max_pages=5):
     Fetch ALL currently open cases with no priority assigned,
     where the case is older than threshold_hours.
 
-    Uses two filters: no Stage in closed stages AND Case_Urgency is null.
+    Uses two filters: no Stage in closed stages AND Priority is null (API field name for Case Urgency).
     Returns normalised case dicts.
     """
     cutoff     = datetime.now(timezone.utc) - timedelta(hours=threshold_hours)
@@ -166,7 +166,7 @@ def fetch_all_open_cases_no_priority(token, threshold_hours=24, max_pages=5):
     # Cases with no urgency AND created before the threshold AND not closed
     criteria = (
         f"{closed_criteria}"
-        f"(Case_Urgency:is_null:true)and"
+        f"(Priority:is_null:true)and"
         f"(Created_Time:less_than:{cutoff_str})"
     )
 
