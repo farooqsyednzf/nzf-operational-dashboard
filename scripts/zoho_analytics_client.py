@@ -67,7 +67,7 @@ def run_sql_query(token, sql, label="SQL", poll_interval=8, max_polls=20):
     # Step 1 — Create export job
     config  = json.dumps({"sqlQuery": sql, "responseFormat": "csv"})
     res     = requests.post(
-        f"{base_ws}/exportjobs",
+        f"{base_ws}/bulkexportjobs",
         headers=headers,
         params={"CONFIG": config},
     )
@@ -81,7 +81,7 @@ def run_sql_query(token, sql, label="SQL", poll_interval=8, max_polls=20):
     # Step 2 — Poll until complete
     for attempt in range(1, max_polls + 1):
         time.sleep(poll_interval)
-        r = requests.get(f"{base_ws}/exportjobs/{job_id}", headers=headers)
+        r = requests.get(f"{base_ws}/bulkexportjobs/{job_id}", headers=headers)
         if not r.ok:
             raise RuntimeError(f"[{label}] Poll failed {r.status_code}")
         info     = r.json().get("data", {})
@@ -95,7 +95,7 @@ def run_sql_query(token, sql, label="SQL", poll_interval=8, max_polls=20):
         raise RuntimeError(f"[{label}] Job did not complete after {max_polls} polls")
 
     # Step 3 — Download
-    dl = requests.get(f"{base_ws}/exportjobs/{job_id}/data", headers=headers)
+    dl = requests.get(f"{base_ws}/bulkexportjobs/{job_id}/data", headers=headers)
     if not dl.ok:
         raise RuntimeError(f"[{label}] Download failed {dl.status_code}: {dl.text[:200]}")
 
