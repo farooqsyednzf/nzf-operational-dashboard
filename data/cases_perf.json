@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-23T10:12:21.133963+00:00",
+    "last_updated": "2026-04-23T10:27:19.140286+00:00",
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -24,8 +24,8 @@
   "executive_summary": {
     "resp_median_hours": 157.3,
     "resol_median_hours": 229.1,
-    "resp_sla_pct": 37.7,
-    "resol_sla_pct": 11.5,
+    "resp_sla_pct": 41.2,
+    "resol_sla_pct": 33.0,
     "funding_rate_pct": 37.6,
     "backlog_over_30d": 638,
     "resp_trend": "regressing",
@@ -35,14 +35,14 @@
   "sla_definitions": {
     "response": {
       "P1": {
-        "hours": 1,
-        "business_hours_only": true,
-        "display": "1 business hour"
+        "hours": 4,
+        "business_hours_only": false,
+        "display": "4 hours"
       },
       "P2": {
-        "hours": 48,
+        "hours": 24,
         "business_hours_only": false,
-        "display": "2 days"
+        "display": "1 day"
       },
       "P3": {
         "hours": 72,
@@ -50,11 +50,10 @@
         "display": "3 days"
       },
       "P4": {
-        "hours": 72,
+        "hours": 168,
         "business_hours_only": false,
-        "display": "3 days"
+        "display": "7 days"
       },
-      "P5": null,
       "No Priority": null
     },
     "resolution": {
@@ -63,45 +62,44 @@
         "display": "24 hours"
       },
       "P2": {
-        "hours": 72,
-        "display": "3 days"
+        "hours": 168,
+        "display": "7 days"
       },
       "P3": {
-        "hours": 144,
-        "display": "6 days"
+        "hours": 336,
+        "display": "2 weeks"
       },
       "P4": {
-        "hours": 240,
-        "display": "10 days"
+        "hours": 720,
+        "display": "1 month"
       },
-      "P5": null,
       "No Priority": null
     }
   },
   "response_sla": {
-    "overall_compliance_pct": 37.7,
+    "overall_compliance_pct": 41.2,
     "by_priority": {
       "P1": {
-        "median_hours": 8.0,
-        "avg_hours": 12.6,
+        "median_hours": 21.8,
+        "avg_hours": 51.6,
         "count": 61,
         "sla_config": {
-          "hours": 1,
-          "business_hours_only": true,
-          "display": "1 business hour"
+          "hours": 4,
+          "business_hours_only": false,
+          "display": "4 hours"
         },
-        "sla_compliance": 27.9
+        "sla_compliance": 29.5
       },
       "P2": {
         "median_hours": 49.4,
         "avg_hours": 119.9,
         "count": 116,
         "sla_config": {
-          "hours": 48,
+          "hours": 24,
           "business_hours_only": false,
-          "display": "2 days"
+          "display": "1 day"
         },
-        "sla_compliance": 49.1
+        "sla_compliance": 38.8
       },
       "P3": {
         "median_hours": 139.9,
@@ -119,18 +117,11 @@
         "avg_hours": 208.9,
         "count": 295,
         "sla_config": {
-          "hours": 72,
+          "hours": 168,
           "business_hours_only": false,
-          "display": "3 days"
+          "display": "7 days"
         },
-        "sla_compliance": 50.8
-      },
-      "P5": {
-        "median_hours": null,
-        "avg_hours": null,
-        "count": 0,
-        "sla_config": null,
-        "sla_compliance": null
+        "sla_compliance": 73.9
       },
       "No Priority": {
         "median_hours": 117.4,
@@ -142,16 +133,16 @@
     },
     "monthly_trend": {
       "2025-04": 85.3,
-      "2025-05": 94.9,
-      "2025-06": 182.8,
-      "2025-07": 141.5,
-      "2025-08": 69.1,
-      "2025-09": 50.4,
+      "2025-05": 95.9,
+      "2025-06": 183.7,
+      "2025-07": 143.2,
+      "2025-08": 70.8,
+      "2025-09": 51.1,
       "2025-10": 88.9,
       "2025-11": 142.3,
       "2025-12": 41.7,
-      "2026-01": 54.8,
-      "2026-02": 156.7,
+      "2026-01": 62.2,
+      "2026-02": 157.9,
       "2026-03": 310.1,
       "2026-04": 157.3
     },
@@ -176,19 +167,19 @@
           "priority": "P1",
           "colour": "#EE3526",
           "data": [
-            0.0,
-            8.0,
-            4.9,
-            8.0,
-            8.0,
-            8.0,
-            8.0,
-            17.2,
-            0.0,
-            8.0,
-            8.0,
-            6.2,
-            0.0
+            0.4,
+            49.8,
+            5.4,
+            43.9,
+            64.8,
+            24.9,
+            14.2,
+            107.6,
+            1.9,
+            21.3,
+            47.6,
+            15.3,
+            0.7
           ]
         },
         {
@@ -231,7 +222,7 @@
         },
         {
           "priority": "P4",
-          "colour": "#0081C6",
+          "colour": "#49A942",
           "data": [
             68.8,
             95.6,
@@ -246,25 +237,6 @@
             110.9,
             0.7,
             178.9
-          ]
-        },
-        {
-          "priority": "P5",
-          "colour": "#49A942",
-          "data": [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
           ]
         },
         {
@@ -290,7 +262,7 @@
     }
   },
   "resolution_sla": {
-    "overall_compliance_pct": 11.5,
+    "overall_compliance_pct": 33.0,
     "by_priority": {
       "P1": {
         "median_hours": 237.9,
@@ -307,37 +279,30 @@
         "avg_hours": 874.5,
         "count": 115,
         "sla_config": {
-          "hours": 72,
-          "display": "3 days"
+          "hours": 168,
+          "display": "7 days"
         },
-        "sla_compliance": 3.5
+        "sla_compliance": 13.0
       },
       "P3": {
         "median_hours": 564.4,
         "avg_hours": 1249.7,
         "count": 880,
         "sla_config": {
-          "hours": 144,
-          "display": "6 days"
+          "hours": 336,
+          "display": "2 weeks"
         },
-        "sla_compliance": 5.2
+        "sla_compliance": 29.7
       },
       "P4": {
         "median_hours": 372.9,
         "avg_hours": 1218.6,
         "count": 277,
         "sla_config": {
-          "hours": 240,
-          "display": "10 days"
+          "hours": 720,
+          "display": "1 month"
         },
-        "sla_compliance": 36.1
-      },
-      "P5": {
-        "median_hours": null,
-        "avg_hours": null,
-        "count": 0,
-        "sla_config": null,
-        "sla_compliance": null
+        "sla_compliance": 57.4
       },
       "No Priority": {
         "median_hours": 227.7,
@@ -438,7 +403,7 @@
         },
         {
           "priority": "P4",
-          "colour": "#0081C6",
+          "colour": "#49A942",
           "data": [
             2210.5,
             2261.2,
@@ -453,25 +418,6 @@
             101.2,
             124.2,
             290.0
-          ]
-        },
-        {
-          "priority": "P5",
-          "colour": "#49A942",
-          "data": [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
           ]
         },
         {
@@ -516,14 +462,6 @@
         "count": 744,
         "colour": "#EE3526"
       },
-      "Funded": {
-        "stage": "Closed - Funded",
-        "median_days": 99.2,
-        "avg_days": 128.7,
-        "p75_days": 150.5,
-        "count": 982,
-        "colour": "#49A942"
-      },
       "No Response": {
         "stage": "Closed - NO Response",
         "median_days": 14.1,
@@ -531,6 +469,14 @@
         "p75_days": 48.9,
         "count": 823,
         "colour": "#FDB913"
+      },
+      "Funded": {
+        "stage": "Closed - Funded",
+        "median_days": 99.2,
+        "avg_days": 128.7,
+        "p75_days": 150.5,
+        "count": 982,
+        "colour": "#49A942"
       }
     },
     "by_priority": {
@@ -553,11 +499,6 @@
         "median_days": 64.6,
         "avg_days": 92.2,
         "count": 311
-      },
-      "P5": {
-        "median_days": null,
-        "avg_days": null,
-        "count": 0
       },
       "No Priority": {
         "median_days": 19.6,
@@ -656,7 +597,7 @@
         },
         {
           "priority": "P4",
-          "colour": "#0081C6",
+          "colour": "#49A942",
           "data": [
             21.5,
             27.1,
@@ -671,25 +612,6 @@
             1.5,
             9.2,
             124.5
-          ]
-        },
-        {
-          "priority": "P5",
-          "colour": "#49A942",
-          "data": [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
           ]
         },
         {
@@ -751,26 +673,6 @@
           ]
         },
         {
-          "stage": "Closed - Funded",
-          "label": "Funded",
-          "colour": "#49A942",
-          "data": [
-            158.9,
-            105.8,
-            87.3,
-            119.4,
-            100.5,
-            118.3,
-            105.2,
-            68.5,
-            117.2,
-            85.0,
-            72.7,
-            68.5,
-            43.7
-          ]
-        },
-        {
           "stage": "Closed - NO Response",
           "label": "No Response",
           "colour": "#FDB913",
@@ -788,6 +690,26 @@
             10.2,
             16.4,
             17.5
+          ]
+        },
+        {
+          "stage": "Closed - Funded",
+          "label": "Funded",
+          "colour": "#49A942",
+          "data": [
+            158.9,
+            105.8,
+            87.3,
+            119.4,
+            100.5,
+            118.3,
+            105.2,
+            68.5,
+            117.2,
+            85.0,
+            72.7,
+            68.5,
+            43.7
           ]
         }
       ]
@@ -884,11 +806,11 @@
     "by_age": [
       {
         "band": "0\u20137 days",
-        "count": 41
+        "count": 40
       },
       {
         "band": "8\u201314 days",
-        "count": 57
+        "count": 58
       },
       {
         "band": "15\u201330 days",
@@ -908,8 +830,7 @@
       "P2": 27,
       "P3": 392,
       "P4": 87,
-      "P5": 1,
-      "No Priority": 286
+      "No Priority": 287
     }
   }
 }
