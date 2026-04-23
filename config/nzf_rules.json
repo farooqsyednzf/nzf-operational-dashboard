@@ -160,14 +160,31 @@
   "case_performance": {
     "_description": "Rules for the Cases Performance dashboard — response time, closure time, SLA targets, automated note exclusions.",
 
-    "sla_targets_hours": {
-      "_description": "Target first-response time in hours by priority. Used to calculate SLA compliance rate.",
-      "P1":          24,
-      "P2":          72,
-      "P3":          144,
-      "P4":          240,
-      "P5":          336,
+    "sla_response": {
+      "_description": "Response SLA — time from case creation to first genuine caseworker note. P1 uses business hours only; P2-P4 use calendar hours.",
+      "P1": { "hours": 1,  "business_hours_only": true,  "display": "1 business hour"  },
+      "P2": { "hours": 48, "business_hours_only": false, "display": "2 days"            },
+      "P3": { "hours": 72, "business_hours_only": false, "display": "3 days"            },
+      "P4": { "hours": 72, "business_hours_only": false, "display": "3 days"            },
+      "P5": null,
       "No Priority": null
+    },
+
+    "sla_resolution": {
+      "_description": "Resolution SLA — time from case creation to first resolution event: EITHER case closure OR first paid/extracted distribution (whichever comes first). Calendar hours.",
+      "P1": { "hours": 24,  "display": "24 hours"  },
+      "P2": { "hours": 72,  "display": "3 days"    },
+      "P3": { "hours": 144, "display": "6 days"    },
+      "P4": { "hours": 240, "display": "10 days"   },
+      "P5": null,
+      "No Priority": null
+    },
+
+    "working_hours": {
+      "start_hour": 9,
+      "end_hour":   17,
+      "timezone":   "Australia/Sydney",
+      "_description": "Used for P1 response SLA only. Clock pauses outside 9AM–5PM Mon–Fri AEST."
     },
 
     "automated_note_titles": {
