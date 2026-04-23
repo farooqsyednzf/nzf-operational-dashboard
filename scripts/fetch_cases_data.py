@@ -305,15 +305,18 @@ def build_cases_report(token):
     # ── Priority intelligence ─────────────────────────────────────
     print("\n  Building priority intelligence...")
 
+    # Full case data index: case_id → case dict (for enriching AI flags)
+    case_data_index = {}
+    for c, dt in window_cases:
+        cid = c.get("case_id") or c.get("case-id", "")
+        if cid:
+            case_data_index[cid] = (c, dt)
+
+    # 1. Unprioritized cases (>24h with no priority assigned)
     unprioritized = build_unprioritized_alert(all_cases)
     print(f"  Unprioritized (>{UNPRIORITIZED_HOURS}h): {len(unprioritized):,} cases")
 
-    # AI summaries for unprioritized table
-    summaries = run_unprioritized_summaries(unprioritized)
-    for c in unprioritized:
-        c["ai_summary"] = summaries.get(c["case_id"], "")
-
-    # AI priority accuracy — last 30 days, all priorities including No Priority
+    # 2. AI priority accuracy analysis
     cutoff_30d    = datetime.now(timezone.utc) - timedelta(days=30)
     recent_sample = [
         {
@@ -325,15 +328,81 @@ def build_cases_report(token):
         for c, dt in window_cases
         if dt >= cutoff_30d and (c.get("description") or "").strip()
     ]
-
-    # Lookup: case_id → zoho_record_id (for CRM deep links in the HTML)
+    # Lookup: case_id → zoho_record_id (used by combined table)
     case_id_lookup = {
         s["case_id"]: s["zoho_record_id"]
         for s in recent_sample if s["case_id"] and s["zoho_record_id"]
     }
-
     print(f"  Cases for AI review: {len(recent_sample):,} (last 30 days with descriptions)")
     ai_analysis = run_priority_analysis(recent_sample)
+
+    # 3. AI summaries for unprioritized cases
+    summaries = run_unprioritized_summaries(unprioritized)
+
+    # ── Build combined cases table ────────────────────────────────
+    # Merge flagged + unprioritized into one list, deduped by case_id.
+    # Flagged cases first (High → Medium → Low), then unprioritized newest-first.
+    # Cap at 30 total rows.
+    SEV_ORDER = {"High": 0, "Medium": 1, "Low": 2}
+    now       = datetime.now(timezone.utc)
+
+    def enrich_case(case_id, zoho_record_id=""):
+        """Pull created/age/stage/client_id from the case index."""
+        entry = case_data_index.get(case_id)
+        if not entry:
+            return {}
+        c, dt = entry
+        age   = now - dt
+        return {
+            "zoho_record_id": zoho_record_id or c.get("id", ""),
+            "client_id":      c.get("client_name", ""),
+            "created":        c.get("created_time", ""),
+            "age_hours":      round(age.total_seconds() / 3600, 1),
+            "stage":          c.get("stage", "").strip(),
+        }
+
+    combined  = []
+    seen_ids  = set()
+
+    # Flagged cases from AI analysis
+    flags = (ai_analysis or {}).get("flags", [])
+    for f in sorted(flags, key=lambda x: SEV_ORDER.get(x.get("severity","Low"), 2)):
+        cid   = f.get("case_id", "")
+        if not cid or cid in seen_ids:
+            continue
+        zid   = case_id_lookup.get(cid, "")
+        enriched = enrich_case(cid, zid)
+        combined.append({
+            **enriched,
+            "case_id":           cid,
+            "assigned_priority": f.get("assigned_priority", ""),
+            "suggested_priority":f.get("suggested_priority", ""),
+            "flag_type":         "misclassified",
+            "flag_severity":     f.get("severity", "Medium"),
+            "flag_reason":       f.get("reason", ""),
+            "ai_summary":        f.get("reason", ""),
+        })
+        seen_ids.add(cid)
+
+    # Unprioritized cases (newest first)
+    for u in sorted(unprioritized, key=lambda x: x.get("age_hours", 0)):
+        cid = u.get("case_id", "")
+        if not cid or cid in seen_ids:
+            continue
+        combined.append({
+            **u,
+            "assigned_priority": NO_PRIORITY,
+            "suggested_priority":"Assign Priority",
+            "flag_type":         "unassigned",
+            "flag_severity":     "Medium" if u.get("age_hours",0) > 48 else "Low",
+            "flag_reason":       f"No priority assigned for {round(u.get('age_hours',0)/24,1)} days",
+            "ai_summary":        summaries.get(cid, u.get("description","")[:100]),
+        })
+        seen_ids.add(cid)
+
+    combined = combined[:30]
+    print(f"  Combined cases table: {len(combined)} rows "
+          f"({len(flags)} flagged, {len(unprioritized)} unprioritized)")
 
     return {
         "meta": {
@@ -362,13 +431,10 @@ def build_cases_report(token):
         },
         "priority_trend": priority_trend,
         "priority_intelligence": {
-            "unprioritized_alert": {
-                "threshold_hours": UNPRIORITIZED_HOURS,
-                "count":           len(unprioritized),
-                "cases":           unprioritized,
-            },
-            "case_id_lookup": case_id_lookup,
-            "ai_analysis":    ai_analysis,
+            "unprioritized_count": len(unprioritized),
+            "flagged_count":       len(flags),
+            "combined_cases":      combined,
+            "ai_analysis":         ai_analysis,
         },
     }
 
