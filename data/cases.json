@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-23T04:31:09.625927+00:00",
+    "last_updated": "2026-04-23T06:30:42.114428+00:00",
     "record_count": 3125,
     "months_covered": [
       "2025-04",
@@ -270,211 +270,211 @@
     "flagged_count": 10,
     "combined_cases": [
       {
-        "zoho_record_id": "981539000277033076",
-        "case_id": "201730372",
-        "client_id": "981539000276997051",
-        "created": "2026-04-14T14:57:49+10:00",
-        "age_hours": 215.6,
-        "stage": "Ready for Allocation",
+        "zoho_record_id": "981539000278029016",
+        "case_id": "201730432",
+        "client_id": "981539000278039023",
+        "created": "2026-04-23T15:12:39+10:00",
+        "age_hours": 1.3,
+        "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "misclassified",
         "flag_severity": "High",
-        "flag_reason": "19-year-old currently homeless and staying with friends - requires immediate crisis intervention",
-        "ai_summary": "19-year-old currently homeless and staying with friends - requires immediate crisis intervention"
-      },
-      {
-        "zoho_record_id": "981539000277830010",
-        "case_id": "201730421",
-        "client_id": "981539000277918093",
-        "created": "2026-04-21T16:10:32+10:00",
-        "age_hours": 46.3,
-        "stage": "Ready For Allocation P2",
-        "assigned_priority": "No Priority",
-        "suggested_priority": "P1",
-        "flag_type": "misclassified",
-        "flag_severity": "High",
-        "flag_reason": "Single mother with 2 children served eviction notice and in desperate need",
-        "ai_summary": "Single mother with 2 children served eviction notice and in desperate need"
+        "flag_reason": "Family violence victim moving house to house with unclear housing situation indicates immediate crisis requiring same-day response",
+        "ai_summary": "Family violence victim moving house to house with unclear housing situation indicates immediate crisis requiring same-day response"
       },
       {
         "zoho_record_id": "981539000278111002",
         "case_id": "201730426",
         "client_id": "981539000278021054",
         "created": "2026-04-22T13:37:31+10:00",
-        "age_hours": 24.9,
+        "age_hours": 26.9,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "misclassified",
         "flag_severity": "High",
-        "flag_reason": "Domestic violence victim needing immediate financial support and counseling",
-        "ai_summary": "Domestic violence victim needing immediate financial support and counseling"
+        "flag_reason": "Domestic violence victim seeking immediate financial support should receive crisis-level priority",
+        "ai_summary": "Domestic violence victim seeking immediate financial support should receive crisis-level priority"
+      },
+      {
+        "zoho_record_id": "981539000277830010",
+        "case_id": "201730421",
+        "client_id": "981539000277918093",
+        "created": "2026-04-21T16:10:32+10:00",
+        "age_hours": 48.3,
+        "stage": "Ready For Allocation P2",
+        "assigned_priority": "No Priority",
+        "suggested_priority": "P1",
+        "flag_type": "misclassified",
+        "flag_severity": "High",
+        "flag_reason": "Single mother with eviction notice and children in desperate need requires same-day crisis response",
+        "ai_summary": "Single mother with eviction notice and children in desperate need requires same-day crisis response"
       },
       {
         "zoho_record_id": "981539000277538007",
         "case_id": "201730406",
         "client_id": "981539000276133010",
         "created": "2026-04-18T13:25:15+10:00",
-        "age_hours": 121.1,
+        "age_hours": 123.1,
         "stage": "Closed - Not Funded",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "misclassified",
         "flag_severity": "High",
-        "flag_reason": "Single mother with 3 children currently homeless in temporary housing",
-        "ai_summary": "Single mother with 3 children currently homeless in temporary housing"
+        "flag_reason": "Single mother with 3 children currently homeless needs immediate same-day crisis intervention",
+        "ai_summary": "Single mother with 3 children currently homeless needs immediate same-day crisis intervention"
       },
       {
         "zoho_record_id": "981539000277320004",
         "case_id": "201730402",
         "client_id": "981539000277362004",
         "created": "2026-04-17T13:31:28+10:00",
-        "age_hours": 145.0,
+        "age_hours": 147.0,
         "stage": "NM Approval",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "misclassified",
         "flag_severity": "High",
-        "flag_reason": "Asylum seeker needing immediate accommodation help - same-day crisis",
-        "ai_summary": "Asylum seeker needing immediate accommodation help - same-day crisis"
+        "flag_reason": "Asylum seeker needing immediate accommodation assistance indicates same-day crisis priority",
+        "ai_summary": "Asylum seeker needing immediate accommodation assistance indicates same-day crisis priority"
       },
       {
-        "zoho_record_id": "981539000277021259",
-        "case_id": "201730390",
-        "client_id": "981539000277007114",
-        "created": "2026-04-15T17:31:24+10:00",
-        "age_hours": 189.0,
-        "stage": "Ready For Allocation P2",
+        "zoho_record_id": "981539000277214501",
+        "case_id": "201730394",
+        "client_id": "981539000277214451",
+        "created": "2026-04-16T12:01:31+10:00",
+        "age_hours": 172.5,
+        "stage": "Ongoing Funding",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "misclassified",
         "flag_severity": "High",
-        "flag_reason": "Domestic violence victim burned by husband, alone with no food or money",
-        "ai_summary": "Domestic violence victim burned by husband, alone with no food or money"
+        "flag_reason": "Person at refuge after family breakdown with no income requires immediate crisis support",
+        "ai_summary": "Person at refuge after family breakdown with no income requires immediate crisis support"
       },
       {
         "zoho_record_id": "981539000276993135",
         "case_id": "201730393",
         "client_id": "981539000277073181",
         "created": "2026-04-16T11:07:02+10:00",
-        "age_hours": 171.4,
+        "age_hours": 173.4,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "misclassified",
         "flag_severity": "High",
-        "flag_reason": "Recent serious family violence incident with physical assault and nil income",
-        "ai_summary": "Recent serious family violence incident with physical assault and nil income"
+        "flag_reason": "Recent serious family violence incident with physical assault indicates same-day crisis priority",
+        "ai_summary": "Recent serious family violence incident with physical assault indicates same-day crisis priority"
+      },
+      {
+        "zoho_record_id": "981539000277021259",
+        "case_id": "201730390",
+        "client_id": "981539000277007114",
+        "created": "2026-04-15T17:31:24+10:00",
+        "age_hours": 191.0,
+        "stage": "Ready For Allocation P2",
+        "assigned_priority": "No Priority",
+        "suggested_priority": "P1",
+        "flag_type": "misclassified",
+        "flag_severity": "High",
+        "flag_reason": "Domestic violence victim describing abuse and being burned requires immediate crisis intervention",
+        "ai_summary": "Domestic violence victim describing abuse and being burned requires immediate crisis intervention"
       },
       {
         "zoho_record_id": "981539000277078121",
         "case_id": "201730392",
         "client_id": "981539000277038111",
         "created": "2026-04-16T10:13:45+10:00",
-        "age_hours": 172.3,
+        "age_hours": 174.3,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "misclassified",
         "flag_severity": "High",
-        "flag_reason": "No food or money to buy food for everyday needs until next payment",
-        "ai_summary": "No food or money to buy food for everyday needs until next payment"
+        "flag_reason": "Person with no food or money for basic needs until next payment requires same-day crisis response",
+        "ai_summary": "Person with no food or money for basic needs until next payment requires same-day crisis response"
       },
       {
         "zoho_record_id": "981539000277316001",
         "case_id": "201730401",
         "client_id": "981539000006789001",
         "created": "2026-04-17T02:57:40+10:00",
-        "age_hours": 155.6,
+        "age_hours": 157.6,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "misclassified",
         "flag_severity": "High",
-        "flag_reason": "Single mother with no money for food and petrol until next government support",
-        "ai_summary": "Single mother with no money for food and petrol until next government support"
-      },
-      {
-        "zoho_record_id": "981539000277256001",
-        "case_id": "201730399",
-        "client_id": "981539000001762051",
-        "created": "2026-04-16T20:09:12+10:00",
-        "age_hours": 162.4,
-        "stage": "Intake",
-        "assigned_priority": "No Priority",
-        "suggested_priority": "P2",
-        "flag_type": "misclassified",
-        "flag_severity": "High",
-        "flag_reason": "Single mother to 5 children seeking urgent help with food and daily living costs",
-        "ai_summary": "Single mother to 5 children seeking urgent help with food and daily living costs"
+        "flag_reason": "Single mother with no money and needing food and petrol requires immediate crisis assistance",
+        "ai_summary": "Single mother with no money and needing food and petrol requires immediate crisis assistance"
       },
       {
         "zoho_record_id": "981539000278087009",
         "case_id": "201730431",
         "client_id": "981539000278114012",
         "created": "2026-04-23T13:22:17+10:00",
-        "age_hours": 1.1,
+        "age_hours": 3.1,
         "stage": "Intake",
         "description": "As- Salam - Alikum,\n\nI lost job in Feb 2026 and I am already having lendings as well. I trying to fix Job issue but I cant find one after that. Is It possible can you please hep me in this?\n\nThanks\nRegards\nSehrish",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Low",
-        "flag_reason": "No priority assigned for 0.0 days",
-        "ai_summary": "Individual needs financial assistance after job loss with existing debts, moderate urgency."
+        "flag_reason": "No priority assigned for 0.1 days",
+        "ai_summary": "Unemployed individual since February needs job search support and debt assistance - moderate urgency."
       },
       {
         "zoho_record_id": "981539000278080013",
         "case_id": "201730430",
         "client_id": "981539000278073008",
         "created": "2026-04-23T11:13:00+10:00",
-        "age_hours": 3.3,
+        "age_hours": 5.3,
         "stage": "Intake",
         "description": "Dear Zakat Foundation,\n\nI hope this message finds you well.\n\nMy name is Jamila, and I am currently in my fourth year in Australia. I arrived in 2023 and got married shortly after. I applied for a spouse visa, and during this time I was blessed with two young children\u2014one is now 2 years old and the other is 9 months old.\n\nAbout a year into the marriage, my husband and I separated. Alhamdulillah, I have remained patient through this situation. Since our separation, he had been supporting me by helping with rent and some basic living expenses while I awaited the outcome of my spouse visa, which would allow me to apply for Centrelink assistance.\n\nUnfortunately, he has recently informed me that he is no longer able to continue supporting me financially due to his own financial difficulties and he can\u2019t pay rent anymore. At the moment, I am not working, I do not receive Centrelink support, and I do not have any family here I can stay with.\n\nI am therefore in a very difficult situation and urgently need assistance with rent and basic necessities for myself and my children until my visa is processed and I become eligible for Centrelink support. I am doing my best to remain strong, but I am deeply concerned about the possibility of becoming homeless with my children.\n\nI would be sincerely grateful for any support or guidance you may be able to offer during this challenging time.\n\nThank you very much for your time and understanding.\n\nJizakaallah ,Jamila",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Low",
-        "flag_reason": "No priority assigned for 0.1 days",
-        "ai_summary": "Mother with two young children requires support during visa application process, moderate urgency."
+        "flag_reason": "No priority assigned for 0.2 days",
+        "ai_summary": "Mother with two young children on spouse visa requires general assistance - moderate urgency."
       },
       {
         "zoho_record_id": "981539000278129465",
         "case_id": "201730429",
         "client_id": "981539000161547001",
         "created": "2026-04-23T10:14:26+10:00",
-        "age_hours": 4.3,
+        "age_hours": 6.3,
         "stage": "Intake",
         "description": "I'm Yusniza Yusof, I hope this message finds you well.\nI am writing to humbly seek assistance from your zakat organization in Australia to help settle the outstanding debt of my late husband, Akram bin Hamdi.\n\nThe debt, amounting to approximately AUD 4,000+, is owed to ZipPay and ZipMoney. This financial burden began in 2023 when my husband was diagnosed with cancer. Following medical advice from his oncologist, we made the difficult decision to return to Malaysia for his treatment and care. Due to these circumstances, the payments for the Zip accounts were left unsettled.\n\nSadly, my husband passed away on 6 March 2026. As his surviving spouse, I am now facing challenges in managing this debt.\n\nI sincerely hope for your consideration and support in assisting with this matter through zakat funds. Your help would greatly ease this burden during this difficult time.\nThank you for your time, understanding, and compassion. I am willing to provide any supporting documents if required.",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Low",
-        "flag_reason": "No priority assigned for 0.2 days",
-        "ai_summary": "Widow seeks assistance settling deceased husband's outstanding debt of over $4000, moderate urgency."
+        "flag_reason": "No priority assigned for 0.3 days",
+        "ai_summary": "Widow needs help settling deceased husband's debt of AUD 4,000+ - moderate urgency."
       },
       {
         "zoho_record_id": "981539000278072006",
         "case_id": "201730428",
         "client_id": "981539000278083007",
         "created": "2026-04-22T22:09:21+10:00",
-        "age_hours": 16.4,
+        "age_hours": 18.3,
         "stage": "Closed - Not Funded",
         "description": "Asalamualiykum, my name is Abdullah and I am in urgent need of support due to a series of overwhelming hardships. My parents are divorced, and my father has left the country, refusing to pay any child support, leaving my family without any income. I am just 17 years old, in the middle of my HSC studies, and unable to work. My mother also cannot work, as she is the sole caregiver for my autistic brother. Adding to this, my father was physically abusive to my mother, causing her serious injuries that have left her unable to work. Now, we are on the brink of eviction, I am already three weeks behind on rent, and if I don\u2019t pay soon, I will lose our home, and honestlyits really hard to soend money towards groceries, food, tuitions and daily essentials as rent is always on my mind and that i have to keeo saving money for to oay it off over week as most if the time i have ni choice but to sleep and wake uo hungry. I am desperate for help, as I have no income source and no way to avoid this imminent crisis. I need financial assistance immediately, by today or tomorrow, to keep a roof over our heads and continue my education.",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Low",
-        "flag_reason": "No priority assigned for 0.7 days",
-        "ai_summary": "17-year-old student needs urgent support due to absent father and family income loss, high urgency."
+        "flag_reason": "No priority assigned for 0.8 days",
+        "ai_summary": "17-year-old student needs urgent support after father abandoned family without child support - urgent."
       },
       {
         "zoho_record_id": "981539000277993003",
         "case_id": "201730427",
         "client_id": "981539000278077020",
         "created": "2026-04-22T15:45:02+10:00",
-        "age_hours": 22.8,
+        "age_hours": 24.8,
         "stage": "Intake",
         "description": "Abdurazzaq struggles with daily living specialists, medication, transportation, food. Abdulrazzaq has heart problem, strong discs in his spinal and neck not allowing him to work in addition of his age (66 years old). Abdulrazzaq receives Centrelink payment.",
         "assigned_priority": "No Priority",
@@ -482,44 +482,44 @@
         "flag_type": "unassigned",
         "flag_severity": "Low",
         "flag_reason": "No priority assigned for 1.0 days",
-        "ai_summary": "Elderly man with health conditions needs daily living support despite receiving Centrelink, moderate urgency."
+        "ai_summary": "66-year-old with health conditions needs daily living support despite receiving Centrelink - moderate urgency."
       },
       {
         "zoho_record_id": "981539000278115003",
         "case_id": "201730425",
         "client_id": "981539000278021003",
         "created": "2026-04-22T13:32:08+10:00",
-        "age_hours": 25.0,
+        "age_hours": 27.0,
         "stage": "Intake",
         "description": "Married couple on a student VISA, recently gave birth to baby Jannatul (unplanned) who is 6 months old now. Triple X syndrome detected in early pregnancy. Financial hardship following birth of baby, needing to purchase day to day goods",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Low",
-        "flag_reason": "No priority assigned for 1.0 days",
-        "ai_summary": "Student visa couple with special needs baby facing financial hardship, needs daily essentials, high urgency."
+        "flag_reason": "No priority assigned for 1.1 days",
+        "ai_summary": "Student visa couple with special needs baby requires financial support for daily necessities - urgent."
       },
       {
         "zoho_record_id": "981539000278040007",
         "case_id": "201730424",
         "client_id": "981539000278119001",
         "created": "2026-04-22T13:23:24+10:00",
-        "age_hours": 25.1,
+        "age_hours": 27.1,
         "stage": "Funding",
         "description": "I am currently based in Kuala Lumpur to stay with my wife who has had to return to Malaysia. In the last year I have incurred a large medical bill and other debts and an ongoing effort to pay for it. However, I have not been able to keep up with my promises to pay for the debt in the instalments. The matter has been with the bailiff\u2019s office and over the past 4 months they have been kindly giving me extension to pay but I have not been able to.\nThis has led to now being given time til today 22 April to pay minimum RM4500 (AU1600 approx) as an instalment towards the full debt of RM10,250 (AU3620) otherwise the bailiff\u2019s office will proceed to confine me starting with weekend detention until full payment is made. This may also lead to being filed as bankrupt and this might also lead to cancellation of my visa here to stay with my wife. I also have two debts for personal loan I took from two individuals total RM8000 (AU2800 approx) for over nearly 9 months and have to pay this too because they are asking me to settle this immediately.\nI went to the bailiff\u2019s office Thursday 16 April last week, advising them that the Zakat Foundation would be able to assist me, and so they have now given me til today Wednesday 22nd next week, otherwise they will confine me from Friday. i had provided all this information last week immediately after Thursday 16th to Zakat Foundation. I have explained the complete situation to brother Munir in detail who has been very understanding, Barak Allahu fik.",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Low",
-        "flag_reason": "No priority assigned for 1.0 days",
-        "ai_summary": "Individual overseas with wife needs help managing accumulated medical bills and debts, moderate urgency."
+        "flag_reason": "No priority assigned for 1.1 days",
+        "ai_summary": "Individual in Malaysia struggling with medical bills and debt repayments - moderate urgency."
       },
       {
         "zoho_record_id": "981539000278028001",
         "case_id": "201730423",
         "client_id": "981539000278023001",
         "created": "2026-04-22T10:44:37+10:00",
-        "age_hours": 27.8,
+        "age_hours": 29.8,
         "stage": "Intake",
         "description": "I need help with paying bond for a rental property of amount $2360",
         "assigned_priority": "No Priority",
@@ -527,241 +527,226 @@
         "flag_type": "unassigned",
         "flag_severity": "Low",
         "flag_reason": "No priority assigned for 1.2 days",
-        "ai_summary": "Person requires assistance with rental bond payment of $2360, moderate urgency."
+        "ai_summary": "Rental bond assistance needed for $2,360 property deposit - moderate urgency."
       },
       {
         "zoho_record_id": "981539000277920044",
         "case_id": "201730422",
         "client_id": "981539000249256004",
         "created": "2026-04-21T23:21:15+10:00",
-        "age_hours": 39.2,
+        "age_hours": 41.1,
         "stage": "Intake",
         "description": "\u0627\u0646\u0627 \u0643\u0646\u062a \u0627\u0639\u0645\u0644 \u0627\u0644\u0641\u062a\u0631\u0629 \u0627\u0644\u064a \u0641\u0627\u062a\u062a \u0628\u0645\u0633\u062a\u0648\u062f\u0639 \u0648\u0644\u0627\u0643\u0646 \u0641\u0635\u0644\u062a \u0628\u062f\u0648\u0627\u0645\u064a \u0648 \u0644\u062f\u064a \u0639\u0627\u0626\u0644\u062a\u064a \u0647\u0646\u0627 \u0648 \u0627\u0646\u0627 \u0639\u0644\u0649 \u0637\u0644\u0628 \u0641\u064a\u0632\u0627 \u0627\u0644\u062d\u0645\u0627\u064a\u0629 866 \u060c \u0627\u0644\u0633\u0646\u062a\u0631\u0627\u0644\u064a\u0646\u0643 \u0642\u0627\u0644\u0648 \u0644\u0646 \u064a\u0642\u0648\u0645\u0648 \u0628\u0627\u0644\u062f\u0641\u0639 \u0644\u064a \u0648 \u0627\u064a\u0636\u0627 \u0633\u0648\u0641 \u0627\u0628\u062f\u0627\u0621 \u0639\u0645\u0644\u064a \u0627\u0644\u062c\u062f\u064a\u062f \u0627\u0644\u0627\u0633\u0628\u0648\u0639 \u0627\u0644\u0642\u0627\u062f\u0645 \u0648\u0644\u064a \u0644\u062f\u064a \u0635\u0639\u0648\u0628\u0629 \u0628\u0627\u0644\u0627\u064a\u062c\u0627\u0631 \u0627\u0644\u0645\u062a\u0627\u062e\u0631",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Low",
-        "flag_reason": "No priority assigned for 1.6 days",
-        "ai_summary": "Protection visa applicant with family needs help with overdue rent, starting new job, high urgency."
+        "flag_reason": "No priority assigned for 1.7 days",
+        "ai_summary": "Protection visa applicant needs rental assistance after job loss, new employment starting soon - urgent."
       },
       {
         "zoho_record_id": "981539000277846007",
         "case_id": "201730420",
         "client_id": "981539000277819033",
         "created": "2026-04-21T14:40:45+10:00",
-        "age_hours": 47.8,
+        "age_hours": 49.8,
         "stage": "Intake",
         "description": "Assalymu Alaykum, due to my son\u2019s ongoing health conditions I had to leave my job; two months ago. During this time my son has been frequently hospitalized. As a result of not being able to work and not being able to have an income my 3 children and I are now facing eviction. \n\nI would be immensely grateful for any assistance available. JazakAllah Khira.",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
-        "flag_severity": "Low",
-        "flag_reason": "No priority assigned for 2.0 days",
-        "ai_summary": "Parent who left job for child's health needs facing eviction with three children, high urgency."
+        "flag_severity": "Medium",
+        "flag_reason": "No priority assigned for 2.1 days",
+        "ai_summary": "Parent left job for sick child, facing eviction with 3 children - urgent."
       },
       {
         "zoho_record_id": "981539000277920007",
         "case_id": "201730419",
         "client_id": "981539000270466049",
         "created": "2026-04-21T14:27:23+10:00",
-        "age_hours": 48.1,
+        "age_hours": 50.0,
         "stage": "Intake",
         "description": "As salamu alaikum :)\nI am in need of 2 weeks advance rent if possible. \nI also am in need of a washing machine & dryer please.\n\nI sent an application when I was still homeless with my son, but we have signed a lease and moved in now. \nWe are just missing a few basic/ essentials needed for our new home.\nI can send further documents such lease, bank statements etc\nThank you.",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
-        "flag_reason": "No priority assigned for 2.0 days",
-        "ai_summary": "Previously homeless parent needs advance rent and essential household appliances for new home, moderate urgency."
+        "flag_reason": "No priority assigned for 2.1 days",
+        "ai_summary": "Recently housed parent needs rent advance and essential appliances for new home - moderate urgency."
       },
       {
         "zoho_record_id": "981539000277916002",
         "case_id": "201730418",
         "client_id": "981539000256968004",
         "created": "2026-04-21T13:49:22+10:00",
-        "age_hours": 48.7,
+        "age_hours": 50.7,
         "stage": "Closed - Not Funded",
         "description": "Dear brothers and sisters,\nAlsalamu allikum,\n\nI hope this message finds you well.\n\nI am writing to respectfully request financial assistance through your support programs, as I am currently experiencing significant and ongoing financial hardship.\n\nFor the past two years, I have been struggling financially and have accumulated debts through loans from friends as well as services such as ZipPay and Afterpay. My financial situation worsened after I lost my job approximately one year ago, and I remained unemployed for about five months. Despite my efforts to recover and manage my obligations, I am still finding it very difficult to meet essential expenses.\n\nI am currently preparing for my Pharmacy Board Intern Exam in Australia, which is a crucial step for me to become a registered pharmacist and secure stable employment. As part of this process, I am required to pay AUD 700 for the PSA exam. Unfortunately, I am unable to afford this fee due to my current financial situation.\n\nThis exam represents a very important turning point in my life. Successfully completing it will allow me to finally stand on solid ground, gain stable employment, and become financially independent.\n\nI am a single woman living in Australia without family or support, and I am doing my best to improve my situation and build a secure future. I would be truly grateful if you could consider supporting me at this critical stage.\n\nI am more than willing to provide any required evidence of exam registration and fees with Pharmaceutical Society of Australia.\n\nThank you very much for your time, understanding, and the meaningful support you provide to those in need.\n\nThank you very much,\nFatma Sharaf",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
-        "flag_reason": "No priority assigned for 2.0 days",
-        "ai_summary": "Individual experiencing ongoing two-year financial hardship seeks general assistance, moderate urgency."
+        "flag_reason": "No priority assigned for 2.1 days",
+        "ai_summary": "Individual experiencing ongoing two-year financial hardship needs comprehensive support - moderate urgency."
       },
       {
         "zoho_record_id": "981539000277908005",
         "case_id": "201730417",
         "client_id": "981539000277910002",
         "created": "2026-04-21T13:48:30+10:00",
-        "age_hours": 48.7,
+        "age_hours": 50.7,
         "stage": "Intake",
         "description": "I am writing to support an application for emergency relief on behalf of my client, Taybeh, a recently arrived refugee and single mother  of 4 children currently adjusting to life in Australia with her children.\nTaybeh became the sole carer for her children following the passing of her husband in 2024. Since arriving in Australia, she has faced significant challenges settling into a new environment, including navigating unfamiliar systems, limited social supports, and ongoing financial hardship.\nTaybeh is currently experiencing acute financial stress, with little to no income and difficulty meeting basic living expenses such as food, household needs, and essential bills. In an effort to improve her situation and become financially independent, she purchased a sewing machine with borrowed funds, hoping to generate income through sewing work. However, she has not yet been able to establish this income stream and is now in debt, which she is struggling to repay.\nIn addition to financial pressures, Taybeh is supporting her children through their own adjustment challenges, including health and wellbeing concerns that are currently being addressed with appropriate services.\nEmergency relief is critical at this time to assist Taybeh in meeting her family\u2019s immediate needs while she continues to settle and work towards stability. Without this support, the family remains at risk of ongoing financial hardship and difficulty maintaining basic living standards.\n\nI strongly recommend that this application be considered favourably.",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
-        "flag_reason": "No priority assigned for 2.0 days",
-        "ai_summary": "Recently arrived refugee single mother of four needs emergency relief support, high urgency."
+        "flag_reason": "No priority assigned for 2.1 days",
+        "ai_summary": "Widowed refugee mother of 4 children needs emergency relief assistance - urgent."
       },
       {
         "zoho_record_id": "981539000277918001",
         "case_id": "201730416",
         "client_id": "981539000277907004",
         "created": "2026-04-21T12:15:53+10:00",
-        "age_hours": 50.2,
+        "age_hours": 52.2,
         "stage": "Intake",
         "description": "Assalamualaikum,\nI am requesting Zakat assistance for my family. We are currently facing serious financial hardship. I have six children, and only my husband is working. Our expenses are very high, and we are struggling to meet basic needs.\n We urgently need support with:\n- Food assistance\n- Emergency financial relief\n- Car repairs and registration renewal\n- Replacement or repair of essential household items (washing machine, television)\n\nSupport with housing, as the owner has asked us to leave our current home\n\nOur situation is very difficult, and we are doing our best to manage, but we cannot cope without help. Any Zakat or financial assistance you can provide would mean a lot to us.\n\nPlease let me know what documents you need from me.\n\nJazakAllahu khairan,\nNurul",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
-        "flag_reason": "No priority assigned for 2.1 days",
-        "ai_summary": "Family with six children needs urgent food and emergency assistance due to financial hardship, high urgency."
+        "flag_reason": "No priority assigned for 2.2 days",
+        "ai_summary": "Family of 8 with single income needs food and emergency assistance - urgent."
       },
       {
         "zoho_record_id": "981539000277839001",
         "case_id": "201730415",
         "client_id": "981539000277824018",
         "created": "2026-04-21T10:04:44+10:00",
-        "age_hours": 52.4,
+        "age_hours": 54.4,
         "stage": "Intake",
         "description": "Food voucher and fuel voucher please",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
-        "flag_reason": "No priority assigned for 2.2 days",
-        "ai_summary": "Individual requests food and fuel vouchers for basic needs, moderate urgency."
+        "flag_reason": "No priority assigned for 2.3 days",
+        "ai_summary": "Individual requests food and fuel vouchers - moderate urgency."
       },
       {
         "zoho_record_id": "981539000277797001",
         "case_id": "201730414",
         "client_id": "981539000161951002",
         "created": "2026-04-21T08:29:33+10:00",
-        "age_hours": 54.0,
+        "age_hours": 56.0,
         "stage": "Closed - Not Funded",
         "description": "I am experiencing hardship at the moment I recently had a operation and I have had multiple unforeseen situations where I have needed to see specialist for some problems I have I am a type 2 diabetic and I need to buy the correct food I have everyday expenses as well a food voucher and petrol voucher would be enormous help at this time could you please assist me could you please email me on elias.joukhador1982@hotmail.com or contact me on 0420-641-385 please and let me know if u could assist me please it would mean so much at this difficult time",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
-        "flag_reason": "No priority assigned for 2.2 days",
-        "ai_summary": "Post-surgery diabetic person needs food and fuel vouchers for medical dietary requirements, moderate urgency."
+        "flag_reason": "No priority assigned for 2.3 days",
+        "ai_summary": "Diabetic individual post-surgery needs food and fuel vouchers for medical expenses - moderate urgency."
       },
       {
         "zoho_record_id": "981539000277736003",
         "case_id": "201730413",
         "client_id": "981539000277726006",
         "created": "2026-04-20T14:43:21+10:00",
-        "age_hours": 71.8,
+        "age_hours": 73.8,
         "stage": "Intake",
         "description": "I'm assisting Saleheh in completing this application as she requested support(I'm her case manager from SSI), Saleheh is a single mother with three children (25-21-16)and looking after her elderly mother(77), the family arrived in Australia on 7/11/2026, and the English language is limitted and they are all except the elderly lady learning English now and they rely on Centrelink income and they are facing financial hardship due to multiple health appointment for Saleheg and his elderly mother, Hopefuly they can get some support from your sid,\nPlease let me know if you require further information\nMunira Mitho\nmmitho@ssi.org.au\n0422337984",
         "assigned_priority": "No Priority",
         "suggested_priority": "Assign Priority",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
-        "flag_reason": "No priority assigned for 3.0 days",
-        "ai_summary": "Recently arrived single mother with three children and elderly mother needs comprehensive support, high urgency."
-      },
-      {
-        "zoho_record_id": "981539000277641017",
-        "case_id": "201730412",
-        "client_id": "981539000277676008",
-        "created": "2026-04-20T12:38:06+10:00",
-        "age_hours": 73.9,
-        "stage": "NM Approval",
-        "description": "I formally authorise Ms Rasa Aziz to act on my behalf and represent me in all matters relating to this application, as I am unable to communicate effectively in English and require assistance\n\n\nI am an Afghan mother of four children currently living in a rental property. I have been residing in Australia for approximately two years. One of my children, aged 7, has a disability and requires additional care and support.\n\nI am currently experiencing significant financial hardship across multiple areas of my life. I have limited English proficiency, as my primary languages are Dari and Pashto, which has made it very difficult for me to access services, secure stable support, and communicate effectively. I do not drive and do not have access to a vehicle, which further limits my ability to manage daily responsibilities and attend appointments.\n\nAt present, I am facing several urgent issues. My refrigerator has broken down, and I am unable to afford a replacement, which is impacting my ability to safely store food for my children. One of my daughters is unwell, and I have multiple upcoming medical expenses in early May. While some costs are partially covered by Medicare, I am still required to pay a significant amount out of pocket, which I cannot afford.\n\nIn addition, I am struggling to pay my electricity bills and urgently require pest control assistance, as my home is currently affected by a severe cockroach infestation. I am also unable to afford basic necessities such as groceries, clothing, and shoes for my children.\n\nMy rent is extremely high at $1,270 per fortnight, which places a significant financial burden on me. I have been actively trying to secure more suitable and affordable two-bedroom accommodation; however, my applications have been repeatedly declined due to having four children.\n\nOverall, I am in a very difficult financial situation and am struggling to meet even the most basic needs for my family. I respectfully request urgent financial assistance and support services to help stabilise our living conditions and ensure the health, safety, and wellbeing of my children.",
-        "assigned_priority": "No Priority",
-        "suggested_priority": "Assign Priority",
-        "flag_type": "unassigned",
-        "flag_severity": "Medium",
         "flag_reason": "No priority assigned for 3.1 days",
-        "ai_summary": "Afghan mother of four children in rental property requires assistance with communication barriers, moderate urgency."
+        "ai_summary": "Recently arrived single mother with 3 children and elderly parent needs comprehensive support - urgent."
       }
     ],
     "ai_analysis": {
       "quality_score": "Poor",
-      "quality_summary": "Nearly all 60 cases are assigned 'No Priority' despite many describing urgent situations requiring immediate P1/P2 intervention. Multiple cases show homelessness, domestic violence, eviction notices, and families with no food or income - all requiring same-day crisis response.",
+      "quality_summary": "All 60 cases reviewed were assigned 'No Priority' despite containing numerous descriptions indicating P1-P2 level crises. Many cases describe immediate housing crises, domestic violence situations, and families with no food or income that should have received same-day or urgent priority classification.",
       "total_reviewed": 60,
       "flags": [
         {
-          "case_id": "201730372",
+          "case_id": "201730432",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "19-year-old currently homeless and staying with friends - requires immediate crisis intervention"
-        },
-        {
-          "case_id": "201730421",
-          "assigned_priority": "No Priority",
-          "suggested_priority": "P1",
-          "severity": "High",
-          "reason": "Single mother with 2 children served eviction notice and in desperate need"
+          "reason": "Family violence victim moving house to house with unclear housing situation indicates immediate crisis requiring same-day response"
         },
         {
           "case_id": "201730426",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "Domestic violence victim needing immediate financial support and counseling"
+          "reason": "Domestic violence victim seeking immediate financial support should receive crisis-level priority"
+        },
+        {
+          "case_id": "201730421",
+          "assigned_priority": "No Priority",
+          "suggested_priority": "P1",
+          "severity": "High",
+          "reason": "Single mother with eviction notice and children in desperate need requires same-day crisis response"
         },
         {
           "case_id": "201730406",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "Single mother with 3 children currently homeless in temporary housing"
+          "reason": "Single mother with 3 children currently homeless needs immediate same-day crisis intervention"
         },
         {
           "case_id": "201730402",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "Asylum seeker needing immediate accommodation help - same-day crisis"
+          "reason": "Asylum seeker needing immediate accommodation assistance indicates same-day crisis priority"
         },
         {
-          "case_id": "201730390",
+          "case_id": "201730394",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "Domestic violence victim burned by husband, alone with no food or money"
+          "reason": "Person at refuge after family breakdown with no income requires immediate crisis support"
         },
         {
           "case_id": "201730393",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "Recent serious family violence incident with physical assault and nil income"
+          "reason": "Recent serious family violence incident with physical assault indicates same-day crisis priority"
+        },
+        {
+          "case_id": "201730390",
+          "assigned_priority": "No Priority",
+          "suggested_priority": "P1",
+          "severity": "High",
+          "reason": "Domestic violence victim describing abuse and being burned requires immediate crisis intervention"
         },
         {
           "case_id": "201730392",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "No food or money to buy food for everyday needs until next payment"
+          "reason": "Person with no food or money for basic needs until next payment requires same-day crisis response"
         },
         {
           "case_id": "201730401",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "Single mother with no money for food and petrol until next government support"
-        },
-        {
-          "case_id": "201730399",
-          "assigned_priority": "No Priority",
-          "suggested_priority": "P2",
-          "severity": "High",
-          "reason": "Single mother to 5 children seeking urgent help with food and daily living costs"
+          "reason": "Single mother with no money and needing food and petrol requires immediate crisis assistance"
         }
       ],
       "patterns": [
-        "All 60 cases assigned 'No Priority' despite urgency levels ranging from P1 crisis to P4 moderate hardship",
-        "Multiple domestic violence cases and homeless families not receiving immediate priority assignment",
-        "Systematic failure to assign priorities within required 24-hour timeframe"
+        "All cases assigned 'No Priority' despite varying severity levels from crisis to moderate hardship",
+        "Multiple domestic violence and homelessness cases not receiving appropriate crisis-level priority",
+        "Cases involving children in immediate danger consistently under-prioritized"
       ],
-      "generated_at": "2026-04-23T04:30:57.709321+00:00"
+      "generated_at": "2026-04-23T06:30:30.136583+00:00"
     }
   }
 }
