@@ -265,14 +265,17 @@ h1, h2, h3, h4, h5, h6 {
 
 .draft-disclaimer {
   background: #fff8e1;
-  border-bottom: 1px solid #f0d060;
-  padding: 8px 28px;
+  border-bottom: 2px solid #f0d060;
+  padding: 9px 28px;
   font-family: 'Cambay', sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: #7a5c00;
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 .draft-disclaimer a {
   color: #7a5c00;
