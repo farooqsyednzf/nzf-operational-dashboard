@@ -805,7 +805,6 @@ function renderGapStats(data) {
 
 // ── Cases detail table ────────────────────────────────────────────
 function renderCasesTable(data) {
-  // Latest 20 returning cases — sort by created date descending using Date parsing
   const cases = (data.returning_cases || [])
     .sort((a, b) => new Date(b.created || 0) - new Date(a.created || 0))
     .slice(0, 20);
@@ -815,16 +814,28 @@ function renderCasesTable(data) {
     return;
   }
 
+  const crmBase = window.__NZF_META?.crm_base_url || '';
+
   function gapClass(band) {
-    if (band === '< 1 month' || band === '1–3 months') return 'gap-short';
-    if (band === '3–6 months') return 'gap-medium';
-    if (band === '6–12 months') return 'gap-long';
+    if (band === '< 1 month' || band === '1-3 months') return 'gap-short';
+    if (band === '3-6 months') return 'gap-medium';
+    if (band === '6-12 months') return 'gap-long';
     return 'gap-vlong';
   }
 
   function fmtDate(s) {
     if (!s) return '—';
     return new Date(s).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function caseLink(c) {
+    const label = c.case_id || '—';
+    if (crmBase && c.zoho_record_id) {
+      return `<a href="${crmBase}/Potentials/${c.zoho_record_id}" target="_blank" rel="noopener"
+        style="font-weight:700;color:var(--color-primary);font-size:0.85rem;text-decoration:none"
+        title="Open in Zoho CRM">${label} &#8599;</a>`;
+    }
+    return `<span style="font-weight:700;color:var(--color-primary);font-size:0.85rem">${label}</span>`;
   }
 
   document.getElementById('cases-table').innerHTML = `
@@ -843,7 +854,7 @@ function renderCasesTable(data) {
       </thead>
       <tbody>
         ${cases.map(c => {
-          const summary = c.ai_case_summary || (c.description || '').substring(0, 120) + ((c.description || '').length > 120 ? '…' : '');
+          const summary = c.ai_case_summary || (c.description || '').substring(0, 120) + ((c.description || '').length > 120 ? '...' : '');
           const lastStage = c.last_case_stage || '';
           const lastStageBadgeClass = lastStage.toLowerCase().includes('funded') && !lastStage.toLowerCase().includes('not')
             ? 'badge-funded'
@@ -852,7 +863,7 @@ function renderCasesTable(data) {
               : 'badge-grey';
           return `
           <tr>
-            <td style="font-weight:700;color:var(--color-primary);white-space:nowrap;font-size:0.85rem;">${c.case_id || '—'}</td>
+            <td style="white-space:nowrap">${caseLink(c)}</td>
             <td style="white-space:nowrap">${fmtDate(c.created)}</td>
             <td><span class="badge badge-grey">${c.stage || '—'}</span></td>
             <td style="white-space:nowrap">${fmtDate(c.last_case_date) || '—'}</td>

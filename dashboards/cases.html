@@ -562,10 +562,16 @@ function renderAIAnalysis(analysis) {
           const priPill = p => `<span style="display:inline-block;padding:1px 8px;border-radius:12px;
             background:${priColours[p]||'#ccc'}20;border:1px solid ${priColours[p]||'#ccc'}60;
             font-family:'Cambay';font-size:0.72rem;font-weight:700;color:${priColours[p]||'#666'}">${p}</span>`;
+          const crmBase = window.__NZF_META?.crm_base_url || '';
+          const idDisplay = crmBase && f.zoho_record_id
+            ? `<a href="${crmBase}/Potentials/${f.zoho_record_id}" target="_blank" rel="noopener"
+                style="color:var(--color-primary);font-weight:700;font-size:0.82rem;text-decoration:none"
+                title="Open in CRM">${f.case_id} &#8599;</a>`
+            : `<span class="flag-case-id">${f.case_id}</span>`;
           return `
             <div class="flag-card ${sev}">
               <div class="flag-row">
-                <span class="flag-case-id">${f.case_id}</span>
+                ${idDisplay}
                 ${priPill(f.assigned_priority)}
                 <span class="flag-arrow">&#8594;</span>
                 ${priPill(f.suggested_priority)}
@@ -601,13 +607,40 @@ function renderAIAnalysis(analysis) {
 }
 
 function renderUnprioritizedTable(alert) {
-  const wrap = document.getElementById('unprioritized-table-wrap');
-  const cases = alert?.cases || [];
+  const wrap  = document.getElementById('unprioritized-table-wrap');
+  const cases = (alert?.cases || [])
+    .filter(c => !c.stage?.toLowerCase().includes('closed'));  // Hide closed cases
+
   if (cases.length === 0) return;
+
+  const crmBase = (window.__NZF_META?.crm_base_url || '');
 
   function fmtAge(hours) {
     if (hours < 48) return `${Math.round(hours)}h`;
     return `${(hours/24).toFixed(1)}d`;
+  }
+
+  function caseLink(c) {
+    const label = c.case_id || c.zoho_record_id || '—';
+    if (crmBase && c.zoho_record_id) {
+      return `<a href="${crmBase}/Potentials/${c.zoho_record_id}"
+        target="_blank" rel="noopener"
+        style="color:var(--color-primary);font-weight:700;font-size:0.85rem;text-decoration:none"
+        title="Open in Zoho CRM">${label} &#8599;</a>`;
+    }
+    return `<span style="font-weight:700;color:var(--color-primary);font-size:0.85rem">${label}</span>`;
+  }
+
+  function clientLink(c) {
+    const id = c.client_id;
+    if (!id) return '—';
+    if (crmBase && id) {
+      return `<a href="${crmBase}/Contacts/${id}"
+        target="_blank" rel="noopener"
+        style="font-size:0.8rem;color:var(--color-blue);text-decoration:none"
+        title="Open client in Zoho CRM">${id.slice(-6)} &#8599;</a>`;
+    }
+    return `<span style="font-size:0.8rem">${id.slice(-6)}</span>`;
   }
 
   wrap.innerHTML = `
@@ -615,33 +648,44 @@ function renderUnprioritizedTable(alert) {
       <div class="chart-card-header">
         <div>
           <div class="chart-card-title">Cases Without Priority Assignment</div>
-          <div class="chart-card-subtitle">Oldest first — these cases need a caseworker to assign urgency</div>
+          <div class="chart-card-subtitle">
+            Latest ${cases.length} open cases — click Case ID or Client ID to open in CRM. Newest first.
+          </div>
         </div>
       </div>
       <table>
         <thead>
           <tr>
             <th>Case ID</th>
+            <th>Client ID</th>
             <th>Created</th>
             <th>Age</th>
             <th>Stage</th>
-            <th>Description Preview</th>
+            <th>Summary</th>
           </tr>
         </thead>
         <tbody>
           ${cases.map(c => `
             <tr>
-              <td style="font-weight:700;color:var(--color-primary);white-space:nowrap;font-size:0.85rem">${c.case_id || '—'}</td>
+              <td style="white-space:nowrap">${caseLink(c)}</td>
+              <td style="white-space:nowrap">${clientLink(c)}</td>
               <td style="white-space:nowrap">${c.created
-                ? new Date(c.created).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})
+                ? new Date(c.created).toLocaleDateString('en-AU',
+                    {day:'numeric',month:'short',year:'numeric'})
                 : '—'}</td>
-              <td><span style="font-weight:700;color:${c.age_hours>72?'var(--color-primary)':'var(--text-primary)'}">${fmtAge(c.age_hours)}</span></td>
+              <td><span style="font-weight:700;color:${c.age_hours>72
+                ?'var(--color-primary)':'var(--text-primary)'}">${fmtAge(c.age_hours)}</span></td>
               <td><span class="badge badge-grey">${c.stage || '—'}</span></td>
-              <td style="font-size:0.8rem;color:var(--text-secondary);max-width:300px">${c.description || '—'}</td>
+              <td style="font-size:0.82rem;color:var(--text-secondary);max-width:360px;line-height:1.5">
+                ${c.ai_summary || (c.description
+                  ? c.description.substring(0,100) + (c.description.length>100?'…':'')
+                  : '<em style="color:var(--text-muted)">No description provided</em>')}
+              </td>
             </tr>`).join('')}
         </tbody>
       </table>
     </div>`;
+}
 }
 
 </script>
