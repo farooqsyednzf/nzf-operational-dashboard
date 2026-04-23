@@ -2,7 +2,10 @@ name: Refresh Zoho CRM Data
 
 on:
   schedule:
-    - cron: '0 */6 * * *'   # Every 6 hours
+    - cron: '0 22 * * *'   # 8 AM AEST (UTC+10)
+    - cron: '0 2 * * *'    # 12 PM AEST
+    - cron: '0 6 * * *'    # 4 PM AEST
+    - cron: '0 11 * * *'   # 9 PM AEST
   workflow_dispatch:
     inputs:
       report:
