@@ -27,6 +27,9 @@ os.makedirs(DATA_DIR, exist_ok=True)
 RULES = zac.RULES
 
 _client_rules = RULES["client_definitions"]
+AI_MODEL      = RULES.get("ai", {}).get("model", "claude-sonnet-4-20250514")
+CRM_BASE_URL  = RULES.get("_meta", {}).get("zoho_crm_base_url", "")
+
 _dist_rules   = RULES["distributions"]
 _periods      = RULES["reporting_periods"]
 
@@ -204,7 +207,7 @@ Case data:
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-haiku-4-5-20251001",
+                "model": AI_MODEL,
                 "max_tokens": 1000,
                 "messages": [{"role": "user", "content": prompt}],
             },
@@ -271,7 +274,7 @@ Cases:
                 "content-type":      "application/json",
             },
             json={
-                "model":    "claude-haiku-4-5-20251001",
+                "model":    AI_MODEL,
                 "max_tokens": 2000,
                 "messages": [{"role": "user", "content": prompt}],
             },
@@ -393,6 +396,7 @@ def build_clients_report(token):
             gap_bands[band] += 1
 
             returning_cases.append({
+                "zoho_record_id":         c.get("id", ""),        # Zoho CRM record ID for deep links
                 "case_id":               case_id,
                 "client_id":             client_id,
                 "created":               c.get("created_time",""),
@@ -466,6 +470,7 @@ def build_clients_report(token):
             "current_month":          current_month,
             "previous_month":         previous_month,
             "same_instance_excluded": same_instance_count,
+            "crm_base_url":           CRM_BASE_URL,
         },
         "summary": {
             "new_clients_current_month":        new_curr,
