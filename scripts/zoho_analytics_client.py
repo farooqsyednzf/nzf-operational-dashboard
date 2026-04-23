@@ -105,6 +105,7 @@ def run_sql_query(token, sql, label="SQL", poll_interval=8, max_polls=20):
     return rows
 
 
+def fetch_view(token, view_id, label="view"):
     """
     Fetch an entire Analytics view/table as a list of dicts.
     Column names are normalised: lowercase, spaces → underscores.
