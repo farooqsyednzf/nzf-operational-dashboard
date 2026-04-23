@@ -5,7 +5,6 @@
     "max_tokens_analysis": 1000,
     "max_tokens_summaries": 2000
   },
-
   "_meta": {
     "description": "NZF Dashboard Business Rules — single source of truth for all dashboard logic. Update this file to change how any metric is defined. Python scripts import this directly. Upload this file to Claude project context so Claude always has NZF business definitions when building new dashboards.",
     "organisation": "National Zakat Foundation Australia",
@@ -16,23 +15,32 @@
     "last_updated": "2026-04-23",
     "maintained_by": "NZF Operations Team"
   },
-
   "zoho_modules": {
     "_description": "Mapping of NZF terms to Zoho CRM API module names. Zoho uses generic names; NZF has renamed them.",
-    "clients":       { "api_name": "Contacts",        "analytics_view_id": "1715382000001002492" },
-    "cases":         { "api_name": "Deals",            "analytics_view_id": "1715382000001002494" },
-    "distributions": { "api_name": "Purchase_Orders",  "analytics_view_id": "1715382000001002628" },
-    "notes":         { "api_name": "Notes",            "analytics_view_id": "1715382000012507001" },
+    "clients": {
+      "api_name": "Contacts",
+      "analytics_view_id": "1715382000001002492"
+    },
+    "cases": {
+      "api_name": "Deals",
+      "analytics_view_id": "1715382000001002494"
+    },
+    "distributions": {
+      "api_name": "Purchase_Orders",
+      "analytics_view_id": "1715382000001002628"
+    },
+    "notes": {
+      "api_name": "Notes",
+      "analytics_view_id": "1715382000012507001"
+    },
     "case_notes_joined": {
       "_description": "Pre-built Analytics query table — Cases + Distributions + Notes already joined",
       "analytics_view_id": "1715382000013839427",
       "view_name": "Cases x Distribution x Notes - All"
     }
   },
-
   "client_definitions": {
     "_description": "How clients are classified for reporting purposes",
-
     "new_client": {
       "definition": "A client whose case in the reporting window is their first ever case across all time — no prior cases of any status or outcome.",
       "logic": "Compare case Created Time against the earliest case date for that client across the full Cases table. If this case IS the earliest, the client is New.",
@@ -42,7 +50,6 @@
         "The full Cases table (not just the reporting window) must be used to determine first-ever case."
       ]
     },
-
     "returning_client": {
       "definition": "A client who has at least one prior case and has submitted a genuine new application — not a continuation of the same instance of assistance.",
       "logic": "Client has earlier cases on record AND the new case passes the same-instance exclusion checks.",
@@ -52,7 +59,6 @@
         "Same-instance cases (ILA payments, re-opened cases, follow-up instalments) are excluded from both New and Returning counts."
       ]
     },
-
     "same_instance_exclusions": {
       "_description": "Cases that are continuations of a previous assistance instance, not genuine new applications. These are excluded from both New and Returning counts.",
       "definition": "A case is same-instance if it represents ongoing, linked, or instalment-based assistance from a prior approval — not a new request for help.",
@@ -101,45 +107,12 @@
       ]
     }
   },
-
   "distributions": {
     "_description": "Rules for how distributions (payments to clients) are classified",
-
-    "paid_statuses": ["Paid", "Extracted"],
-
-    "paid_date_logic": {
-      "definition": "The effective payment date for a distribution.",
-      "rules": [
-        "If Status = 'Paid'      → use Paid Date field",
-        "If Status = 'Extracted' → use Extracted Date field",
-        "If the specific date field is blank → fall back to Created Time"
-      ],
-      "notes": "Some legacy distributions (pre-2019) may have blank date fields — Created Time is used as a proxy."
-    },
-
-    "last_assistance_date": {
-      "definition": "The date of a client's most recent completed payment, used to calculate how long they have been away before returning.",
-      "logic": "MAX(effective_paid_date) across all Paid or Extracted distributions for that client, where the date is before the new case's Created Time."
-    },
-
-    "return_gap_bands": {
-      "definition": "How time-since-last-assistance is grouped for reporting",
-      "bands": [
-        { "label": "< 1 month",   "days_from": 0,   "days_to": 29   },
-        { "label": "1–3 months",  "days_from": 30,  "days_to": 89   },
-        { "label": "3–6 months",  "days_from": 90,  "days_to": 179  },
-        { "label": "6–12 months", "days_from": 180, "days_to": 364  },
-        { "label": "1–2 years",   "days_from": 365, "days_to": 729  },
-        { "label": "2+ years",    "days_from": 730, "days_to": null  }
-      ]
-    }
-  },
-
-  "distributions": {
-    "_description": "Rules for how distributions (payments to clients) are classified",
-
-    "paid_statuses": ["Paid", "Extracted"],
-
+    "paid_statuses": [
+      "Paid",
+      "Extracted"
+    ],
     "paid_date_logic": {
       "definition": "The effective payment date for a distribution.",
       "rules": [
@@ -148,53 +121,96 @@
         "If the specific date field is blank → fall back to Created Time"
       ]
     },
-
     "amount_field": "grand_total",
     "_amount_note": "Grand Total field — contains AU$ prefix that must be stripped before parsing as float",
-
     "return_gap_bands": {
       "definition": "How time-since-last-assistance is grouped for reporting",
       "bands": [
-        { "label": "< 1 month",   "days_from": 0,   "days_to": 29   },
-        { "label": "1–3 months",  "days_from": 30,  "days_to": 89   },
-        { "label": "3–6 months",  "days_from": 90,  "days_to": 179  },
-        { "label": "6–12 months", "days_from": 180, "days_to": 364  },
-        { "label": "1–2 years",   "days_from": 365, "days_to": 729  },
-        { "label": "2+ years",    "days_from": 730, "days_to": null  }
+        {
+          "label": "< 1 month",
+          "days_from": 0,
+          "days_to": 29
+        },
+        {
+          "label": "1–3 months",
+          "days_from": 30,
+          "days_to": 89
+        },
+        {
+          "label": "3–6 months",
+          "days_from": 90,
+          "days_to": 179
+        },
+        {
+          "label": "6–12 months",
+          "days_from": 180,
+          "days_to": 364
+        },
+        {
+          "label": "1–2 years",
+          "days_from": 365,
+          "days_to": 729
+        },
+        {
+          "label": "2+ years",
+          "days_from": 730,
+          "days_to": null
+        }
       ]
     }
   },
-
   "case_performance": {
     "_description": "Rules for the Cases Performance dashboard — response time, closure time, SLA targets, automated note exclusions.",
-
     "sla_response": {
-      "_description": "Response SLA — time from case creation to first genuine caseworker note. P1 uses business hours only; P2-P4 use calendar hours.",
-      "P1": { "hours": 1,  "business_hours_only": true,  "display": "1 business hour"  },
-      "P2": { "hours": 48, "business_hours_only": false, "display": "2 days"            },
-      "P3": { "hours": 72, "business_hours_only": false, "display": "3 days"            },
-      "P4": { "hours": 72, "business_hours_only": false, "display": "3 days"            },
-      "P5": null,
+      "_description": "Response SLA — time from case creation to first genuine caseworker note.",
+      "P1": {
+        "hours": 4,
+        "business_hours_only": false,
+        "display": "4 hours"
+      },
+      "P2": {
+        "hours": 24,
+        "business_hours_only": false,
+        "display": "1 day"
+      },
+      "P3": {
+        "hours": 72,
+        "business_hours_only": false,
+        "display": "3 days"
+      },
+      "P4": {
+        "hours": 168,
+        "business_hours_only": false,
+        "display": "7 days"
+      },
       "No Priority": null
     },
-
     "sla_resolution": {
-      "_description": "Resolution SLA — time from case creation to first resolution event: EITHER case closure OR first paid/extracted distribution (whichever comes first). Calendar hours.",
-      "P1": { "hours": 24,  "display": "24 hours"  },
-      "P2": { "hours": 72,  "display": "3 days"    },
-      "P3": { "hours": 144, "display": "6 days"    },
-      "P4": { "hours": 240, "display": "10 days"   },
-      "P5": null,
+      "_description": "Resolution SLA — time from case creation to case closure or first paid distribution.",
+      "P1": {
+        "hours": 24,
+        "display": "24 hours"
+      },
+      "P2": {
+        "hours": 168,
+        "display": "7 days"
+      },
+      "P3": {
+        "hours": 336,
+        "display": "2 weeks"
+      },
+      "P4": {
+        "hours": 720,
+        "display": "1 month"
+      },
       "No Priority": null
     },
-
     "working_hours": {
       "start_hour": 9,
-      "end_hour":   17,
-      "timezone":   "Australia/Sydney",
+      "end_hour": 17,
+      "timezone": "Australia/Sydney",
       "_description": "Used for P1 response SLA only. Clock pauses outside 9AM–5PM Mon–Fri AEST."
     },
-
     "automated_note_titles": {
       "_description": "Note titles that represent system-generated or intake admin notes — NOT genuine caseworker actions. These are excluded from first-response time calculations. Add new patterns here as they are identified.",
       "exact_match": [
@@ -211,72 +227,80 @@
         "Application:"
       ]
     },
-
     "closed_stages": [
       "Closed - Funded",
       "Closed - Not Funded",
       "Closed - NO Response"
     ],
-
     "closure_outcome_colours": {
-      "Closed - Funded":      "#49A942",
-      "Closed - Not Funded":  "#EE3526",
+      "Closed - Funded": "#49A942",
+      "Closed - Not Funded": "#EE3526",
       "Closed - NO Response": "#FDB913"
     },
-
     "closure_outcome_short": {
-      "Closed - Funded":      "Funded",
-      "Closed - Not Funded":  "Not Funded",
+      "Closed - Funded": "Funded",
+      "Closed - Not Funded": "Not Funded",
       "Closed - NO Response": "No Response"
     },
-
     "trend_comparison_months": 3,
     "_trend_note": "Number of months used for trend comparison (last N vs prior N months)"
   },
-
   "case_priorities": {
     "_description": "Normalisation rules for the Case Urgency field. Raw values in Zoho CRM are inconsistent — these prefix matches normalise them to clean labels for reporting.",
-
     "classification_guide": {
       "_description": "Used by AI to assess whether priority assignments match case descriptions.",
-      "P1": "Same-day crisis: client homeless tonight, no food today, medical emergency, eviction notice for today, utility disconnection with immediate health risk, family with children in immediate danger. Domestic violence is P1 ONLY when the client is currently experiencing abuse, is in active danger, or faces imminent homelessness/removal from their home as a direct result — historical DV without current danger should be assessed under normal priority rules.",
-      "P2": "Urgent 1-3 days: imminent eviction, utility disconnection notice, rent arrears with landlord threatening action, single parent with children in financial crisis, upcoming medical procedure with no funds.",
-      "P3": "Significant hardship 4-6 days: general financial hardship, food insecurity not immediately acute, bills overdue but not at disconnection, employment loss, general rental stress.",
-      "P4": "Moderate hardship 7-10 days: general assistance request, planning ahead for upcoming bills, non-urgent support.",
-      "P5": "Non-urgent 6-14 days: general enquiry, documentation support, planning assistance.",
-      "No Priority": "Priority not yet assigned - should be assigned within 24 hours of application."
+      "P1": "24-hour turnaround. Critical Risk — Life-Threatening Needs: homelessness or immediate risk of rough sleeping, urgent food assistance, emergency medication needs, funeral/burial costs, other urgent emergencies impacting survival or safety. Domestic violence is P1 ONLY when the client is currently experiencing active abuse, is in immediate danger, or faces imminent homelessness as a direct result — historical DV without current danger should follow normal priority rules.",
+      "P2": "2-7 day turnaround. High Risk of Harm Within Days: imminent eviction (within days), emergency or essential utility disconnection (gas, electricity), basic necessities at crisis level (baby formula, heating, hygiene), single parent with children in acute financial crisis, rent arrears with landlord threatening immediate action.",
+      "P3": "2-week turnaround. Moderate Risk — Stable to Short Term: no immediate impact in next 14 days, financial support or bills that are manageable temporarily, general financial hardship, food insecurity not immediately acute, employment loss, general rental stress.",
+      "P4": "1-month turnaround. Low Risk — Long-Term/Deferred Needs: long-term debt repayment, non-essential bills or expenses not affecting client in the next month, general assistance planning, documentation support, non-urgent enquiries.",
+      "No Priority": "Priority not yet assigned — should be assigned within 24 hours of application."
     },
-
     "unprioritized_alert_hours": 24,
-
     "prefix_map": [
-      { "prefix": "PRIORITY 1", "label": "P1", "display": "P1 — Same Day"     },
-      { "prefix": "PRIORITY 2", "label": "P2", "display": "P2 — 1–3 Days"     },
-      { "prefix": "PRIORITY 3", "label": "P3", "display": "P3 — 4–6 Days"     },
-      { "prefix": "PRIORITY 4", "label": "P4", "display": "P4 — 7–10 Days"    },
-      { "prefix": "PRIORITY 5", "label": "P5", "display": "P5 — 6–14 Days"    }
+      {
+        "prefix": "PRIORITY 1",
+        "label": "P1",
+        "display": "P1 — 24 Hours"
+      },
+      {
+        "prefix": "PRIORITY 2",
+        "label": "P2",
+        "display": "P2 — 2-7 Days"
+      },
+      {
+        "prefix": "PRIORITY 3",
+        "label": "P3",
+        "display": "P3 — 2 Weeks"
+      },
+      {
+        "prefix": "PRIORITY 4",
+        "label": "P4",
+        "display": "P4 — 1 Month"
+      }
     ],
     "no_priority_label": "No Priority",
-    "order": ["P1","P2","P3","P4","P5","No Priority"],
+    "order": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "No Priority"
+    ],
     "colours": {
-      "P1":          "#EE3526",
-      "P2":          "#E8732A",
-      "P3":          "#FDB913",
-      "P4":          "#0081C6",
-      "P5":          "#49A942",
+      "P1": "#EE3526",
+      "P2": "#E8732A",
+      "P3": "#FDB913",
+      "P4": "#49A942",
       "No Priority": "#9F9393"
     }
   },
-
   "case_stages": {
     "_description": "Zoho CRM case stage definitions and groupings for reporting",
-
     "closed_stages": [
       "Closed - Funded",
       "Closed - Not Funded",
       "Closed - NO Response"
     ],
-
     "active_stages": [
       "Intake",
       "Ready for Allocation",
@@ -289,17 +313,37 @@
       "Funding",
       "Post Funding - Follow Up"
     ],
-
     "stage_groups": {
       "_description": "Logical groupings of stages for dashboard summaries",
-      "intake":      ["Intake", "Ready for Allocation", "Ready for Allocation: Potential Fast Track"],
-      "assessment":  ["Allocated", "Assesment", "Follow Up", "Waiting On Client"],
-      "approval":    ["TL Approval", "NM Approval", "SDM Reviewed", "CEO Approval", "COO Approval"],
-      "funding":     ["Funding", "Ongoing Funding"],
-      "closed":      ["Closed - Funded", "Closed - Not Funded", "Closed - NO Response"]
+      "intake": [
+        "Intake",
+        "Ready for Allocation",
+        "Ready for Allocation: Potential Fast Track"
+      ],
+      "assessment": [
+        "Allocated",
+        "Assesment",
+        "Follow Up",
+        "Waiting On Client"
+      ],
+      "approval": [
+        "TL Approval",
+        "NM Approval",
+        "SDM Reviewed",
+        "CEO Approval",
+        "COO Approval"
+      ],
+      "funding": [
+        "Funding",
+        "Ongoing Funding"
+      ],
+      "closed": [
+        "Closed - Funded",
+        "Closed - Not Funded",
+        "Closed - NO Response"
+      ]
     }
   },
-
   "reporting_periods": {
     "_description": "Standard time windows used across all reports",
     "client_report_window_months": 14,
@@ -307,7 +351,6 @@
     "pipeline_window_months": 13,
     "distribution_history_years": 7
   },
-
   "zakat_categories": {
     "_description": "The eight Quranic categories of Zakat eligibility used by NZF",
     "categories": [
@@ -321,12 +364,14 @@
       "Zakat Collector (Amileen)"
     ]
   },
-
   "dashboard_notes": {
     "_description": "Context for Claude when building or modifying dashboards",
     "brand_guide": "See NZF_WebsiteFigma_Brand.png in project files for colours, typography and component styles.",
     "primary_colour": "#EE3526",
-    "fonts": { "headings": "Bree Serif", "body": "Cambay" },
+    "fonts": {
+      "headings": "Bree Serif",
+      "body": "Cambay"
+    },
     "currency": "AUD",
     "timezone": "AEST / AEDT (Australia/Sydney)",
     "audience": "NZF internal caseworkers, team leads and management — not public-facing",
