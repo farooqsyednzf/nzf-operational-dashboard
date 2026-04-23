@@ -51,6 +51,11 @@
           <div class="dashboard-card-title">Cases Performance</div>
           <div class="dashboard-card-desc">Response SLA and Resolution SLA by priority — with business-hours tracking for P1. Closure time, funding rate and backlog health.</div>
         </a>
+        <a href="/dashboards/cases_priority.html" class="dashboard-card" style="--card-color:var(--color-primary);">
+          <div class="dashboard-card-section">Cases</div>
+          <div class="dashboard-card-title">Case Priority Intelligence</div>
+          <div class="dashboard-card-desc">Live CRM data — AI accuracy analysis, misclassified cases and unassigned P1/P2 alerts. Treat this data as near real-time.</div>
+        </a>
       </div>
 
       <!-- ── DISTRIBUTIONS ──────────────────────────────────── -->
@@ -101,7 +106,8 @@ async function loadDataStatus() {
   const el = document.getElementById('data-status');
   const datasets = [
     { label:'Client Report',      file:'/data/clients.json',      href:'/dashboards/clients.html',      source:'Analytics'            },
-    { label:'Cases Report',       file:'/data/cases.json',         href:'/dashboards/cases.html',        source:'Analytics + Live CRM' },
+    { label:'Cases Report',       file:'/data/cases.json',         href:'/dashboards/cases.html',        source:'Analytics'            },
+    { label:'Case Priority Intel',file:'/data/cases.json',         href:'/dashboards/cases_priority.html',source:'Analytics + Live CRM' },
     { label:'Cases Performance',  file:'/data/cases_perf.json',    href:'/dashboards/cases_perf.html',   source:'Analytics'            },
     { label:'Distributions',      file:'/data/distributions.json', href:'/dashboards/distributions.html',source:'Analytics'            },
   ];
