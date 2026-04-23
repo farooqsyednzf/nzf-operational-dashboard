@@ -317,13 +317,21 @@ def build_cases_report(token):
     cutoff_30d    = datetime.now(timezone.utc) - timedelta(days=30)
     recent_sample = [
         {
-            "case_id":     c.get("case_id") or c.get("case-id", ""),
-            "priority":    normalise_priority(c.get("case_urgency", "")),
-            "description": (c.get("description") or "").strip(),
+            "case_id":        c.get("case_id") or c.get("case-id", ""),
+            "zoho_record_id": c.get("id", ""),
+            "priority":       normalise_priority(c.get("case_urgency", "")),
+            "description":    (c.get("description") or "").strip(),
         }
         for c, dt in window_cases
         if dt >= cutoff_30d and (c.get("description") or "").strip()
     ]
+
+    # Lookup: case_id → zoho_record_id (for CRM deep links in the HTML)
+    case_id_lookup = {
+        s["case_id"]: s["zoho_record_id"]
+        for s in recent_sample if s["case_id"] and s["zoho_record_id"]
+    }
+
     print(f"  Cases for AI review: {len(recent_sample):,} (last 30 days with descriptions)")
     ai_analysis = run_priority_analysis(recent_sample)
 
@@ -359,7 +367,8 @@ def build_cases_report(token):
                 "count":           len(unprioritized),
                 "cases":           unprioritized,
             },
-            "ai_analysis": ai_analysis,
+            "case_id_lookup": case_id_lookup,
+            "ai_analysis":    ai_analysis,
         },
     }
 
