@@ -19,8 +19,9 @@ const NAV_ITEMS = [
   {
     section: "Cases",
     items: [
-      { label: "Cases Report",       href: "/dashboards/cases.html",      icon: "chart"    },
-      { label: "Cases Performance",  href: "/dashboards/cases_perf.html", icon: "pipeline" },
+      { label: "Cases Report",              href: "/dashboards/cases.html",          icon: "chart"    },
+      { label: "Cases Performance",         href: "/dashboards/cases_perf.html",     icon: "pipeline" },
+      { label: "Case Priority Intelligence",href: "/dashboards/cases_priority.html", icon: "priority" },
     ]
   },
   {
@@ -37,7 +38,7 @@ const ICONS = {
   pipeline:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
   chart:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
   distributions: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/><path d="M16 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M8 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg>`,
-  activity:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  priority:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
 };
 
 function renderNav(pageTitle) {
