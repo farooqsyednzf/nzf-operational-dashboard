@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Case Priority Intelligence — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <style>
+    .section-divider {
+      display:flex; align-items:center; gap:14px; margin:32px 0 20px;
+    }
+    .section-divider-bar {
+      width:4px; height:28px; border-radius:2px;
+      background:var(--section-color,var(--color-primary)); flex-shrink:0;
+    }
+    .section-divider h2 {
+      font-family:'Bree Serif',serif; font-size:1.2rem;
+      font-weight:400; color:var(--text-primary);
+    }
+    .section-divider p {
+      font-family:'Cambay',sans-serif; font-size:0.8rem;
+      color:var(--text-muted); margin-top:2px;
+    }
+
+    .alert-banner {
+      display:flex; align-items:center; gap:12px;
+      padding:14px 20px; border-radius:var(--radius-lg);
+      margin-bottom:16px; font-family:'Cambay',sans-serif;
+    }
+    .alert-banner.alert { background:rgba(238,53,38,0.08); border:1px solid rgba(238,53,38,0.25); }
+    .alert-banner.warn  { background:rgba(253,185,19,0.1);  border:1px solid rgba(253,185,19,0.4);  }
+    .alert-banner.ok    { background:rgba(73,169,66,0.08);  border:1px solid rgba(73,169,66,0.3);   }
+    .alert-icon { font-size:1.2rem; flex-shrink:0; }
+    .alert-text { font-size:0.88rem; color:var(--text-primary); }
+    .alert-text strong { font-weight:700; }
+
+    .quality-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 12px; border-radius:20px;
+      font-family:'Cambay',sans-serif; font-size:0.78rem; font-weight:700;
+    }
+    .quality-badge.good { background:rgba(73,169,66,0.12);  color:#2d7a27; }
+    .quality-badge.fair { background:rgba(253,185,19,0.15); color:#7a5c00; }
+    .quality-badge.poor { background:rgba(238,53,38,0.1);   color:var(--color-primary); }
+
+    .ai-summary-text {
+      font-family:'Cambay',sans-serif; font-size:0.88rem;
+      color:var(--text-secondary); line-height:1.6; margin-bottom:16px;
+    }
+    .ai-patterns { font-family:'Cambay',sans-serif; font-size:0.82rem; color:var(--text-muted); }
+    .ai-patterns li { margin-bottom:4px; }
+    .generated-note {
+      font-family:'Cambay',sans-serif; font-size:0.72rem; color:var(--text-muted);
+      margin-top:16px; padding-top:12px; border-top:1px solid var(--border-subtle);
+    }
+
+    /* Stage badge variants */
+    .badge-stage-active        { background:rgba(0,129,198,0.08);  color:#005a8e; border:1px solid rgba(0,129,198,0.25); }
+    .badge-stage-pending       { background:rgba(253,185,19,0.1);  color:#7a5c00; border:1px solid rgba(253,185,19,0.35); }
+    .badge-stage-closed-funded { background:rgba(73,169,66,0.12);  color:#2d7a27; border:1px solid rgba(73,169,66,0.3); }
+    .badge-stage-closed-other  { background:rgba(238,53,38,0.08);  color:var(--color-primary); border:1px solid rgba(238,53,38,0.2); }
+
+    /* Data source badge */
+    .live-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(73,169,66,0.1); border:1px solid rgba(73,169,66,0.3);
+      color:#2d7a27; font-family:'Cambay',sans-serif;
+      font-size:0.7rem; font-weight:700; padding:3px 10px;
+      border-radius:20px; margin-left:8px;
+    }
+    .live-badge::before {
+      content:''; display:inline-block; width:6px; height:6px;
+      border-radius:50%; background:#2d7a27;
+      animation:pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; } 50% { opacity:0.3; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="draft-disclaimer">All dashboards are in draft stage and data may not be accurate. For questions contact <a href="mailto:farooq.syed@nzf.org.au">Farooq</a>.</div>
+    <div class="page-content">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Case Priority Intelligence
+            <span class="live-badge">Live CRM</span>
+          </h1>
+          <p>
+            AI-powered priority accuracy analysis and unassigned case alerts.
+            Data sourced directly from Zoho CRM — not subject to Analytics sync delay.
+          </p>
+        </div>
+        <div id="refreshed-label" style="text-align:right;"></div>
+      </div>
+
+      <!-- ── ALERT BANNER ──────────────────────────────────────── -->
+      <div id="unprioritized-banner"></div>
+
+      <!-- ── AI ACCURACY ANALYSIS ─────────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-blue);margin-top:8px;">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Priority Accuracy Analysis</h2>
+          <p>AI review of case descriptions vs assigned priorities — last 30 days, live CRM data</p>
+        </div>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:20px;">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-card-title">Quality Assessment</div>
+            <div class="chart-card-subtitle">Overall quality of priority assignment across recently submitted cases</div>
+          </div>
+          <span id="ai-quality-badge"></span>
+        </div>
+        <div id="ai-priority-analysis" style="padding:20px;">
+          <div class="loading-overlay"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- ── CASES REQUIRING ATTENTION ────────────────────────── -->
+      <div class="section-divider" style="--section-color:var(--color-primary);">
+        <div class="section-divider-bar"></div>
+        <div>
+          <h2>Cases Requiring Attention</h2>
+          <p>
+            Potential P1 and P2 cases from the last 30 days — misclassified cases and unassigned cases.
+            Sorted by flag severity, then newest first within each group.
+          </p>
+        </div>
+      </div>
+
+      <div id="attention-table-wrap">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+const C = {
+  red:'#EE3526', blue:'#0081C6', yellow:'#FDB913',
+  green:'#49A942', grey:'#9F9393',
+};
+
+function fmt(n) {
+  if (n===null||n===undefined) return '—';
+  return Number(n).toLocaleString('en-AU',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+function fmtAge(hours) {
+  if (!hours && hours !== 0) return '—';
+  if (hours < 48) return `${Math.round(hours)}h`;
+  return `${(hours/24).toFixed(1)}d`;
+}
+
+// ── Main ─────────────────────────────────────────────────────────
+(async () => {
+  await requireAuth();
+  renderNav("Case Priority Intelligence");
+
+  let data;
+  try {
+    const _ctl   = new AbortController();
+    const _timer = setTimeout(() => _ctl.abort(), 8000);
+    let res;
+    try { res = await fetch('/data/cases.json', { signal: _ctl.signal }); }
+    finally { clearTimeout(_timer); }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+    window.__NZF_META = data.meta;
+  } catch(e) {
+    document.getElementById('unprioritized-banner').innerHTML =
+      `<div style="padding:20px;font-family:'Cambay';color:var(--text-muted)">
+        cases.json not yet available. Run the data refresh action.
+       </div>`;
+    return;
+  }
+
+  // Refresh timestamp
+  if (data.meta?.last_updated) {
+    document.getElementById('refreshed-label').innerHTML = `
+      <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Data as of</div>
+      <div style="font-family:'Bree Serif';font-size:0.9rem;color:var(--text-primary)">${new Date(data.meta.last_updated).toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`;
+  }
+
+  const pi = data.priority_intelligence;
+  if (!pi) {
+    document.getElementById('unprioritized-banner').innerHTML =
+      `<div style="padding:20px;font-family:'Cambay';color:var(--text-muted)">
+        Priority intelligence data not available in this version of cases.json. Re-run the data refresh.
+       </div>`;
+    return;
+  }
+
+  renderBanner(pi);
+  renderAIAnalysis(pi.ai_analysis, pi.combined_cases);
+  renderAttentionTable(pi.combined_cases || []);
+})();
+
+// ── Banner ────────────────────────────────────────────────────────
+function renderBanner(pi) {
+  const el         = document.getElementById('unprioritized-banner');
+  const unassigned = pi.unprioritized_count ?? 0;
+  const flagged    = pi.flagged_count ?? 0;
+  const total      = (pi.combined_cases || []).length;
+
+  if (unassigned === 0 && flagged === 0) {
+    el.innerHTML = `
+      <div class="alert-banner ok">
+        <span class="alert-icon">&#10003;</span>
+        <span class="alert-text">All recent cases have been assigned a priority and no misclassifications detected.</span>
+      </div>`;
+    return;
+  }
+
+  const parts = [];
+  if (flagged > 0)    parts.push(`<strong>${flagged} case${flagged!==1?'s':''} flagged</strong> as potentially misclassified`);
+  if (unassigned > 0) parts.push(`<strong>${unassigned} case${unassigned!==1?'s':''}</strong> open without a priority for more than 24 hours`);
+
+  const cls = (flagged > 0 || unassigned > 5) ? 'alert' : 'warn';
+  el.innerHTML = `
+    <div class="alert-banner ${cls}">
+      <span class="alert-icon">&#9888;</span>
+      <span class="alert-text">${parts.join(' &mdash; ')}.
+        Showing ${total} cases requiring attention below.
+      </span>
+    </div>`;
+}
+
+// ── AI Analysis card ──────────────────────────────────────────────
+function renderAIAnalysis(analysis, combinedCases) {
+  const el    = document.getElementById('ai-priority-analysis');
+  const badge = document.getElementById('ai-quality-badge');
+
+  if (!analysis) {
+    el.innerHTML = `
+      <p style="font-family:'Cambay';font-size:0.85rem;color:var(--text-muted)">
+        AI analysis will appear after the next data refresh once
+        <code>ANTHROPIC_API_KEY</code> is set in GitHub secrets.
+      </p>`;
+    return;
+  }
+
+  const score    = (analysis.quality_score || '').toLowerCase();
+  const badgeMap = {
+    good: { cls:'good', icon:'&#10003;', label:'Good'            },
+    fair: { cls:'fair', icon:'&#9654;',  label:'Fair'            },
+    poor: { cls:'poor', icon:'!',        label:'Needs Attention' },
+  };
+  const b = badgeMap[score] || badgeMap.fair;
+  badge.innerHTML = `<span class="quality-badge ${b.cls}">${b.icon} ${b.label}</span>`;
+
+  const flagged  = (combinedCases||[]).filter(c => c.flag_type === 'misclassified').length;
+  const patterns = analysis.patterns || [];
+
+  const flagNote = flagged > 0
+    ? `<p style="font-family:'Cambay';font-size:0.82rem;color:var(--text-muted);margin-top:8px">
+        ${flagged} potential misclassification${flagged!==1?'s':''} detected &mdash; see the table below.</p>`
+    : `<p style="font-family:'Cambay';font-size:0.82rem;color:var(--text-muted);margin-top:8px">
+        No significant misclassifications detected in recent cases.</p>`;
+
+  const patternsHtml = patterns.length
+    ? `<div style="margin-top:12px;">
+        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px;">Patterns Observed</div>
+        <ul class="ai-patterns">${patterns.map(p => `<li>${p}</li>`).join('')}</ul>
+       </div>`
+    : '';
+
+  el.innerHTML = `
+    <p class="ai-summary-text">${analysis.quality_summary || ''}</p>
+    ${patternsHtml}
+    ${flagNote}
+    <div class="generated-note">
+      Analysis of ${analysis.total_reviewed || 0} cases from the last 30 days (live CRM) &mdash;
+      Generated: ${analysis.generated_at
+        ? new Date(analysis.generated_at).toLocaleString('en-AU',
+            {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+        : 'unknown'}
+    </div>`;
+}
+
+// ── Cases Requiring Attention table ──────────────────────────────
+function renderAttentionTable(cases) {
+  const wrap = document.getElementById('attention-table-wrap');
+
+  if (!cases || cases.length === 0) {
+    wrap.innerHTML = `
+      <div class="chart-card" style="padding:24px;font-family:'Cambay';color:var(--text-muted)">
+        No cases requiring attention at this time.
+      </div>`;
+    return;
+  }
+
+  const crmBase    = window.__NZF_META?.crm_base_url || '';
+  const priColours = {
+    P1:'#EE3526', P2:'#E8732A', P3:'#FDB913',
+    P4:'#0081C6', P5:'#49A942',
+    'No Priority':'#9F9393', 'Assign Priority':'#9F9393',
+  };
+
+  function priPill(p) {
+    const col = priColours[p] || '#9F9393';
+    return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;
+      background:${col}20;border:1px solid ${col}60;
+      font-family:'Cambay';font-size:0.72rem;font-weight:700;
+      color:${col};white-space:nowrap">${p || '—'}</span>`;
+  }
+
+  function flagBadge(c) {
+    const sev   = (c.flag_severity || 'low').toLowerCase();
+    const col   = sev==='high'?'#c0392b':sev==='medium'?'#7a5c00':'#555';
+    const bg    = sev==='high'?'rgba(238,53,38,0.1)':sev==='medium'?'rgba(253,185,19,0.12)':'rgba(159,147,147,0.1)';
+    const label = sev.charAt(0).toUpperCase() + sev.slice(1);
+    return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;
+      background:${bg};border:1px solid ${col}40;
+      font-family:'Cambay';font-size:0.7rem;font-weight:700;
+      color:${col};white-space:nowrap">${label}</span>`;
+  }
+
+  function caseLink(c) {
+    const label = c.case_id || '—';
+    return crmBase && c.zoho_record_id
+      ? `<a href="${crmBase}/Potentials/${c.zoho_record_id}" target="_blank" rel="noopener"
+          style="color:var(--color-primary);font-weight:700;font-size:0.85rem;text-decoration:none"
+          title="Open in CRM">${label} &#8599;</a>`
+      : `<span style="font-weight:700;color:var(--color-primary);font-size:0.85rem">${label}</span>`;
+  }
+
+  function clientLink(c) {
+    const id = c.client_id || '';
+    if (!id) return '—';
+    return crmBase
+      ? `<a href="${crmBase}/Contacts/${id}" target="_blank" rel="noopener"
+          style="font-size:0.8rem;color:var(--color-blue);text-decoration:none"
+          title="Open client in CRM">${id.slice(-6)} &#8599;</a>`
+      : `<span style="font-size:0.8rem">${id.slice(-6)}</span>`;
+  }
+
+  function stagePill(stage) {
+    const s = (stage || '').toLowerCase();
+    let cls;
+    if (s === 'closed - funded')     cls = 'badge-stage-closed-funded';
+    else if (s.startsWith('closed')) cls = 'badge-stage-closed-other';
+    else if (['intake','interview','allocated','ready for allocation',
+              'funding','ongoing funding','assessment','assesment'].some(v => s.includes(v)))
+                                     cls = 'badge-stage-active';
+    else                             cls = 'badge-stage-pending';
+    return `<span class="badge ${cls}">${stage || '—'}</span>`;
+  }
+
+  // Count by type for subtitle
+  const nMisclassified = cases.filter(c => c.flag_type === 'misclassified').length;
+  const nUnassigned    = cases.filter(c => c.flag_type === 'unassigned').length;
+
+  wrap.innerHTML = `
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Cases Requiring Attention</div>
+          <div class="chart-card-subtitle">
+            ${cases.length} cases &mdash;
+            ${nMisclassified} misclassified (P1/P2 suggested),
+            ${nUnassigned} unassigned &mdash;
+            last 30 days, sorted by severity then newest first
+          </div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Case ID</th>
+            <th>Client ID</th>
+            <th>Created</th>
+            <th>Current Priority</th>
+            <th>Flag</th>
+            <th>Potential Priority</th>
+            <th>Stage</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${cases.map(c => `
+            <tr>
+              <td style="white-space:nowrap">${caseLink(c)}</td>
+              <td style="white-space:nowrap">${clientLink(c)}</td>
+              <td style="white-space:nowrap;font-size:0.82rem">${c.created
+                ? new Date(c.created).toLocaleDateString('en-AU',
+                    {day:'numeric',month:'short',year:'numeric'})
+                : '—'}</td>
+              <td>${priPill(c.assigned_priority)}</td>
+              <td>${flagBadge(c)}</td>
+              <td>${priPill(c.suggested_priority)}</td>
+              <td>${stagePill(c.stage)}</td>
+              <td style="font-size:0.8rem;color:var(--text-secondary);max-width:300px;line-height:1.5">
+                ${c.ai_summary || '—'}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+</script>
+</body>
+</html>
