@@ -48,7 +48,63 @@ def get_access_token():
     return token
 
 # ── Core fetch ────────────────────────────────────────────────────
-def fetch_view(token, view_id, label="view"):
+def run_sql_query(token, sql, label="SQL", poll_interval=8, max_polls=20):
+    """
+    Execute an arbitrary SQL query against Zoho Analytics via the async export job API.
+    Returns a list of dicts (column names are NOT normalised — kept as-is from CSV headers
+    but stripped of the 'alias.' prefix added by the SQL engine e.g. 'd.Distribution ID'
+    becomes 'dist_id' if aliased in the query, otherwise 'd.Distribution ID').
+
+    Uses the same create → poll → download pattern as the standalone dashboard.
+    """
+    import time
+    headers = {
+        "Authorization":    f"Zoho-oauthtoken {token}",
+        "ZANALYTICS-ORGID": ORG_ID,
+    }
+    base_ws = f"{ANALYTICS_BASE}/workspaces/{WORKSPACE_ID}"
+
+    # Step 1 — Create export job
+    config  = json.dumps({"sqlQuery": sql, "responseFormat": "csv"})
+    res     = requests.post(
+        f"{base_ws}/exportjobs",
+        headers=headers,
+        params={"CONFIG": config},
+    )
+    if not res.ok:
+        raise RuntimeError(f"[{label}] Export job create failed {res.status_code}: {res.text[:300]}")
+    job_id = res.json().get("data", {}).get("jobId")
+    if not job_id:
+        raise RuntimeError(f"[{label}] No jobId in response: {res.text[:200]}")
+    print(f"  [{label}] Export job created: {job_id}")
+
+    # Step 2 — Poll until complete
+    for attempt in range(1, max_polls + 1):
+        time.sleep(poll_interval)
+        r = requests.get(f"{base_ws}/exportjobs/{job_id}", headers=headers)
+        if not r.ok:
+            raise RuntimeError(f"[{label}] Poll failed {r.status_code}")
+        info     = r.json().get("data", {})
+        job_code = info.get("jobCode")
+        if job_code == 1004:   # JOB COMPLETED
+            print(f"  [{label}] Job complete (attempt {attempt})")
+            break
+        if job_code in (1003, 1005):
+            raise RuntimeError(f"[{label}] Job failed: {info}")
+    else:
+        raise RuntimeError(f"[{label}] Job did not complete after {max_polls} polls")
+
+    # Step 3 — Download
+    dl = requests.get(f"{base_ws}/exportjobs/{job_id}/data", headers=headers)
+    if not dl.ok:
+        raise RuntimeError(f"[{label}] Download failed {dl.status_code}: {dl.text[:200]}")
+
+    # Step 4 — Parse CSV with alias-aware column names
+    rows = _parse_csv(dl.text)
+    print(f"  [{label}] {len(rows):,} rows returned")
+    return rows
+
+
     """
     Fetch an entire Analytics view/table as a list of dicts.
     Column names are normalised: lowercase, spaces → underscores.
