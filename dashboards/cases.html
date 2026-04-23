@@ -498,39 +498,39 @@ function renderPriorityTrendChart(data) {
 function renderPriorityIntelligence(data) {
   const pi = data.priority_intelligence;
   if (!pi) return;
-
-  renderUnprioritizedBanner(pi.unprioritized_alert);
-  renderAIAnalysis(pi.ai_analysis, pi.case_id_lookup || {});
-  renderUnprioritizedTable(pi.unprioritized_alert);
+  renderUnprioritizedBanner(pi);
+  renderAIAnalysis(pi.ai_analysis, pi.combined_cases);
+  renderCombinedTable(pi.combined_cases || []);
 }
 
-function renderUnprioritizedBanner(alert) {
-  const el    = document.getElementById('unprioritized-banner');
-  const count = alert?.count ?? 0;
-  const hrs   = alert?.threshold_hours ?? 24;
+function renderUnprioritizedBanner(pi) {
+  const el     = document.getElementById('unprioritized-banner');
+  const unassigned = pi.unprioritized_count ?? 0;
+  const flagged    = pi.flagged_count ?? 0;
+  const total      = (pi.combined_cases || []).length;
 
-  if (count === 0) {
+  if (unassigned === 0 && flagged === 0) {
     el.innerHTML = `
       <div class="alert-banner ok">
         <span class="alert-icon">&#10003;</span>
-        <span class="alert-text">All recent cases have been assigned a priority within ${hrs} hours.</span>
+        <span class="alert-text">All recent cases have been assigned a priority and no misclassifications detected.</span>
       </div>`;
     return;
   }
 
-  const cls = count > 10 ? 'alert' : 'warn';
+  const parts = [];
+  if (flagged > 0)    parts.push(`<strong>${flagged} case${flagged!==1?'s':''} flagged</strong> as potentially misclassified`);
+  if (unassigned > 0) parts.push(`<strong>${unassigned} case${unassigned!==1?'s':''}</strong> with no priority assigned for >24 hours`);
+
+  const cls = (flagged > 0 || unassigned > 10) ? 'alert' : 'warn';
   el.innerHTML = `
     <div class="alert-banner ${cls}">
-      <span class="alert-icon">${cls === 'alert' ? '&#9888;' : '&#9888;'}</span>
-      <span class="alert-text">
-        <strong>${count} case${count !== 1 ? 's' : ''} have not been assigned a priority
-        within ${hrs} hours of application.</strong>
-        These require immediate attention from a caseworker.
-      </span>
+      <span class="alert-icon">&#9888;</span>
+      <span class="alert-text">${parts.join(' &mdash; ')}. Showing top ${total} below.</span>
     </div>`;
 }
 
-function renderAIAnalysis(analysis, caseIdLookup) {
+function renderAIAnalysis(analysis, combinedCases) {
   const el    = document.getElementById('ai-priority-analysis');
   const badge = document.getElementById('ai-quality-badge');
 
@@ -552,48 +552,17 @@ function renderAIAnalysis(analysis, caseIdLookup) {
   const b = badgeMap[score] || badgeMap.fair;
   badge.innerHTML = `<span class="quality-badge ${b.cls}">${b.icon} ${b.label}</span>`;
 
-  const flags    = analysis.flags || [];
+  const flags    = (combinedCases || []).filter(c => c.flag_type === 'misclassified').length;
   const patterns = analysis.patterns || [];
 
-  const flagsHtml = flags.length === 0
-    ? `<p style="font-family:'Cambay';font-size:0.85rem;color:var(--text-muted)">No significant misclassifications detected.</p>`
-    : `<div style="margin-top:12px;">
-        <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px;">
-          Flagged Cases (${flags.length})
-        </div>
-        ${flags.map(f => {
-          const sev = (f.severity || 'medium').toLowerCase();
-          const priColours = {P1:'#EE3526',P2:'#E8732A',P3:'#FDB913',P4:'#0081C6',P5:'#49A942','No Priority':'#9F9393'};
-          const priPill = p => `<span style="display:inline-block;padding:1px 8px;border-radius:12px;
-            background:${priColours[p]||'#ccc'}20;border:1px solid ${priColours[p]||'#ccc'}60;
-            font-family:'Cambay';font-size:0.72rem;font-weight:700;color:${priColours[p]||'#666'}">${p}</span>`;
-          const crmBase   = window.__NZF_META?.crm_base_url || '';
-          const zohoId    = (caseIdLookup || {})[f.case_id] || '';
-          const idDisplay = crmBase && zohoId
-            ? `<a href="${crmBase}/Potentials/${zohoId}" target="_blank" rel="noopener"
-                style="color:var(--color-primary);font-weight:700;font-size:0.82rem;text-decoration:none"
-                title="Open in CRM">${f.case_id} &#8599;</a>`
-            : `<span class="flag-case-id">${f.case_id}</span>`;
-          return `
-            <div class="flag-card ${sev}">
-              <div class="flag-row">
-                ${idDisplay}
-                ${priPill(f.assigned_priority)}
-                <span class="flag-arrow">&#8594;</span>
-                ${priPill(f.suggested_priority)}
-                <span style="font-family:'Cambay';font-size:0.7rem;font-weight:700;
-                  text-transform:uppercase;letter-spacing:.04em;
-                  color:${sev==='high'?'var(--color-primary)':sev==='medium'?'#7a5c00':'var(--text-muted)'}">
-                  ${f.severity}
-                </span>
-              </div>
-              <div class="flag-reason">${f.reason}</div>
-            </div>`;
-        }).join('')}
-      </div>`;
+  const flagNote = flags > 0
+    ? `<p style="font-family:'Cambay';font-size:0.82rem;color:var(--text-muted);margin-top:8px">
+        ${flags} potential misclassification${flags!==1?'s':''} detected &mdash; see the cases table below.</p>`
+    : `<p style="font-family:'Cambay';font-size:0.82rem;color:var(--text-muted);margin-top:8px">
+        No significant misclassifications detected in recent cases.</p>`;
 
   const patternsHtml = patterns.length
-    ? `<div style="margin-top:16px;">
+    ? `<div style="margin-top:12px;">
         <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px;">Patterns Observed</div>
         <ul class="ai-patterns">${patterns.map(p => `<li>${p}</li>`).join('')}</ul>
        </div>`
@@ -602,9 +571,9 @@ function renderAIAnalysis(analysis, caseIdLookup) {
   el.innerHTML = `
     <p class="ai-summary-text">${analysis.quality_summary || ''}</p>
     ${patternsHtml}
-    ${flagsHtml}
+    ${flagNote}
     <div class="generated-note">
-      Analysis of ${analysis.total_reviewed || 0} cases from the last 30 days.
+      Analysis of ${analysis.total_reviewed || 0} cases from the last 30 days &mdash;
       Generated: ${analysis.generated_at
         ? new Date(analysis.generated_at).toLocaleString('en-AU',
             {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
@@ -612,51 +581,79 @@ function renderAIAnalysis(analysis, caseIdLookup) {
     </div>`;
 }
 
-function renderUnprioritizedTable(alert) {
-  const wrap  = document.getElementById('unprioritized-table-wrap');
-  const cases = (alert?.cases || [])
-    .filter(c => !c.stage?.toLowerCase().includes('closed'));  // Hide closed cases
+function fmtAge(hours) {
+  if (!hours) return '—';
+  if (hours < 48) return `${Math.round(hours)}h`;
+  return `${(hours/24).toFixed(1)}d`;
+}
 
-  if (cases.length === 0) return;
+function renderCombinedTable(cases) {
+  const wrap = document.getElementById('unprioritized-table-wrap');
+  if (!cases || cases.length === 0) { wrap.innerHTML = ''; return; }
 
-  const crmBase = (window.__NZF_META?.crm_base_url || '');
+  const crmBase    = window.__NZF_META?.crm_base_url || '';
+  const priColours = {P1:'#EE3526',P2:'#E8732A',P3:'#FDB913',P4:'#0081C6',P5:'#49A942','No Priority':'#9F9393','Assign Priority':'#9F9393'};
 
-  function fmtAge(hours) {
-    if (hours < 48) return `${Math.round(hours)}h`;
-    return `${(hours/24).toFixed(1)}d`;
+  function priPill(p) {
+    const col = priColours[p] || '#9F9393';
+    return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;
+      background:${col}20;border:1px solid ${col}60;
+      font-family:'Cambay';font-size:0.72rem;font-weight:700;color:${col};white-space:nowrap">${p || '&#8212;'}</span>`;
+  }
+
+  function flagBadge(c) {
+    if (c.flag_type === 'misclassified') {
+      const sev = (c.flag_severity || 'medium').toLowerCase();
+      const col = sev==='high'?'#c0392b':sev==='medium'?'#7a5c00':'#555';
+      const bg  = sev==='high'?'rgba(238,53,38,0.1)':sev==='medium'?'rgba(253,185,19,0.12)':'rgba(159,147,147,0.1)';
+      return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;background:${bg};
+        border:1px solid ${col}40;font-family:'Cambay';font-size:0.7rem;font-weight:700;color:${col};white-space:nowrap">
+        Misclassified &bull; ${c.flag_severity}</span>`;
+    }
+    const age = c.age_hours || 0;
+    const col = age > 72 ? '#c0392b' : '#7a5c00';
+    const bg  = age > 72 ? 'rgba(238,53,38,0.1)' : 'rgba(253,185,19,0.12)';
+    return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;background:${bg};
+      border:1px solid ${col}40;font-family:'Cambay';font-size:0.7rem;font-weight:700;color:${col};white-space:nowrap">
+      No Priority &bull; ${fmtAge(age)}</span>`;
   }
 
   function caseLink(c) {
-    const label = c.case_id || c.zoho_record_id || '—';
-    if (crmBase && c.zoho_record_id) {
-      return `<a href="${crmBase}/Potentials/${c.zoho_record_id}"
-        target="_blank" rel="noopener"
-        style="color:var(--color-primary);font-weight:700;font-size:0.85rem;text-decoration:none"
-        title="Open in Zoho CRM">${label} &#8599;</a>`;
-    }
-    return `<span style="font-weight:700;color:var(--color-primary);font-size:0.85rem">${label}</span>`;
+    const label = c.case_id || '&#8212;';
+    return crmBase && c.zoho_record_id
+      ? `<a href="${crmBase}/Potentials/${c.zoho_record_id}" target="_blank" rel="noopener"
+          style="color:var(--color-primary);font-weight:700;font-size:0.85rem;text-decoration:none"
+          title="Open in CRM">${label} &#8599;</a>`
+      : `<span style="font-weight:700;color:var(--color-primary);font-size:0.85rem">${label}</span>`;
   }
 
   function clientLink(c) {
-    const id = c.client_id;
-    if (!id) return '—';
-    if (crmBase && id) {
-      return `<a href="${crmBase}/Contacts/${id}"
-        target="_blank" rel="noopener"
-        style="font-size:0.8rem;color:var(--color-blue);text-decoration:none"
-        title="Open client in Zoho CRM">${id.slice(-6)} &#8599;</a>`;
-    }
-    return `<span style="font-size:0.8rem">${id.slice(-6)}</span>`;
+    const id = c.client_id || '';
+    if (!id) return '&#8212;';
+    return crmBase
+      ? `<a href="${crmBase}/Contacts/${id}" target="_blank" rel="noopener"
+          style="font-size:0.8rem;color:var(--color-blue);text-decoration:none">${id.slice(-6)} &#8599;</a>`
+      : `<span style="font-size:0.8rem">${id.slice(-6)}</span>`;
+  }
+
+  function stagePill(stage) {
+    const s = (stage || '').toLowerCase();
+    let cls;
+    if (s === 'closed - funded')       cls = 'badge-stage-closed-funded';
+    else if (s.startsWith('closed'))   cls = 'badge-stage-closed-other';
+    else if (['intake','interview','allocated','ready for allocation','funding',
+               'ongoing funding','assessment','assesment'].some(v => s.includes(v)))
+                                       cls = 'badge-stage-active';
+    else                               cls = 'badge-stage-pending';
+    return `<span class="badge ${cls}">${stage || '&#8212;'}</span>`;
   }
 
   wrap.innerHTML = `
     <div class="chart-card">
       <div class="chart-card-header">
         <div>
-          <div class="chart-card-title">Cases Without Priority Assignment</div>
-          <div class="chart-card-subtitle">
-            Latest ${cases.length} open cases — click Case ID or Client ID to open in CRM. Newest first.
-          </div>
+          <div class="chart-card-title">Cases Requiring Attention</div>
+          <div class="chart-card-subtitle">Misclassified cases first, then unassigned &mdash; ${cases.length} total &mdash; click Case ID to open in CRM</div>
         </div>
       </div>
       <table>
@@ -665,9 +662,11 @@ function renderUnprioritizedTable(alert) {
             <th>Case ID</th>
             <th>Client ID</th>
             <th>Created</th>
-            <th>Age</th>
+            <th>Current Priority</th>
+            <th>Flag</th>
+            <th>Potential Priority</th>
             <th>Stage</th>
-            <th>Summary</th>
+            <th>Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -675,17 +674,15 @@ function renderUnprioritizedTable(alert) {
             <tr>
               <td style="white-space:nowrap">${caseLink(c)}</td>
               <td style="white-space:nowrap">${clientLink(c)}</td>
-              <td style="white-space:nowrap">${c.created
-                ? new Date(c.created).toLocaleDateString('en-AU',
-                    {day:'numeric',month:'short',year:'numeric'})
-                : '—'}</td>
-              <td><span style="font-weight:700;color:${c.age_hours>72
-                ?'var(--color-primary)':'var(--text-primary)'}">${fmtAge(c.age_hours)}</span></td>
-              <td><span class="badge badge-grey">${c.stage || '—'}</span></td>
-              <td style="font-size:0.82rem;color:var(--text-secondary);max-width:360px;line-height:1.5">
-                ${c.ai_summary || (c.description
-                  ? c.description.substring(0,100) + (c.description.length>100?'…':'')
-                  : '<em style="color:var(--text-muted)">No description provided</em>')}
+              <td style="white-space:nowrap;font-size:0.82rem">${c.created
+                ? new Date(c.created).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})
+                : '&#8212;'}</td>
+              <td>${priPill(c.assigned_priority)}</td>
+              <td>${flagBadge(c)}</td>
+              <td>${priPill(c.suggested_priority)}</td>
+              <td>${stagePill(c.stage)}</td>
+              <td style="font-size:0.8rem;color:var(--text-secondary);max-width:280px;line-height:1.5">
+                ${c.ai_summary || c.flag_reason || '&#8212;'}
               </td>
             </tr>`).join('')}
         </tbody>
@@ -694,5 +691,3 @@ function renderUnprioritizedTable(alert) {
 }
 
 </script>
-</body>
-</html>
