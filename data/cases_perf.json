@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-22T23:36:13.176024+00:00",
+    "last_updated": "2026-04-23T00:11:48.433492+00:00",
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -22,82 +22,136 @@
     "automated_excluded": 27930
   },
   "executive_summary": {
-    "median_response_hours": 157.3,
-    "median_closure_days": 340.9,
-    "sla_compliance_pct": 58.4,
-    "funding_rate_pct": 48.6,
+    "resp_median_hours": 157.3,
+    "resol_median_hours": 229.1,
+    "resp_sla_pct": 37.7,
+    "resol_sla_pct": 11.5,
+    "funding_rate_pct": 37.6,
     "backlog_over_30d": 637,
-    "response_trend": "regressing",
-    "closure_trend": "regressing"
+    "resp_trend": "regressing",
+    "resol_trend": "improving",
+    "close_trend": "improving"
   },
-  "response_time": {
-    "overall": {
-      "median_hours": 117.0,
-      "avg_hours": 165.0,
-      "p75_hours": 190.0,
-      "count": 2589,
-      "trend": {
-        "recent_avg": 208.4,
-        "prior_avg": 82.1,
-        "direction": "regressing"
-      }
+  "sla_definitions": {
+    "response": {
+      "P1": {
+        "hours": 1,
+        "business_hours_only": true,
+        "display": "1 business hour"
+      },
+      "P2": {
+        "hours": 48,
+        "business_hours_only": false,
+        "display": "2 days"
+      },
+      "P3": {
+        "hours": 72,
+        "business_hours_only": false,
+        "display": "3 days"
+      },
+      "P4": {
+        "hours": 72,
+        "business_hours_only": false,
+        "display": "3 days"
+      },
+      "P5": null,
+      "No Priority": null
     },
+    "resolution": {
+      "P1": {
+        "hours": 24,
+        "display": "24 hours"
+      },
+      "P2": {
+        "hours": 72,
+        "display": "3 days"
+      },
+      "P3": {
+        "hours": 144,
+        "display": "6 days"
+      },
+      "P4": {
+        "hours": 240,
+        "display": "10 days"
+      },
+      "P5": null,
+      "No Priority": null
+    }
+  },
+  "response_sla": {
+    "overall_compliance_pct": 37.7,
     "by_priority": {
       "P1": {
-        "median_hours": 21.8,
-        "avg_hours": 51.6,
+        "median_hours": 8.0,
+        "avg_hours": 12.6,
         "count": 61,
-        "sla_target_hours": 24,
-        "sla_compliance": 54.1
+        "sla_config": {
+          "hours": 1,
+          "business_hours_only": true,
+          "display": "1 business hour"
+        },
+        "sla_compliance": 27.9
       },
       "P2": {
         "median_hours": 49.4,
         "avg_hours": 119.9,
         "count": 116,
-        "sla_target_hours": 72,
-        "sla_compliance": 56.9
+        "sla_config": {
+          "hours": 48,
+          "business_hours_only": false,
+          "display": "2 days"
+        },
+        "sla_compliance": 49.1
       },
       "P3": {
         "median_hours": 139.9,
         "avg_hours": 177.7,
         "count": 1153,
-        "sla_target_hours": 144,
-        "sla_compliance": 52.3
+        "sla_config": {
+          "hours": 72,
+          "business_hours_only": false,
+          "display": "3 days"
+        },
+        "sla_compliance": 33.7
       },
       "P4": {
         "median_hours": 69.8,
         "avg_hours": 208.9,
         "count": 295,
-        "sla_target_hours": 240,
-        "sla_compliance": 83.7
+        "sla_config": {
+          "hours": 72,
+          "business_hours_only": false,
+          "display": "3 days"
+        },
+        "sla_compliance": 50.8
       },
       "P5": {
         "median_hours": null,
         "avg_hours": null,
         "count": 0,
-        "sla_target_hours": 336,
+        "sla_config": null,
         "sla_compliance": null
       },
       "No Priority": {
         "median_hours": 117.4,
         "avg_hours": 149.1,
         "count": 964,
-        "sla_target_hours": null,
+        "sla_config": null,
         "sla_compliance": null
       }
     },
     "monthly_trend": {
       "2025-04": 85.3,
-      "2025-05": 95.9,
-      "2025-06": 183.7,
-      "2025-07": 143.2,
-      "2025-08": 70.8,
-      "2025-09": 51.1,
+      "2025-05": 94.9,
+      "2025-06": 182.8,
+      "2025-07": 141.5,
+      "2025-08": 69.1,
+      "2025-09": 50.4,
       "2025-10": 88.9,
       "2025-11": 142.3,
       "2025-12": 41.7,
-      "2026-01": 62.2,
-      "2026-02": 157.9,
+      "2026-01": 54.8,
+      "2026-02": 156.7,
       "2026-03": 310.1,
       "2026-04": 157.3
     },
@@ -122,19 +176,19 @@
           "priority": "P1",
           "colour": "#EE3526",
           "data": [
-            0.4,
-            49.8,
-            5.4,
-            43.9,
-            64.8,
-            24.9,
-            14.2,
-            107.6,
-            1.9,
-            21.3,
-            47.6,
-            15.3,
-            0.7
+            0.0,
+            8.0,
+            4.9,
+            8.0,
+            8.0,
+            8.0,
+            8.0,
+            17.2,
+            0.0,
+            8.0,
+            8.0,
+            6.2,
+            0.0
           ]
         },
         {
@@ -233,109 +287,80 @@
           ]
         }
       ]
-    },
-    "sla_targets": {
-      "_description": "Target first-response time in hours by priority. Used to calculate SLA compliance rate.",
-      "P1": 24,
-      "P2": 72,
-      "P3": 144,
-      "P4": 240,
-      "P5": 336,
-      "No Priority": null
-    },
-    "sla_compliance_by_priority": {
-      "P1": 54.1,
-      "P2": 56.9,
-      "P3": 52.3,
-      "P4": 83.7,
-      "P5": null,
-      "No Priority": null
     }
   },
-  "closure_time": {
-    "overall": {
-      "median_days": 393.7,
-      "avg_days": 810.9,
-      "p75_days": 1320.3,
-      "count": 5694,
-      "trend": {
-        "recent_avg": 526.5,
-        "prior_avg": 415.3,
-        "direction": "regressing"
-      }
-    },
-    "by_outcome": {
-      "Funded": {
-        "stage": "Closed - Funded",
-        "median_days": 796.7,
-        "avg_days": 1093.9,
-        "p75_days": 1807.8,
-        "count": 2766,
-        "colour": "#49A942"
-      },
-      "Not Funded": {
-        "stage": "Closed - Not Funded",
-        "median_days": 411.0,
-        "avg_days": 760.8,
-        "p75_days": 1227.8,
-        "count": 1871,
-        "colour": "#EE3526"
-      },
-      "No Response": {
-        "stage": "Closed - NO Response",
-        "median_days": 52.3,
-        "avg_days": 158.7,
-        "p75_days": 192.6,
-        "count": 1057,
-        "colour": "#FDB913"
-      }
-    },
+  "resolution_sla": {
+    "overall_compliance_pct": 11.5,
     "by_priority": {
       "P1": {
-        "median_days": 1913.0,
-        "avg_days": 1566.2,
-        "count": 299
+        "median_hours": 237.9,
+        "avg_hours": 403.9,
+        "count": 54,
+        "sla_config": {
+          "hours": 24,
+          "display": "24 hours"
+        },
+        "sla_compliance": 5.6
       },
       "P2": {
-        "median_days": 1510.1,
-        "avg_days": 1339.6,
-        "count": 431
+        "median_hours": 641.5,
+        "avg_hours": 874.5,
+        "count": 115,
+        "sla_config": {
+          "hours": 72,
+          "display": "3 days"
+        },
+        "sla_compliance": 3.5
       },
       "P3": {
-        "median_days": 154.0,
-        "avg_days": 733.3,
-        "count": 1393
+        "median_hours": 564.4,
+        "avg_hours": 1249.7,
+        "count": 880,
+        "sla_config": {
+          "hours": 144,
+          "display": "6 days"
+        },
+        "sla_compliance": 5.2
       },
       "P4": {
-        "median_days": 717.0,
-        "avg_days": 812.1,
-        "count": 956
+        "median_hours": 372.9,
+        "avg_hours": 1218.6,
+        "count": 277,
+        "sla_config": {
+          "hours": 240,
+          "display": "10 days"
+        },
+        "sla_compliance": 36.1
       },
       "P5": {
-        "median_days": 3457.5,
-        "avg_days": 3462.6,
-        "count": 216
+        "median_hours": null,
+        "avg_hours": null,
+        "count": 0,
+        "sla_config": null,
+        "sla_compliance": null
       },
       "No Priority": {
-        "median_days": 229.1,
-        "avg_days": 427.5,
-        "count": 2399
+        "median_hours": 227.7,
+        "avg_hours": 608.5,
+        "count": 822,
+        "sla_config": null,
+        "sla_compliance": null
       }
     },
     "monthly_trend": {
-      "2025-04": 757.4,
-      "2025-05": 294.3,
-      "2025-06": 204.6,
-      "2025-07": 136.6,
-      "2025-08": 313.1,
-      "2025-09": 216.0,
-      "2025-10": 133.6,
-      "2025-11": 326.5,
-      "2025-12": 284.8,
-      "2026-01": 634.6,
-      "2026-02": 711.9,
-      "2026-03": 526.7,
-      "2026-04": 340.9
+      "2025-04": 594.9,
+      "2025-05": 1129.2,
+      "2025-06": 349.5,
+      "2025-07": 489.3,
+      "2025-08": 457.7,
+      "2025-09": 432.1,
+      "2025-10": 254.0,
+      "2025-11": 436.1,
+      "2025-12": 334.0,
+      "2026-01": 240.9,
+      "2026-02": 256.7,
+      "2026-03": 383.9,
+      "2026-04": 229.1
     },
     "priority_trend_series": {
       "months": [
@@ -358,114 +383,332 @@
           "priority": "P1",
           "colour": "#EE3526",
           "data": [
-            1186.1,
-            1764.2,
-            1844.6,
-            630.4,
-            1914.9,
-            1926.9,
-            1979.0,
-            2001.5,
-            1893.4,
-            1757.0,
-            2101.8,
-            2116.0,
-            2210.2
+            189.3,
+            308.2,
+            174.4,
+            459.1,
+            202.3,
+            317.7,
+            667.5,
+            650.9,
+            117.3,
+            107.8,
+            352.8,
+            99.6,
+            62.9
           ]
         },
         {
           "priority": "P2",
           "colour": "#E8732A",
           "data": [
-            1254.4,
-            1275.2,
-            1503.5,
-            120.9,
-            1266.4,
-            172.5,
-            1489.9,
-            1774.8,
-            1694.0,
-            1675.9,
-            1789.9,
-            1739.2,
-            1606.3
+            1108.5,
+            1398.3,
+            511.5,
+            843.6,
+            485.8,
+            608.4,
+            641.5,
+            1853.5,
+            753.6,
+            448.1,
+            754.1,
+            223.8,
+            149.0
           ]
         },
         {
           "priority": "P3",
           "colour": "#FDB913",
           "data": [
-            1261.8,
-            936.8,
-            1159.0,
-            129.8,
-            373.0,
-            130.2,
-            108.0,
-            156.8,
-            167.8,
-            146.8,
-            254.8,
-            141.9,
-            23.7
+            895.5,
+            2509.8,
+            2028.0,
+            2565.2,
+            1478.0,
+            1932.9,
+            1079.8,
+            1999.3,
+            912.7,
+            300.3,
+            298.5,
+            424.7,
+            274.8
           ]
         },
         {
           "priority": "P4",
           "colour": "#0081C6",
           "data": [
-            824.8,
-            294.3,
-            517.2,
-            475.5,
-            492.1,
-            174.4,
-            157.4,
-            780.0,
-            707.0,
-            1095.9,
-            894.4,
-            682.9,
-            959.5
+            2210.5,
+            2261.2,
+            562.4,
+            1189.8,
+            916.2,
+            242.4,
+            219.3,
+            208.3,
+            509.1,
+            163.8,
+            101.2,
+            124.2,
+            290.0
           ]
         },
         {
           "priority": "P5",
           "colour": "#49A942",
           "data": [
-            3160.8,
-            3223.8,
-            3448.2,
-            3672.3,
-            3341.6,
-            3407.7,
-            3434.1,
-            3415.8,
-            3375.4,
-            3808.2,
-            3655.4,
-            3672.1,
-            3834.8
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
           ]
         },
         {
           "priority": "No Priority",
           "colour": "#9F9393",
           "data": [
+            347.5,
+            392.9,
+            271.3,
+            249.2,
+            172.7,
+            181.1,
+            177.5,
+            205.9,
+            264.1,
+            136.5,
+            253.8,
+            203.8,
+            36.6
+          ]
+        }
+      ]
+    }
+  },
+  "closure_time": {
+    "overall": {
+      "median_days": 33.7,
+      "p75_days": 116.5,
+      "count": 2549,
+      "trend": {
+        "recent_avg": 16.2,
+        "prior_avg": 26.6,
+        "direction": "improving"
+      }
+    },
+    "by_outcome": {
+      "Not Funded": {
+        "stage": "Closed - Not Funded",
+        "median_days": 11.6,
+        "avg_days": 62.9,
+        "p75_days": 89.7,
+        "count": 744,
+        "colour": "#EE3526"
+      },
+      "Funded": {
+        "stage": "Closed - Funded",
+        "median_days": 99.2,
+        "avg_days": 128.7,
+        "p75_days": 150.5,
+        "count": 982,
+        "colour": "#49A942"
+      },
+      "No Response": {
+        "stage": "Closed - NO Response",
+        "median_days": 14.1,
+        "avg_days": 39.7,
+        "p75_days": 48.9,
+        "count": 823,
+        "colour": "#FDB913"
+      }
+    },
+    "by_priority": {
+      "P1": {
+        "median_days": 31.7,
+        "avg_days": 86.9,
+        "count": 55
+      },
+      "P2": {
+        "median_days": 51.4,
+        "avg_days": 75.0,
+        "count": 115
+      },
+      "P3": {
+        "median_days": 38.5,
+        "avg_days": 67.2,
+        "count": 820
+      },
+      "P4": {
+        "median_days": 64.6,
+        "avg_days": 92.2,
+        "count": 311
+      },
+      "P5": {
+        "median_days": null,
+        "avg_days": null,
+        "count": 0
+      },
+      "No Priority": {
+        "median_days": 19.6,
+        "avg_days": 87.1,
+        "count": 1248
+      }
+    },
+    "monthly_trend": {
+      "2025-04": 53.5,
+      "2025-05": 62.6,
+      "2025-06": 58.5,
+      "2025-07": 62.6,
+      "2025-08": 73.0,
+      "2025-09": 91.7,
+      "2025-10": 38.4,
+      "2025-11": 28.7,
+      "2025-12": 27.6,
+      "2026-01": 23.6,
+      "2026-02": 10.7,
+      "2026-03": 18.8,
+      "2026-04": 19.0
+    },
+    "priority_trend_series": {
+      "months": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04"
+      ],
+      "series": [
+        {
+          "priority": "P1",
+          "colour": "#EE3526",
+          "data": [
+            71.4,
+            33.0,
+            20.4,
+            40.4,
+            33.5,
+            18.7,
+            44.1,
+            64.5,
+            7.5,
+            30.6,
+            19.5,
+            47.1,
+            32.5
+          ]
+        },
+        {
+          "priority": "P2",
+          "colour": "#E8732A",
+          "data": [
+            23.6,
+            47.5,
+            33.5,
+            63.6,
+            89.2,
+            91.9,
+            67.0,
+            37.4,
+            70.5,
+            35.5,
+            53.5,
+            36.0,
+            31.9
+          ]
+        },
+        {
+          "priority": "P3",
+          "colour": "#FDB913",
+          "data": [
+            26.1,
+            14.5,
+            14.6,
+            71.7,
+            104.0,
+            102.0,
+            62.5,
+            79.8,
+            116.5,
+            37.8,
+            11.6,
+            20.1,
+            19.3
+          ]
+        },
+        {
+          "priority": "P4",
+          "colour": "#0081C6",
+          "data": [
+            21.5,
+            27.1,
+            14.2,
+            116.1,
+            118.5,
+            121.4,
             112.5,
-            148.2,
-            103.9,
-            130.4,
-            197.1,
-            238.1,
-            87.2,
-            256.8,
-            158.8,
-            306.2,
-            439.9,
-            496.1,
-            503.1
+            95.0,
+            116.9,
+            8.5,
+            1.5,
+            9.2,
+            124.5
+          ]
+        },
+        {
+          "priority": "P5",
+          "colour": "#49A942",
+          "data": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "priority": "No Priority",
+          "colour": "#9F9393",
+          "data": [
+            71.5,
+            78.6,
+            91.4,
+            36.7,
+            12.4,
+            10.5,
+            7.1,
+            7.7,
+            8.6,
+            15.9,
+            11.3,
+            9.8,
+            14.4
           ]
         }
       ]
@@ -488,43 +731,43 @@
       ],
       "series": [
         {
-          "stage": "Closed - Funded",
-          "label": "Funded",
-          "colour": "#49A942",
-          "data": [
-            824.9,
-            431.2,
-            872.7,
-            271.9,
-            665.0,
-            427.1,
-            287.6,
-            648.0,
-            798.2,
-            1162.8,
-            1075.0,
-            819.1,
-            748.2
-          ]
-        },
-        {
           "stage": "Closed - Not Funded",
           "label": "Not Funded",
           "colour": "#EE3526",
           "data": [
-            331.3,
-            226.9,
-            160.5,
-            135.3,
-            316.8,
-            262.1,
-            107.0,
-            489.9,
-            284.8,
-            569.0,
-            828.9,
-            451.2,
-            706.5
+            35.5,
+            65.9,
+            20.5,
+            20.5,
+            33.5,
+            31.2,
+            5.7,
+            8.4,
+            9.1,
+            4.7,
+            4.4,
+            8.5,
+            10.9
+          ]
+        },
+        {
+          "stage": "Closed - Funded",
+          "label": "Funded",
+          "colour": "#49A942",
+          "data": [
+            158.9,
+            105.8,
+            87.3,
+            119.4,
+            100.5,
+            118.3,
+            105.2,
+            68.5,
+            117.2,
+            85.0,
+            72.7,
+            68.5,
+            43.7
           ]
         },
         {
@@ -532,19 +775,19 @@
           "label": "No Response",
           "colour": "#FDB913",
           "data": [
-            39.8,
-            14.8,
-            80.7,
-            13.9,
-            110.6,
-            118.2,
-            11.9,
-            77.8,
-            104.9,
-            56.1,
-            124.5,
-            91.7,
-            20.1
+            16.7,
+            14.3,
+            22.5,
+            12.4,
+            12.4,
+            10.6,
+            10.1,
+            8.6,
+            10.3,
+            12.1,
+            10.2,
+            16.4,
+            17.5
           ]
         }
       ]
@@ -555,98 +798,85 @@
       {
         "month": "2025-04",
         "created": 199,
-        "closed": 600,
-        "net": -401
+        "closed": 270
       },
       {
         "month": "2025-05",
         "created": 228,
-        "closed": 365,
-        "net": -137
+        "closed": 249
       },
       {
         "month": "2025-06",
         "created": 171,
-        "closed": 262,
-        "net": -91
+        "closed": 164
       },
       {
         "month": "2025-07",
         "created": 174,
-        "closed": 314,
-        "net": -140
+        "closed": 239
       },
       {
         "month": "2025-08",
         "created": 156,
-        "closed": 342,
-        "net": -186
+        "closed": 185
       },
       {
         "month": "2025-09",
         "created": 176,
-        "closed": 363,
-        "net": -187
+        "closed": 208
       },
       {
         "month": "2025-10",
         "created": 190,
-        "closed": 278,
-        "net": -88
+        "closed": 213
       },
       {
         "month": "2025-11",
         "created": 184,
-        "closed": 381,
-        "net": -197
+        "closed": 198
       },
       {
         "month": "2025-12",
         "created": 189,
-        "closed": 381,
-        "net": -192
+        "closed": 175
       },
       {
         "month": "2026-01",
         "created": 199,
-        "closed": 500,
-        "net": -301
+        "closed": 181
       },
       {
         "month": "2026-02",
         "created": 332,
-        "closed": 569,
-        "net": -237
+        "closed": 154
       },
       {
         "month": "2026-03",
         "created": 421,
-        "closed": 821,
-        "net": -400
+        "closed": 241
       },
       {
         "month": "2026-04",
         "created": 164,
-        "closed": 518,
-        "net": -354
+        "closed": 183
       }
     ],
     "funding_rate_monthly": {
-      "2025-04": 58.8,
-      "2025-05": 47.4,
-      "2025-06": 49.6,
-      "2025-07": 48.1,
-      "2025-08": 44.2,
-      "2025-09": 48.8,
-      "2025-10": 43.9,
-      "2025-11": 43.6,
-      "2025-12": 44.4,
-      "2026-01": 53.0,
-      "2026-02": 52.4,
-      "2026-03": 48.0,
-      "2026-04": 41.9
+      "2025-04": 36.3,
+      "2025-05": 43.4,
+      "2025-06": 36.6,
+      "2025-07": 39.7,
+      "2025-08": 35.1,
+      "2025-09": 44.2,
+      "2025-10": 39.4,
+      "2025-11": 38.9,
+      "2025-12": 37.1,
+      "2026-01": 39.2,
+      "2026-02": 33.1,
+      "2026-03": 36.5,
+      "2026-04": 24.6
     },
-    "funding_rate_12m": 48.6
+    "funding_rate_12m": 37.6
   },
   "backlog": {
     "total_open": 809,
@@ -654,63 +884,23 @@
     "by_age": [
       {
         "band": "0\u20137 days",
-        "count": 44,
-        "by_priority": {
-          "P1": 2,
-          "P2": 1,
-          "P3": 3,
-          "P4": 0,
-          "P5": 0,
-          "No Priority": 38
-        }
+        "count": 44
       },
       {
         "band": "8\u201314 days",
-        "count": 55,
-        "by_priority": {
-          "P1": 2,
-          "P2": 0,
-          "P3": 27,
-          "P4": 4,
-          "P5": 0,
-          "No Priority": 22
-        }
+        "count": 55
       },
       {
         "band": "15\u201330 days",
-        "count": 73,
-        "by_priority": {
-          "P1": 1,
-          "P2": 2,
-          "P3": 44,
-          "P4": 3,
-          "P5": 0,
-          "No Priority": 23
-        }
+        "count": 73
       },
       {
         "band": "31\u201360 days",
-        "count": 240,
-        "by_priority": {
-          "P1": 2,
-          "P2": 12,
-          "P3": 147,
-          "P4": 26,
-          "P5": 0,
-          "No Priority": 53
-        }
+        "count": 240
       },
       {
         "band": "60+ days",
-        "count": 397,
-        "by_priority": {
-          "P1": 9,
-          "P2": 12,
-          "P3": 171,
-          "P4": 54,
-          "P5": 1,
-          "No Priority": 150
-        }
+        "count": 397
       }
     ],
     "by_priority": {
