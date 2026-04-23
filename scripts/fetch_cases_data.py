@@ -318,19 +318,39 @@ def build_cases_report(token):
     print(f"  Cases for AI review: {len(recent_sample):,} (last 30 days, live CRM)")
     ai_analysis = run_priority_analysis(recent_sample)
 
-    # 3. AI summaries for unprioritized table
+    # 3. AI summaries — run against BOTH unprioritized (all-time banner) AND
+    #    last-30-day unassigned cases used in the combined table
     summaries = run_unprioritized_summaries(unprioritized)
 
     # ── Build combined cases table ────────────────────────────────
-    SEV_ORDER = {"High": 0, "Medium": 1, "Low": 2}
-    now       = datetime.now(timezone.utc)
-    crm_index = {c.get("case_id", ""): c for c in crm_recent if c.get("case_id")}
-    flags     = (ai_analysis or {}).get("flags", [])
-    combined  = []
-    seen_ids  = set()
+    # Source: live CRM (last 30 days) — no Analytics latency here.
+    #
+    # Includes:
+    #   A. AI-flagged misclassifications where suggested priority is P1 or P2
+    #   B. Cases from last 30 days with NO priority assigned (potential P1/P2)
+    #
+    # Sort: severity (High → Medium → Low), then created_date descending
+    # within each severity group. No row cap.
+    #
+    # Separate from the all-time unprioritized alert banner count (kept above).
 
-    # Flagged misclassifications first (High → Medium → Low)
-    for f in sorted(flags, key=lambda x: SEV_ORDER.get(x.get("severity","Low"), 2)):
+    SEV_ORDER     = {"High": 0, "Medium": 1, "Low": 2}
+    HIGH_PRI      = {"P1", "P2"}
+    now           = datetime.now(timezone.utc)
+    crm_index     = {c.get("case_id", ""): c for c in crm_recent if c.get("case_id")}
+    flags         = (ai_analysis or {}).get("flags", [])
+    combined      = []
+    seen_ids      = set()
+
+    # A. Misclassified cases where AI suggests P1 or P2
+    p1p2_flags = [
+        f for f in flags
+        if f.get("suggested_priority", "") in HIGH_PRI
+    ]
+    for f in sorted(p1p2_flags, key=lambda x: (
+        SEV_ORDER.get(x.get("severity", "Low"), 2),
+        -(zac.parse_dt(crm_index.get(x.get("case_id",""), {}).get("created_time","")) or now).timestamp()
+    )):
         cid = f.get("case_id", "")
         if not cid or cid in seen_ids:
             continue
@@ -343,35 +363,63 @@ def build_cases_report(token):
             "case_id":            cid,
             "client_id":          crm_c.get("client_name", ""),
             "created":            created,
+            "created_ts":         crdt.timestamp() if crdt else 0,
             "age_hours":          age_h,
             "stage":              crm_c.get("stage", ""),
             "assigned_priority":  f.get("assigned_priority", ""),
             "suggested_priority": f.get("suggested_priority", ""),
             "flag_type":          "misclassified",
             "flag_severity":      f.get("severity", "Medium"),
-            "flag_reason":        f.get("reason", ""),
             "ai_summary":         f.get("reason", ""),
         })
         seen_ids.add(cid)
 
-    # Unprioritized cases (newest first, deduplicated)
-    for u in unprioritized:
-        cid = u.get("case_id", "")
-        if not cid or cid in seen_ids:
-            continue
+    # B. Last-30-day unassigned cases (potential P1/P2 — not yet assessed)
+    unassigned_30d = [
+        c for c in crm_recent
+        if normalise_priority(c.get("case_urgency", "")) == NO_PRIORITY
+        and c.get("case_id", "") not in seen_ids
+    ]
+    # Get AI summaries for these too
+    unassigned_summaries = run_unprioritized_summaries(unassigned_30d)
+
+    for c in unassigned_30d:
+        cid     = c.get("case_id", "")
+        created = c.get("created_time", "")
+        crdt    = zac.parse_dt(created)
+        age_h   = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
+        # Severity based on age: High if >48h unassigned, Medium if >24h
+        sev     = "High" if (age_h or 0) > 48 else "Medium" if (age_h or 0) > 24 else "Low"
         combined.append({
-            **u,
+            "zoho_record_id":     c.get("id", ""),
+            "case_id":            cid,
+            "client_id":          c.get("client_name", ""),
+            "created":            created,
+            "created_ts":         crdt.timestamp() if crdt else 0,
+            "age_hours":          age_h,
+            "stage":              c.get("stage", ""),
             "assigned_priority":  NO_PRIORITY,
             "suggested_priority": "Assign Priority",
             "flag_type":          "unassigned",
-            "flag_severity":      "Medium" if (u.get("age_hours") or 0) > 48 else "Low",
-            "flag_reason":        f"No priority assigned for {round((u.get('age_hours') or 0)/24,1)} days",
-            "ai_summary":         summaries.get(cid, (u.get("description") or "")[:100]),
+            "flag_severity":      sev,
+            "ai_summary":         unassigned_summaries.get(cid, (c.get("description") or "")[:100]),
         })
         seen_ids.add(cid)
 
-    combined = combined[:30]
-    print(f"  Combined table: {len(combined)} rows ({len(flags)} flagged, {len(unprioritized)} unprioritized)")
+    # Sort: severity first, then created_date descending within severity
+    combined.sort(key=lambda x: (
+        SEV_ORDER.get(x.get("flag_severity", "Low"), 2),
+        -x.get("created_ts", 0)
+    ))
+
+    # Strip the helper timestamp — not needed in JSON
+    for row in combined:
+        row.pop("created_ts", None)
+
+    p1p2_count   = len([f for f in flags if f.get("suggested_priority","") in HIGH_PRI])
+    unassign_count = len(unassigned_30d)
+    print(f"  Combined table: {len(combined)} rows "
+          f"({p1p2_count} flagged P1/P2, {unassign_count} unassigned last 30d)")
 
     return {
         "meta": {
