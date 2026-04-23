@@ -42,6 +42,26 @@ CLASSIFICATION_GUIDE = _pri_rules.get("classification_guide", {})
 CRM_BASE_URL         = _meta.get("zoho_crm_base_url", "")
 AI_MODEL             = RULES.get("ai", {}).get("model", "claude-sonnet-4-20250514")
 
+# SLA targets from rules — response and resolution hours per priority
+_sla_resp = RULES["case_performance"]["sla_response"]
+_sla_resol = RULES["case_performance"]["sla_resolution"]
+RESPONSE_SLA_HOURS   = {p: (_sla_resp[p]["hours"] if _sla_resp.get(p) else None) for p in ["P1","P2","P3","P4"]}
+RESOLUTION_SLA_HOURS = {p: (_sla_resol[p]["hours"] if _sla_resol.get(p) else None) for p in ["P1","P2","P3","P4"]}
+
+def calc_sla(age_hours, sla_hours):
+    """Return (status, hours_remaining) for a given age and SLA target.
+    Status: 'overdue' | 'at_risk' | 'ok' | None
+    hours_remaining: positive = remaining, negative = overdue by that many hours
+    """
+    if sla_hours is None or age_hours is None:
+        return None, None
+    remaining = sla_hours - age_hours
+    if remaining < 0:
+        return "overdue", remaining          # negative = hours overdue
+    if remaining < sla_hours * 0.2:          # within 20% of deadline
+        return "at_risk", remaining
+    return "ok", remaining
+
 # ── Priority normalisation ────────────────────────────────────────
 def normalise_priority(raw):
     if not raw or not raw.strip():
@@ -394,8 +414,16 @@ def build_cases_report(token):
         age_h    = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
         smp      = sample_idx.get(cid, {})
         has_notes= smp.get("has_cw_notes", False)
+        # Use recommended priority for SLA targets (it's what should apply)
+        pri_for_sla = suggested_pri if suggested_pri in RESPONSE_SLA_HOURS else \
+                      (assigned_pri if assigned_pri in RESPONSE_SLA_HOURS else None)
+        resp_status, resp_remaining   = calc_sla(age_h, RESPONSE_SLA_HOURS.get(pri_for_sla))
+        resol_status, resol_remaining = calc_sla(age_h, RESOLUTION_SLA_HOURS.get(pri_for_sla))
+        # If responded, override response SLA to show "responded"
+        if has_notes:
+            resp_status, resp_remaining = "responded", None
         # Summary: AI first, then structured fallback
-        summary  = enr.get("summary","")
+        summary = enr.get("summary","")
         if not summary:
             parts = [_clean_description(crm_c.get("description",""))]
             if crm_c.get("cw_recommendation"): parts.append(f'CW: {crm_c["cw_recommendation"][:100]}')
@@ -403,18 +431,22 @@ def build_cases_report(token):
             if not has_notes: parts.append("No caseworker interaction recorded.")
             summary = " | ".join(p for p in parts if p)
         return {
-            "zoho_record_id":    crm_c.get("id","") or case_id_lookup.get(cid,""),
-            "case_id":           cid,
-            "client_id":         crm_c.get("client_name",""),
-            "created":           created,
-            "created_ts":        crdt.timestamp() if crdt else 0,
-            "age_hours":         age_h,
-            "stage":             crm_c.get("stage",""),
-            "assigned_priority": assigned_pri,
-            "suggested_priority":suggested_pri,
-            "flag_type":         flag_type,
-            "flag_severity":     flag_severity,
-            "ai_summary":        summary,
+            "zoho_record_id":      crm_c.get("id","") or case_id_lookup.get(cid,""),
+            "case_id":             cid,
+            "client_id":           crm_c.get("client_name",""),
+            "created":             created,
+            "created_ts":          crdt.timestamp() if crdt else 0,
+            "age_hours":           age_h,
+            "stage":               crm_c.get("stage",""),
+            "assigned_priority":   assigned_pri,
+            "suggested_priority":  suggested_pri,
+            "flag_type":           flag_type,
+            "flag_severity":       flag_severity,
+            "response_sla_status":    resp_status,
+            "response_sla_remaining": round(resp_remaining, 1) if resp_remaining is not None else None,
+            "resolution_sla_status":    resol_status,
+            "resolution_sla_remaining": round(resol_remaining, 1) if resol_remaining is not None else None,
+            "ai_summary":          summary,
         }
 
     # A. No interaction — cases with zero caseworker notes
@@ -454,12 +486,19 @@ def build_cases_report(token):
                                   NO_PRIORITY, enr.get("recommended_priority","Assign Priority"), enr))
         seen_ids.add(cid)
 
-    # Sort: newest first, then recommended priority P1→P5
-    PRI_ORDER = {"P1":0,"P2":1,"P3":2,"P4":3,"P5":4}
-    combined.sort(key=lambda x: (
-        -x.get("created_ts", 0),
-        PRI_ORDER.get(x.get("suggested_priority",""), 9)
-    ))
+    # Sort: P1 with overdue response SLA first (on fire), then created date desc, then priority
+    PRI_ORDER = {"P1":0,"P2":1,"P3":2,"P4":3}
+    def sort_key(x):
+        is_p1_overdue = (
+            x.get("suggested_priority") == "P1"
+            and x.get("response_sla_status") == "overdue"
+        )
+        return (
+            0 if is_p1_overdue else 1,                          # P1 overdue first
+            -x.get("created_ts", 0),                            # newest first
+            PRI_ORDER.get(x.get("suggested_priority",""), 9)    # priority tiebreak
+        )
+    combined.sort(key=sort_key)
     for row in combined:
         row.pop("created_ts", None)
 
