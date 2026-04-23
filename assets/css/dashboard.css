@@ -1,653 +1,315 @@
-/* ═══════════════════════════════════════════════════════════════
-   NZF Dashboard — Brand-Compliant Stylesheet
-   Colours, typography and components sourced directly from
-   the NZF Figma brand guide.
-   ═══════════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Cambay:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-
-/* ── Design Tokens ────────────────────────────────────────────── */
-:root {
-  /* Primary */
-  --color-primary:        #EE3526;
-  --color-primary-dark:   #B51E10;
-  --color-primary-bg:     #FFF6F5;
-
-  /* Alternative palette */
-  --color-yellow:         #FDB913;
-  --color-yellow-bg:      #FFF9EB;
-  --color-blue:           #0081C6;
-  --color-blue-bg:        #EBF6FF;
-  --color-green:          #49A942;
-  --color-green-bg:       #ECFFEB;
-
-  /* Neutral */
-  --color-black:          #231F1F;
-  --color-grey:           #4C6060;
-  --color-mid-grey:       #9F9393;
-  --color-light-grey:     #CFCFC9;
-  --color-bg:             #F5F4F4;
-  --color-white:          #FFFFFF;
-
-  /* Feedback */
-  --color-success:        #49A942;
-  --color-success-bg:     #ECFFEB;
-  --color-warning:        #FDB913;
-  --color-warning-bg:     #FFF9EB;
-  --color-alert:          #FF5C00;
-  --color-alert-bg:       #FFF6F5;
-
-  /* Semantic aliases */
-  --bg:                   var(--color-bg);
-  --surface:              var(--color-white);
-  --surface-2:            #F5F4F4;
-  --border:               var(--color-light-grey);
-  --border-subtle:        #E8E6E6;
-  --text-primary:         var(--color-black);
-  --text-secondary:       var(--color-grey);
-  --text-muted:           var(--color-mid-grey);
-
-  /* Layout */
-  --nav-width:            248px;
-  --radius:               6px;
-  --radius-lg:            10px;
-  --shadow-sm:            0 1px 3px rgba(35,31,31,0.08);
-  --shadow-md:            0 4px 16px rgba(35,31,31,0.10);
-  --shadow-lg:            0 8px 32px rgba(35,31,31,0.14);
-  --transition:           0.18s ease;
-}
-
-/* ── Reset ────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 15px; }
-
-body {
-  font-family: 'Cambay', sans-serif;
-  font-size: 1rem;
-  line-height: 1.6;
-  background: var(--bg);
-  color: var(--text-primary);
-  min-height: 100vh;
-  display: flex;
-}
-
-/* ── Typography scale ─────────────────────────────────────────── */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Bree Serif', serif;
-  font-weight: 400;
-  line-height: 1.2;
-  color: var(--text-primary);
-}
-
-/* ── Layout ───────────────────────────────────────────────────── */
-.layout {
-  display: flex;
-  width: 100%;
-  min-height: 100vh;
-}
-
-/* ── Sidebar ──────────────────────────────────────────────────── */
-.sidebar {
-  width: var(--nav-width);
-  background: var(--color-black);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  z-index: 100;
-  overflow-y: auto;
-}
-
-.sidebar-logo {
-  padding: 22px 20px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.sidebar-logo::before {
-  content: '';
-  display: block;
-  width: 4px;
-  height: 36px;
-  background: var(--color-primary);
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.sidebar-logo .org-name {
-  font-family: 'Bree Serif', serif;
-  font-size: 1.25rem;
-  color: var(--color-white);
-  letter-spacing: 0.01em;
-}
-
-.sidebar-logo .org-sub {
-  font-family: 'Cambay', sans-serif;
-  color: var(--color-mid-grey);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 1px;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 12px 0;
-}
-
-.nav-section-label {
-  font-family: 'Cambay', sans-serif;
-  color: var(--color-mid-grey);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 16px 20px 4px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  color: rgba(255,255,255,0.6);
-  text-decoration: none;
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.875rem;
-  border-left: 3px solid transparent;
-  transition: all var(--transition);
-}
-
-.nav-item:hover {
-  background: rgba(255,255,255,0.06);
-  color: var(--color-white);
-  border-left-color: rgba(238,53,38,0.4);
-}
-
-.nav-item.active {
-  background: rgba(238,53,38,0.12);
-  color: var(--color-white);
-  border-left-color: var(--color-primary);
-}
-
-.nav-item svg {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-  opacity: 0.8;
-}
-
-.nav-item.active svg,
-.nav-item:hover svg { opacity: 1; }
-
-.sidebar-footer {
-  padding: 16px 20px;
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-/* ── Auth badges ──────────────────────────────────────────────── */
-#user-badge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(255,255,255,0.55);
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.8rem;
-}
-
-.user-avatar {
-  width: 30px; height: 30px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--color-white);
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.auth-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(253,185,19,0.15);
-  color: var(--color-warning);
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.auth-status-badge::before {
-  content: '';
-  width: 5px; height: 5px;
-  background: var(--color-warning);
-  border-radius: 50%;
-}
-
-/* ── Main content ─────────────────────────────────────────────── */
-.main {
-  margin-left: var(--nav-width);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* ── Top bar ──────────────────────────────────────────────────── */
-.topbar {
-  background: var(--color-white);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 0 28px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.topbar::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-yellow) 50%, var(--color-blue) 100%);
-  opacity: 0.3;
-}
-
-.topbar-title {
-  font-family: 'Bree Serif', serif;
-  font-size: 1rem;
-  color: var(--text-primary);
-  font-weight: 400;
-}
-
-.topbar-meta {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
-.last-updated {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.last-updated::before {
-  content: '';
-  width: 6px; height: 6px;
-  background: var(--color-success);
-  border-radius: 50%;
-}
-
-/* ── Page content ─────────────────────────────────────────────── */
-.page-content {
-  padding: 28px;
-  flex: 1;
-}
-
-.page-header {
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-
-.page-header-left h1 {
-  font-family: 'Bree Serif', serif;
-  font-size: 1.75rem;
-  font-weight: 400;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-
-.page-header-left p {
-  font-family: 'Cambay', sans-serif;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  margin-top: 4px;
-}
-
-/* ── Buttons ──────────────────────────────────────────────────── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 20px;
-  border-radius: var(--radius);
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all var(--transition);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.btn-primary {
-  background: var(--color-primary);
-  color: var(--color-white);
-  border-color: var(--color-primary);
-}
-.btn-primary:hover {
-  background: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-.btn-secondary:hover {
-  background: var(--color-primary-bg);
-}
-
-.btn:disabled,
-.btn-disabled {
-  background: var(--color-light-grey);
-  color: var(--color-mid-grey);
-  border-color: var(--color-light-grey);
-  cursor: not-allowed;
-}
-
-/* ── KPI Cards ────────────────────────────────────────────────── */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.kpi-card {
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 20px 22px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition), transform var(--transition);
-  position: relative;
-  overflow: hidden;
-}
-
-.kpi-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--kpi-color, var(--color-primary));
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-
-.kpi-card.accent-red    { --kpi-color: var(--color-primary); }
-.kpi-card.accent-yellow { --kpi-color: var(--color-yellow);  }
-.kpi-card.accent-blue   { --kpi-color: var(--color-blue);    }
-.kpi-card.accent-green  { --kpi-color: var(--color-green);   }
-
-.kpi-label {
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-
-.kpi-value {
-  font-family: 'Bree Serif', serif;
-  font-size: 1.9rem;
-  color: var(--text-primary);
-  line-height: 1.1;
-  font-weight: 400;
-}
-
-.kpi-change {
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-.kpi-change.up   { color: var(--color-success); }
-.kpi-change.down { color: var(--color-primary);  }
-.kpi-change.flat { color: var(--text-muted);     }
-
-/* ── Chart Cards ──────────────────────────────────────────────── */
-.chart-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.chart-card {
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 22px 24px;
-  box-shadow: var(--shadow-sm);
-}
-
-.chart-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.chart-card-title {
-  font-family: 'Bree Serif', serif;
-  font-size: 1rem;
-  font-weight: 400;
-  color: var(--text-primary);
-}
-
-.chart-card-subtitle {
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 3px;
-}
-
-.chart-container {
-  position: relative;
-  height: 260px;
-}
-
-/* ── Dashboard nav cards (home page) ──────────────────────────── */
-.dashboard-card {
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  cursor: pointer;
-  text-decoration: none;
-  display: block;
-  transition: all var(--transition);
-  position: relative;
-  overflow: hidden;
-}
-
-.dashboard-card::after {
-  content: '→';
-  position: absolute;
-  right: 20px; bottom: 20px;
-  font-size: 1.1rem;
-  color: var(--color-light-grey);
-  transition: all var(--transition);
-}
-
-.dashboard-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-  border-color: var(--card-color, var(--color-primary));
-}
-
-.dashboard-card:hover::after {
-  color: var(--card-color, var(--color-primary));
-  right: 16px;
-}
-
-.dashboard-card-section {
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--card-color, var(--color-primary));
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.dashboard-card-section::before {
-  content: '';
-  width: 3px; height: 12px;
-  background: var(--card-color, var(--color-primary));
-  border-radius: 2px;
-}
-
-.dashboard-card-title {
-  font-family: 'Bree Serif', serif;
-  font-size: 1.1rem;
-  font-weight: 400;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-}
-
-.dashboard-card-desc {
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-/* ── Tables ───────────────────────────────────────────────────── */
-.table-card {
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 24px;
-}
-
-.table-card-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.table-card-title {
-  font-family: 'Bree Serif', serif;
-  font-size: 1rem;
-  font-weight: 400;
-  color: var(--text-primary);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.85rem;
-}
-
-thead th {
-  background: var(--surface-2);
-  padding: 10px 16px;
-  text-align: left;
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-tbody tr {
-  border-bottom: 1px solid var(--border-subtle);
-  transition: background var(--transition);
-}
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover      { background: var(--color-primary-bg); }
-tbody td            { padding: 11px 16px; color: var(--text-primary); }
-
-/* ── Badges ───────────────────────────────────────────────────── */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 10px;
-  border-radius: 20px;
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.badge-success { background: var(--color-success-bg); color: var(--color-success); }
-.badge-warning { background: var(--color-warning-bg); color: #7A5700;              }
-.badge-alert   { background: var(--color-alert-bg);   color: var(--color-alert);   }
-.badge-primary { background: var(--color-primary-bg); color: var(--color-primary); }
-.badge-blue    { background: var(--color-blue-bg);    color: var(--color-blue);    }
-.badge-grey    { background: var(--surface-2);        color: var(--text-muted);    }
-
-/* ── Loading ──────────────────────────────────────────────────── */
-.loading-overlay {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 60px;
-  color: var(--text-muted);
-  font-family: 'Cambay', sans-serif;
-  font-size: 0.875rem;
-}
-
-.spinner {
-  width: 30px; height: 30px;
-  border: 3px solid var(--border-subtle);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── Responsive ───────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .sidebar      { transform: translateX(-100%); }
-  .main         { margin-left: 0; }
-  .chart-grid   { grid-template-columns: 1fr; }
-  .page-content { padding: 16px; }
-  .page-header  { flex-direction: column; align-items: flex-start; gap: 12px; }
+{
+  "_meta": {
+    "description": "NZF Dashboard Business Rules — single source of truth for all dashboard logic. Update this file to change how any metric is defined. Python scripts import this directly. Upload this file to Claude project context so Claude always has NZF business definitions when building new dashboards.",
+    "organisation": "National Zakat Foundation Australia",
+    "zoho_org_id": "org30478025",
+    "analytics_org_id": "668395719",
+    "analytics_workspace_id": "1715382000001002475",
+    "last_updated": "2026-04-23",
+    "maintained_by": "NZF Operations Team"
+  },
+
+  "zoho_modules": {
+    "_description": "Mapping of NZF terms to Zoho CRM API module names. Zoho uses generic names; NZF has renamed them.",
+    "clients":       { "api_name": "Contacts",        "analytics_view_id": "1715382000001002492" },
+    "cases":         { "api_name": "Deals",            "analytics_view_id": "1715382000001002494" },
+    "distributions": { "api_name": "Purchase_Orders",  "analytics_view_id": "1715382000001002628" },
+    "notes":         { "api_name": "Notes",            "analytics_view_id": "1715382000012507001" },
+    "case_notes_joined": {
+      "_description": "Pre-built Analytics query table — Cases + Distributions + Notes already joined",
+      "analytics_view_id": "1715382000013839427",
+      "view_name": "Cases x Distribution x Notes - All"
+    }
+  },
+
+  "client_definitions": {
+    "_description": "How clients are classified for reporting purposes",
+
+    "new_client": {
+      "definition": "A client whose case in the reporting window is their first ever case across all time — no prior cases of any status or outcome.",
+      "logic": "Compare case Created Time against the earliest case date for that client across the full Cases table. If this case IS the earliest, the client is New.",
+      "month_attribution": "The month of the case Created Time field is used to attribute the client to a reporting month.",
+      "notes": [
+        "A client rejected on their first application is still New — case outcome does not affect classification.",
+        "The full Cases table (not just the reporting window) must be used to determine first-ever case."
+      ]
+    },
+
+    "returning_client": {
+      "definition": "A client who has at least one prior case and has submitted a genuine new application — not a continuation of the same instance of assistance.",
+      "logic": "Client has earlier cases on record AND the new case passes the same-instance exclusion checks.",
+      "month_attribution": "The month of the new case Created Time field is used.",
+      "notes": [
+        "Prior case outcome is irrelevant — a client who was previously not funded and reapplies is still Returning.",
+        "Same-instance cases (ILA payments, re-opened cases, follow-up instalments) are excluded from both New and Returning counts."
+      ]
+    },
+
+    "same_instance_exclusions": {
+      "_description": "Cases that are continuations of a previous assistance instance, not genuine new applications. These are excluded from both New and Returning counts.",
+      "definition": "A case is same-instance if it represents ongoing, linked, or instalment-based assistance from a prior approval — not a new request for help.",
+      "stage_exclusions": [
+        "Ongoing Funding",
+        "Post Funding - Follow Up",
+        "Post=Follow-Up",
+        "Post- Follow-Up",
+        "Phase 4: Monitoring & Impact"
+      ],
+      "description_keywords": [
+        "ila payment",
+        "ila instalment",
+        "ila installment",
+        "interest-free loan",
+        "interest free loan",
+        "ila repayment",
+        "ongoing ila",
+        "continuation of",
+        "continuation of previous",
+        "continuing support",
+        "linked to previous case",
+        "linked to case",
+        "linked to prior case",
+        "same case",
+        "re-open",
+        "reopen",
+        "reopened",
+        "re-opened",
+        "reopening of",
+        "same application",
+        "follow-up payment",
+        "follow up payment",
+        "follow-up instalment",
+        "follow up instalment",
+        "second instalment",
+        "third instalment",
+        "second payment",
+        "third payment",
+        "instalment of previous"
+      ],
+      "notes": [
+        "Keywords are checked against the case Description field (case-insensitive).",
+        "Add new keywords here as new ILA or continuation patterns are identified.",
+        "If a caseworker identifies a pattern not covered, add the keyword here — no code change needed."
+      ]
+    }
+  },
+
+  "distributions": {
+    "_description": "Rules for how distributions (payments to clients) are classified",
+
+    "paid_statuses": ["Paid", "Extracted"],
+
+    "paid_date_logic": {
+      "definition": "The effective payment date for a distribution.",
+      "rules": [
+        "If Status = 'Paid'      → use Paid Date field",
+        "If Status = 'Extracted' → use Extracted Date field",
+        "If the specific date field is blank → fall back to Created Time"
+      ],
+      "notes": "Some legacy distributions (pre-2019) may have blank date fields — Created Time is used as a proxy."
+    },
+
+    "last_assistance_date": {
+      "definition": "The date of a client's most recent completed payment, used to calculate how long they have been away before returning.",
+      "logic": "MAX(effective_paid_date) across all Paid or Extracted distributions for that client, where the date is before the new case's Created Time."
+    },
+
+    "return_gap_bands": {
+      "definition": "How time-since-last-assistance is grouped for reporting",
+      "bands": [
+        { "label": "< 1 month",   "days_from": 0,   "days_to": 29   },
+        { "label": "1–3 months",  "days_from": 30,  "days_to": 89   },
+        { "label": "3–6 months",  "days_from": 90,  "days_to": 179  },
+        { "label": "6–12 months", "days_from": 180, "days_to": 364  },
+        { "label": "1–2 years",   "days_from": 365, "days_to": 729  },
+        { "label": "2+ years",    "days_from": 730, "days_to": null  }
+      ]
+    }
+  },
+
+  "distributions": {
+    "_description": "Rules for how distributions (payments to clients) are classified",
+
+    "paid_statuses": ["Paid", "Extracted"],
+
+    "paid_date_logic": {
+      "definition": "The effective payment date for a distribution.",
+      "rules": [
+        "If Status = 'Paid'      → use Paid Date field",
+        "If Status = 'Extracted' → use Extracted Date field",
+        "If the specific date field is blank → fall back to Created Time"
+      ]
+    },
+
+    "amount_field": "grand_total",
+    "_amount_note": "Grand Total field — contains AU$ prefix that must be stripped before parsing as float",
+
+    "return_gap_bands": {
+      "definition": "How time-since-last-assistance is grouped for reporting",
+      "bands": [
+        { "label": "< 1 month",   "days_from": 0,   "days_to": 29   },
+        { "label": "1–3 months",  "days_from": 30,  "days_to": 89   },
+        { "label": "3–6 months",  "days_from": 90,  "days_to": 179  },
+        { "label": "6–12 months", "days_from": 180, "days_to": 364  },
+        { "label": "1–2 years",   "days_from": 365, "days_to": 729  },
+        { "label": "2+ years",    "days_from": 730, "days_to": null  }
+      ]
+    }
+  },
+
+  "case_performance": {
+    "_description": "Rules for the Cases Performance dashboard — response time, closure time, SLA targets, automated note exclusions.",
+
+    "sla_response": {
+      "_description": "Response SLA — time from case creation to first genuine caseworker note. P1 uses business hours only; P2-P4 use calendar hours.",
+      "P1": { "hours": 1,  "business_hours_only": true,  "display": "1 business hour"  },
+      "P2": { "hours": 48, "business_hours_only": false, "display": "2 days"            },
+      "P3": { "hours": 72, "business_hours_only": false, "display": "3 days"            },
+      "P4": { "hours": 72, "business_hours_only": false, "display": "3 days"            },
+      "P5": null,
+      "No Priority": null
+    },
+
+    "sla_resolution": {
+      "_description": "Resolution SLA — time from case creation to first resolution event: EITHER case closure OR first paid/extracted distribution (whichever comes first). Calendar hours.",
+      "P1": { "hours": 24,  "display": "24 hours"  },
+      "P2": { "hours": 72,  "display": "3 days"    },
+      "P3": { "hours": 144, "display": "6 days"    },
+      "P4": { "hours": 240, "display": "10 days"   },
+      "P5": null,
+      "No Priority": null
+    },
+
+    "working_hours": {
+      "start_hour": 9,
+      "end_hour":   17,
+      "timezone":   "Australia/Sydney",
+      "_description": "Used for P1 response SLA only. Clock pauses outside 9AM–5PM Mon–Fri AEST."
+    },
+
+    "automated_note_titles": {
+      "_description": "Note titles that represent system-generated or intake admin notes — NOT genuine caseworker actions. These are excluded from first-response time calculations. Add new patterns here as they are identified.",
+      "exact_match": [
+        "Case Allocation Notes",
+        "Online Application",
+        "Application:",
+        "Application",
+        "CCNR",
+        "CCUFR",
+        "CCF",
+        "RFA"
+      ],
+      "prefix_match": [
+        "Application:"
+      ]
+    },
+
+    "closed_stages": [
+      "Closed - Funded",
+      "Closed - Not Funded",
+      "Closed - NO Response"
+    ],
+
+    "closure_outcome_colours": {
+      "Closed - Funded":      "#49A942",
+      "Closed - Not Funded":  "#EE3526",
+      "Closed - NO Response": "#FDB913"
+    },
+
+    "closure_outcome_short": {
+      "Closed - Funded":      "Funded",
+      "Closed - Not Funded":  "Not Funded",
+      "Closed - NO Response": "No Response"
+    },
+
+    "trend_comparison_months": 3,
+    "_trend_note": "Number of months used for trend comparison (last N vs prior N months)"
+  },
+
+  "case_priorities": {
+    "_description": "Normalisation rules for the Case Urgency field. Raw values in Zoho CRM are inconsistent — these prefix matches normalise them to clean labels for reporting.",
+    "prefix_map": [
+      { "prefix": "PRIORITY 1", "label": "P1", "display": "P1 — Same Day"     },
+      { "prefix": "PRIORITY 2", "label": "P2", "display": "P2 — 1–3 Days"     },
+      { "prefix": "PRIORITY 3", "label": "P3", "display": "P3 — 4–6 Days"     },
+      { "prefix": "PRIORITY 4", "label": "P4", "display": "P4 — 7–10 Days"    },
+      { "prefix": "PRIORITY 5", "label": "P5", "display": "P5 — 6–14 Days"    }
+    ],
+    "no_priority_label": "No Priority",
+    "order": ["P1","P2","P3","P4","P5","No Priority"],
+    "colours": {
+      "P1":          "#EE3526",
+      "P2":          "#E8732A",
+      "P3":          "#FDB913",
+      "P4":          "#0081C6",
+      "P5":          "#49A942",
+      "No Priority": "#9F9393"
+    }
+  },
+
+  "case_stages": {
+    "_description": "Zoho CRM case stage definitions and groupings for reporting",
+
+    "closed_stages": [
+      "Closed - Funded",
+      "Closed - Not Funded",
+      "Closed - NO Response"
+    ],
+
+    "active_stages": [
+      "Intake",
+      "Ready for Allocation",
+      "Allocated",
+      "Assesment",
+      "Follow Up",
+      "Waiting On Client",
+      "TL Approval",
+      "NM Approval",
+      "Funding",
+      "Post Funding - Follow Up"
+    ],
+
+    "stage_groups": {
+      "_description": "Logical groupings of stages for dashboard summaries",
+      "intake":      ["Intake", "Ready for Allocation", "Ready for Allocation: Potential Fast Track"],
+      "assessment":  ["Allocated", "Assesment", "Follow Up", "Waiting On Client"],
+      "approval":    ["TL Approval", "NM Approval", "SDM Reviewed", "CEO Approval", "COO Approval"],
+      "funding":     ["Funding", "Ongoing Funding"],
+      "closed":      ["Closed - Funded", "Closed - Not Funded", "Closed - NO Response"]
+    }
+  },
+
+  "reporting_periods": {
+    "_description": "Standard time windows used across all reports",
+    "client_report_window_months": 14,
+    "trend_display_months": 13,
+    "pipeline_window_months": 13,
+    "distribution_history_years": 7
+  },
+
+  "zakat_categories": {
+    "_description": "The eight Quranic categories of Zakat eligibility used by NZF",
+    "categories": [
+      "Poor (Faqeer)",
+      "Needy (Miskeen)",
+      "Strengthen the Deen (Mualafa)",
+      "Captive / Prisoner (Riqab)",
+      "Debtor (Gharimin)",
+      "In the Way of Allah (Fi Sabilillah)",
+      "Wayfarer (Ibn al-Sabil)",
+      "Zakat Collector (Amileen)"
+    ]
+  },
+
+  "dashboard_notes": {
+    "_description": "Context for Claude when building or modifying dashboards",
+    "brand_guide": "See NZF_WebsiteFigma_Brand.png in project files for colours, typography and component styles.",
+    "primary_colour": "#EE3526",
+    "fonts": { "headings": "Bree Serif", "body": "Cambay" },
+    "currency": "AUD",
+    "timezone": "AEST / AEDT (Australia/Sydney)",
+    "audience": "NZF internal caseworkers, team leads and management — not public-facing",
+    "data_sensitivity": "All case data is sensitive. No client names or personal details should appear in aggregated reports.",
+    "auth_status": "Entra ID SSO hooks are built in but currently disabled. See assets/js/auth.js AUTH_ENABLED flag."
+  }
 }
