@@ -60,6 +60,23 @@
     .badge-stage-closed-funded { background:rgba(73,169,66,0.12);  color:#2d7a27; border:1px solid rgba(73,169,66,0.3); }
     .badge-stage-closed-other  { background:rgba(238,53,38,0.08);  color:var(--color-primary); border:1px solid rgba(238,53,38,0.2); }
 
+    /* No interaction — urgent red pulsing indicator */
+    .no-interaction-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(238,53,38,0.1); border:1px solid rgba(238,53,38,0.35);
+      color:#c0392b; font-family:'Cambay',sans-serif;
+      font-size:0.7rem; font-weight:700; padding:2px 9px;
+      border-radius:12px; white-space:nowrap;
+    }
+    .no-interaction-badge::before {
+      content:''; width:6px; height:6px; border-radius:50%;
+      background:#c0392b; flex-shrink:0;
+      animation:pulse-red 1.5s infinite;
+    }
+    @keyframes pulse-red {
+      0%,100%{opacity:1;} 50%{opacity:0.2;}
+    }
+
     /* Data source badge */
     .live-badge {
       display:inline-flex; align-items:center; gap:5px;
@@ -209,33 +226,45 @@ function fmtAge(hours) {
 
 // ── Banner ────────────────────────────────────────────────────────
 function renderBanner(pi) {
-  const el         = document.getElementById('unprioritized-banner');
-  const unassigned = pi.unprioritized_count ?? 0;
-  const flagged    = pi.flagged_count ?? 0;
-  const total      = (pi.combined_cases || []).length;
+  const el            = document.getElementById('unprioritized-banner');
+  const noInteraction = pi.no_interaction_count  ?? 0;
+  const misclassified = pi.misclassified_count   ?? 0;
+  const unassigned    = pi.unassigned_count       ?? 0;
+  const allTimeUnpri  = pi.unprioritized_all_time ?? 0;
+  const total         = (pi.combined_cases || []).length;
 
-  if (unassigned === 0 && flagged === 0) {
+  if (noInteraction === 0 && misclassified === 0 && unassigned === 0) {
     el.innerHTML = `
       <div class="alert-banner ok">
         <span class="alert-icon">&#10003;</span>
-        <span class="alert-text">All recent cases have been assigned a priority and no misclassifications detected.</span>
+        <span class="alert-text">No cases requiring immediate attention detected.</span>
       </div>`;
     return;
   }
 
   const parts = [];
-  if (flagged > 0)    parts.push(`<strong>${flagged} case${flagged!==1?'s':''} flagged</strong> as potentially misclassified`);
-  if (unassigned > 0) parts.push(`<strong>${unassigned} case${unassigned!==1?'s':''}</strong> open without a priority for more than 24 hours`);
+  if (noInteraction > 0)
+    parts.push(`<strong>${noInteraction} case${noInteraction!==1?'s':''} with no caseworker interaction</strong>`);
+  if (misclassified > 0)
+    parts.push(`<strong>${misclassified} potentially misclassified</strong> (AI suggests P1 or P2)`);
+  if (unassigned > 0)
+    parts.push(`<strong>${unassigned} unassigned</strong> in the last 30 days`);
 
-  const cls = (flagged > 0 || unassigned > 5) ? 'alert' : 'warn';
+  const cls = noInteraction > 0 ? 'alert' : 'warn';
   el.innerHTML = `
     <div class="alert-banner ${cls}">
       <span class="alert-icon">&#9888;</span>
-      <span class="alert-text">${parts.join(' &mdash; ')}.
-        Showing ${total} cases requiring attention below.
-      </span>
+      <div class="alert-text">
+        ${parts.join(' &mdash; ')}.&nbsp; Showing all ${total} cases below.
+        ${allTimeUnpri > 0
+          ? `<span style="display:block;color:var(--text-muted);font-size:0.78rem;margin-top:3px">
+              Also: ${allTimeUnpri} open cases have had no priority assigned for more than 24 hours (all time)
+             </span>`
+          : ''}
+      </div>
     </div>`;
 }
+
 
 // ── AI Analysis card ──────────────────────────────────────────────
 function renderAIAnalysis(analysis, combinedCases) {
@@ -309,8 +338,9 @@ function renderAttentionTable(cases) {
   const stages    = [...new Set(cases.map(c => c.stage || '').filter(Boolean))].sort();
   const curPris   = [...new Set(cases.map(c => c.assigned_priority || '').filter(Boolean))].sort();
   const recPris   = [...new Set(cases.map(c => c.suggested_priority || '').filter(Boolean))].sort();
-  const severities= ['High','Medium','Low'];
+  const flagOpts  = ['No Interaction', 'High', 'Medium', 'Low'];
 
+  const nNoInteraction = cases.filter(c => c.flag_type === 'no_interaction').length;
   const nMisclassified = cases.filter(c => c.flag_type === 'misclassified').length;
   const nUnassigned    = cases.filter(c => c.flag_type === 'unassigned').length;
 
@@ -332,7 +362,7 @@ function renderAttentionTable(cases) {
           <div class="chart-card-title">Cases Requiring Attention</div>
           <div class="chart-card-subtitle" id="table-subtitle">
             ${cases.length} cases &mdash;
-            ${nMisclassified} misclassified (P1/P2 suggested),
+            ${nNoInteraction > 0 ? `${nNoInteraction} no interaction, ` : ''}${nMisclassified} misclassified (P1/P2 suggested),
             ${nUnassigned} unassigned &mdash;
             last 30 days
           </div>
@@ -351,7 +381,7 @@ function renderAttentionTable(cases) {
             <th>Client ID</th>
             <th>Created</th>
             <th>Current Priority<br>${makeSelect('filter-cur-pri', curPris, '120px')}</th>
-            <th>Flag<br>${makeSelect('filter-flag', severities, '100px')}</th>
+            <th>Flag<br>${makeSelect('filter-flag', flagOpts, '130px')}</th>
             <th>Recommended Priority<br>${makeSelect('filter-rec-pri', recPris, '140px')}</th>
             <th>Stage<br>${makeSelect('filter-stage', stages, '160px')}</th>
             <th>Summary</th>
@@ -374,12 +404,16 @@ function applyFilters() {
   const recPri  = document.getElementById('filter-rec-pri')?.value || '';
   const stage   = document.getElementById('filter-stage')?.value   || '';
 
-  const filtered = _allCases.filter(c =>
-    (!flag   || (c.flag_severity || '') === flag)   &&
-    (!curPri || (c.assigned_priority || '') === curPri) &&
-    (!recPri || (c.suggested_priority || '') === recPri) &&
-    (!stage  || (c.stage || '') === stage)
-  );
+  const filtered = _allCases.filter(c => {
+    // Flag filter: "No Interaction" matches flag_type, severities match flag_severity
+    const flagMatch = !flag
+      || (flag === 'No Interaction' && c.flag_type === 'no_interaction')
+      || (flag !== 'No Interaction' && (c.flag_severity || '') === flag);
+    return flagMatch
+      && (!curPri || (c.assigned_priority || '') === curPri)
+      && (!recPri || (c.suggested_priority || '') === recPri)
+      && (!stage  || (c.stage || '') === stage);
+  });
 
   renderTableRows(filtered);
 
@@ -419,6 +453,9 @@ function renderTableRows(cases) {
   }
 
   function flagBadge(c) {
+    if (c.flag_type === 'no_interaction') {
+      return `<span class="no-interaction-badge">No Interaction</span>`;
+    }
     const sev   = (c.flag_severity || 'low').toLowerCase();
     const col   = sev==='high'?'#c0392b':sev==='medium'?'#7a5c00':'#555';
     const bg    = sev==='high'?'rgba(238,53,38,0.1)':sev==='medium'?'rgba(253,185,19,0.12)':'rgba(159,147,147,0.1)';
