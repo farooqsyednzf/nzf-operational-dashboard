@@ -121,39 +121,59 @@ def _build_unprioritized_from_crm(crm_cases, max_rows=20):
         })
     return result[:max_rows]
 
-def run_unprioritized_summaries(cases):
+def run_case_enrichment(cases, context="all"):
     """
-    Batch AI call: generate a 1-sentence urgency summary for each
-    unprioritized case. Explicitly no personal names in output.
-    Returns dict: case_id -> summary string.
+    Single batch AI call that enriches every case with:
+      - recommended_priority: P1–P5 based on description (even if already assigned)
+      - summary: 1–2 sentence plain-English summary of the case situation
+
+    context: "all" (for unassigned cases needing priority recommendation)
+             or used alongside the accuracy analysis flags.
+
+    Returns dict: case_id -> {"recommended_priority": "P1", "summary": "..."}
     """
-    cases_with_desc = [c for c in cases if c.get("description")]
+    cases_with_desc = [c for c in cases if (c.get("description") or "").strip()]
     if not cases_with_desc or not ANTHROPIC_API_KEY:
         return {}
 
+    guide_text = "\n".join(
+        f"  {p}: {desc}"
+        for p, desc in CLASSIFICATION_GUIDE.items()
+        if not p.startswith("_")
+    )
+
     lines = "\n".join(
-        f'ID:{c["case_id"]} DESC:{c["description"][:300]}'
+        f'ID:{c.get("case_id","?")} PRIORITY:{c.get("priority","No Priority")} '
+        f'DESC:{(c.get("description") or "")[:400]}'
         for c in cases_with_desc
     )
 
-    prompt = f"""You are a caseworker assistant for NZF (National Zakat Foundation Australia).
+    prompt = f"""You are a caseworker assistant for NZF (National Zakat Foundation Australia), a Zakat charity.
 
-For each case below, write ONE concise sentence (max 20 words) describing:
-- What assistance is needed
-- How urgent it appears to be
+PRIORITY FRAMEWORK:
+{guide_text}
 
-IMPORTANT: Do NOT include any personal names, locations or identifying details.
-Write in third person, professional tone.
+For each case below, provide:
+1. recommended_priority: The correct priority (P1-P5) based strictly on the description and the framework above.
+   If the description is too vague to determine, use "P3" as a default.
+2. summary: A plain-English 1-2 sentence summary of what the client needs and how urgent it is.
+   IMPORTANT: No personal names, no locations, no identifying details. Third person, professional tone.
 
-Respond ONLY with valid JSON:
-{{"CASE_ID": "one sentence summary", ...}}
+Respond ONLY with valid JSON (no markdown, no preamble):
+{{
+  "CASE_ID": {{
+    "recommended_priority": "P1",
+    "summary": "Client requires..."
+  }},
+  ...
+}}
 
 Cases:
 {lines}"""
 
-    result = call_claude(prompt, max_tokens=1000)
+    result = call_claude(prompt, max_tokens=3000)
     if result:
-        print(f"  Case summaries: {len(result)} generated")
+        print(f"  Case enrichment: {len(result)} cases enriched")
     return result or {}
 
 # ── AI priority accuracy analysis ─────────────────────────────────
@@ -318,22 +338,21 @@ def build_cases_report(token):
     print(f"  Cases for AI review: {len(recent_sample):,} (last 30 days, live CRM)")
     ai_analysis = run_priority_analysis(recent_sample)
 
-    # 3. AI summaries — run against BOTH unprioritized (all-time banner) AND
-    #    last-30-day unassigned cases used in the combined table
-    summaries = run_unprioritized_summaries(unprioritized)
+    # 3. Single batch enrichment call — recommended priority + summary for all cases
+    #    in crm_recent that have descriptions. Replaces the old per-type calls.
+    print("  Enriching cases for combined table (priority + summary)...")
+    all_for_enrichment = [
+        {
+            "case_id":     c.get("case_id", ""),
+            "priority":    normalise_priority(c.get("case_urgency", "")),
+            "description": c.get("description", ""),
+        }
+        for c in crm_recent
+        if (c.get("description") or "").strip()
+    ]
+    enrichment = run_case_enrichment(all_for_enrichment)
 
     # ── Build combined cases table ────────────────────────────────
-    # Source: live CRM (last 30 days) — no Analytics latency here.
-    #
-    # Includes:
-    #   A. AI-flagged misclassifications where suggested priority is P1 or P2
-    #   B. Cases from last 30 days with NO priority assigned (potential P1/P2)
-    #
-    # Sort: severity (High → Medium → Low), then created_date descending
-    # within each severity group. No row cap.
-    #
-    # Separate from the all-time unprioritized alert banner count (kept above).
-
     SEV_ORDER     = {"High": 0, "Medium": 1, "Low": 2}
     HIGH_PRI      = {"P1", "P2"}
     now           = datetime.now(timezone.utc)
@@ -343,10 +362,7 @@ def build_cases_report(token):
     seen_ids      = set()
 
     # A. Misclassified cases where AI suggests P1 or P2
-    p1p2_flags = [
-        f for f in flags
-        if f.get("suggested_priority", "") in HIGH_PRI
-    ]
+    p1p2_flags = [f for f in flags if f.get("suggested_priority", "") in HIGH_PRI]
     for f in sorted(p1p2_flags, key=lambda x: (
         SEV_ORDER.get(x.get("severity", "Low"), 2),
         -(zac.parse_dt(crm_index.get(x.get("case_id",""), {}).get("created_time","")) or now).timestamp()
@@ -358,6 +374,7 @@ def build_cases_report(token):
         created = crm_c.get("created_time", "")
         crdt    = zac.parse_dt(created)
         age_h   = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
+        enr     = enrichment.get(cid, {})
         combined.append({
             "zoho_record_id":     crm_c.get("id", "") or case_id_lookup.get(cid, ""),
             "case_id":            cid,
@@ -370,26 +387,24 @@ def build_cases_report(token):
             "suggested_priority": f.get("suggested_priority", ""),
             "flag_type":          "misclassified",
             "flag_severity":      f.get("severity", "Medium"),
-            "ai_summary":         f.get("reason", ""),
+            "ai_summary":         enr.get("summary", f.get("reason", "")),
         })
         seen_ids.add(cid)
 
-    # B. Last-30-day unassigned cases (potential P1/P2 — not yet assessed)
+    # B. Last-30-day unassigned cases — use enrichment for both summary and recommended priority
     unassigned_30d = [
         c for c in crm_recent
         if normalise_priority(c.get("case_urgency", "")) == NO_PRIORITY
         and c.get("case_id", "") not in seen_ids
     ]
-    # Get AI summaries for these too
-    unassigned_summaries = run_unprioritized_summaries(unassigned_30d)
-
     for c in unassigned_30d:
         cid     = c.get("case_id", "")
         created = c.get("created_time", "")
         crdt    = zac.parse_dt(created)
         age_h   = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
-        # Severity based on age: High if >48h unassigned, Medium if >24h
         sev     = "High" if (age_h or 0) > 48 else "Medium" if (age_h or 0) > 24 else "Low"
+        enr     = enrichment.get(cid, {})
+        rec_pri = enr.get("recommended_priority", "Assign Priority")
         combined.append({
             "zoho_record_id":     c.get("id", ""),
             "case_id":            cid,
@@ -399,24 +414,22 @@ def build_cases_report(token):
             "age_hours":          age_h,
             "stage":              c.get("stage", ""),
             "assigned_priority":  NO_PRIORITY,
-            "suggested_priority": "Assign Priority",
+            "suggested_priority": rec_pri,
             "flag_type":          "unassigned",
             "flag_severity":      sev,
-            "ai_summary":         unassigned_summaries.get(cid, (c.get("description") or "")[:100]),
+            "ai_summary":         enr.get("summary", (c.get("description") or "")[:100]),
         })
         seen_ids.add(cid)
 
-    # Sort: severity first, then created_date descending within severity
+    # Sort: severity first, then newest first within each group
     combined.sort(key=lambda x: (
         SEV_ORDER.get(x.get("flag_severity", "Low"), 2),
         -x.get("created_ts", 0)
     ))
-
-    # Strip the helper timestamp — not needed in JSON
     for row in combined:
         row.pop("created_ts", None)
 
-    p1p2_count   = len([f for f in flags if f.get("suggested_priority","") in HIGH_PRI])
+    p1p2_count     = len(p1p2_flags)
     unassign_count = len(unassigned_30d)
     print(f"  Combined table: {len(combined)} rows "
           f"({p1p2_count} flagged P1/P2, {unassign_count} unassigned last 30d)")
