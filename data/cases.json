@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-23T01:13:17.834899+00:00",
+    "last_updated": "2026-04-23T01:47:35.004778+00:00",
     "record_count": 3125,
     "months_covered": [
       "2025-04",
@@ -263,5 +263,414 @@
         ]
       }
     ]
+  },
+  "priority_intelligence": {
+    "unprioritized_alert": {
+      "threshold_hours": 24,
+      "count": 50,
+      "cases": [
+        {
+          "case_id": "20179",
+          "created": "Nov 11, 2013 08:54 PM",
+          "age_hours": 109084.9,
+          "age_days": 4545.2,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201711",
+          "created": "Nov 11, 2013 09:04 PM",
+          "age_hours": 109084.7,
+          "age_days": 4545.2,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201710",
+          "created": "Nov 11, 2013 09:03 PM",
+          "age_hours": 109084.7,
+          "age_days": 4545.2,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201717",
+          "created": "Nov 11, 2013 09:12 PM",
+          "age_hours": 109084.6,
+          "age_days": 4545.2,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201715",
+          "created": "Nov 11, 2013 09:11 PM",
+          "age_hours": 109084.6,
+          "age_days": 4545.2,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201714",
+          "created": "Nov 11, 2013 09:10 PM",
+          "age_hours": 109084.6,
+          "age_days": 4545.2,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201713",
+          "created": "Nov 11, 2013 09:09 PM",
+          "age_hours": 109084.6,
+          "age_days": 4545.2,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201724",
+          "created": "Nov 11, 2013 09:20 PM",
+          "age_hours": 109084.5,
+          "age_days": 4545.2,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201722",
+          "created": "Nov 11, 2013 09:17 PM",
+          "age_hours": 109084.5,
+          "age_days": 4545.2,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201721",
+          "created": "Nov 11, 2013 09:16 PM",
+          "age_hours": 109084.5,
+          "age_days": 4545.2,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201728",
+          "created": "Nov 11, 2013 09:25 PM",
+          "age_hours": 109084.4,
+          "age_days": 4545.2,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201725",
+          "created": "Nov 11, 2013 09:21 PM",
+          "age_hours": 109084.4,
+          "age_days": 4545.2,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201731",
+          "created": "Nov 12, 2013 05:46 PM",
+          "age_hours": 109064.0,
+          "age_days": 4544.3,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201736",
+          "created": "Nov 16, 2013 08:04 AM",
+          "age_hours": 108977.7,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201741",
+          "created": "Nov 16, 2013 08:13 AM",
+          "age_hours": 108977.6,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201739",
+          "created": "Nov 16, 2013 08:10 AM",
+          "age_hours": 108977.6,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201750",
+          "created": "Nov 16, 2013 08:26 AM",
+          "age_hours": 108977.4,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201748",
+          "created": "Nov 16, 2013 08:24 AM",
+          "age_hours": 108977.4,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201746",
+          "created": "Nov 16, 2013 08:21 AM",
+          "age_hours": 108977.4,
+          "age_days": 4540.7,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201756",
+          "created": "Nov 16, 2013 08:32 AM",
+          "age_hours": 108977.3,
+          "age_days": 4540.7,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201755",
+          "created": "Nov 16, 2013 08:31 AM",
+          "age_hours": 108977.3,
+          "age_days": 4540.7,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201751",
+          "created": "Nov 16, 2013 08:27 AM",
+          "age_hours": 108977.3,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201762",
+          "created": "Nov 16, 2013 08:38 AM",
+          "age_hours": 108977.2,
+          "age_days": 4540.7,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201761",
+          "created": "Nov 16, 2013 08:37 AM",
+          "age_hours": 108977.2,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201760",
+          "created": "Nov 16, 2013 08:37 AM",
+          "age_hours": 108977.2,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201759",
+          "created": "Nov 16, 2013 08:35 AM",
+          "age_hours": 108977.2,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201758",
+          "created": "Nov 16, 2013 08:35 AM",
+          "age_hours": 108977.2,
+          "age_days": 4540.7,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201764",
+          "created": "Nov 16, 2013 08:40 AM",
+          "age_hours": 108977.1,
+          "age_days": 4540.7,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201763",
+          "created": "Nov 16, 2013 08:39 AM",
+          "age_hours": 108977.1,
+          "age_days": 4540.7,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201769",
+          "created": "Nov 16, 2013 07:02 PM",
+          "age_hours": 108966.8,
+          "age_days": 4540.3,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201775",
+          "created": "Nov 16, 2013 07:08 PM",
+          "age_hours": 108966.7,
+          "age_days": 4540.3,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201772",
+          "created": "Nov 16, 2013 07:05 PM",
+          "age_hours": 108966.7,
+          "age_days": 4540.3,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201770",
+          "created": "Nov 16, 2013 07:03 PM",
+          "age_hours": 108966.7,
+          "age_days": 4540.3,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201779",
+          "created": "Nov 16, 2013 07:12 PM",
+          "age_hours": 108966.6,
+          "age_days": 4540.3,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201778",
+          "created": "Nov 16, 2013 07:11 PM",
+          "age_hours": 108966.6,
+          "age_days": 4540.3,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201776",
+          "created": "Nov 16, 2013 07:09 PM",
+          "age_hours": 108966.6,
+          "age_days": 4540.3,
+          "stage": "Closed - Funded",
+          "description": "Request for Bond assistance."
+        },
+        {
+          "case_id": "201782",
+          "created": "Nov 16, 2013 07:45 PM",
+          "age_hours": 108966.0,
+          "age_days": 4540.3,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "201796",
+          "created": "Nov 21, 2013 03:25 PM",
+          "age_hours": 108850.4,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017103",
+          "created": "Nov 21, 2013 03:42 PM",
+          "age_hours": 108850.1,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017107",
+          "created": "Nov 21, 2013 04:32 PM",
+          "age_hours": 108849.3,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017105",
+          "created": "Nov 21, 2013 04:29 PM",
+          "age_hours": 108849.3,
+          "age_days": 4535.4,
+          "stage": "Closed - Not Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017104",
+          "created": "Nov 21, 2013 04:28 PM",
+          "age_hours": 108849.3,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017111",
+          "created": "Nov 21, 2013 04:36 PM",
+          "age_hours": 108849.2,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017118",
+          "created": "Nov 21, 2013 04:44 PM",
+          "age_hours": 108849.1,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017117",
+          "created": "Nov 21, 2013 04:43 PM",
+          "age_hours": 108849.1,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017116",
+          "created": "Nov 21, 2013 04:42 PM",
+          "age_hours": 108849.1,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017115",
+          "created": "Nov 21, 2013 04:40 PM",
+          "age_hours": 108849.1,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": "File already created for this client Asma Zail. \n\nFiraaz a and I did  assessment today \nAfter doin the assessment the si"
+        },
+        {
+          "case_id": "2017114",
+          "created": "Nov 21, 2013 04:40 PM",
+          "age_hours": 108849.1,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017123",
+          "created": "Nov 21, 2013 04:50 PM",
+          "age_hours": 108849.0,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        },
+        {
+          "case_id": "2017122",
+          "created": "Nov 21, 2013 04:49 PM",
+          "age_hours": 108849.0,
+          "age_days": 4535.4,
+          "stage": "Closed - Funded",
+          "description": ""
+        }
+      ]
+    },
+    "ai_analysis": null
   }
 }
