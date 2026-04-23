@@ -3,135 +3,130 @@ fetch_reconciliation_data.py
 ────────────────────────────
 Builds /data/reconciliation.json for the Distribution Reconciliation dashboard.
 
-Source: Zoho Analytics SQL join across:
-  - Distributions (CRM Purchase Orders, Zakat only, last 30 days)
-  - Bills (Xero)  — joined on Bill Number = Distribution ID
-  - Contacts (Xero) — for payee name
+Approach: fetch three Analytics views directly with fetch_view() (no async
+SQL export job), then JOIN in Python. Uses the same proven pattern as every
+other data script.
 
-Data validation confirmed 24 Apr 2026:
-  - Bills (Xero) table exists in workspace 1715382000001002475 ✓
-  - Contacts (Xero) table exists ✓
-  - Join on Bill Number = Distribution ID is 100% accurate on recent paid records ✓
-  - Amounts match exactly between CRM and Xero ✓
+Views fetched:
+  - Distributions     (1715382000001002628)  CRM Purchase Orders
+  - Bills (Xero)      (1715382000005868510)  Xero bills synced to Analytics
+  - Contacts (Xero)   (1715382000005868254)  Xero contacts for payee name
 
-PII policy: payee/account name stored only for finance reconciliation purposes.
-This dashboard is owned by Salma (finance) and Usman (compliance).
+Join: Bill.bill_number == Distribution.distribution_id (100% accuracy confirmed)
+
+Status logic (Xero is source of truth, CRM status ignored):
+  paid    — Xero fully_paid_on_date present
+  nobill  — no matching Xero bill (control bypass)
+  overdue — >72h elapsed, bill exists but unpaid
+  urgent  — 48-72h elapsed
+  pending — bill exists, <48h
 """
 
-import os, sys, json
-from datetime import datetime, timezone
+import os, sys, json, re
+from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 import zoho_analytics_client as zac
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
-RULES    = zac.RULES
-CRM_BASE_URL = RULES["_meta"].get("zoho_crm_base_url", "")
+DATA_DIR     = os.path.join(os.path.dirname(__file__), "..", "data")
+CRM_BASE_URL = zac.RULES["_meta"].get("zoho_crm_base_url", "")
 
-SQL = """
-SELECT
-  d."Distribution ID"          AS dist_id,
-  d."Subject"                  AS subject,
-  d."Status"                   AS crm_status,
-  d."Grand Total"              AS amount,
-  d."Created Time"             AS created_time,
-  d."Approved Date"            AS approved_date,
-  d."Paid Date"                AS crm_paid_date,
-  d."Acc Name"                 AS crm_payee,
-  d."BSB / Biller Code"        AS crm_bsb,
-  b."Bill Number"              AS xero_bill_num,
-  b."Status"                   AS xero_bill_status,
-  b."Fully Paid On Date"       AS xero_payment_date,
-  b."Total (FCY)"              AS xero_amount,
-  c."Name"                     AS xero_payee
-FROM "Distributions" d
-LEFT JOIN "Bills (Xero)" b
-  ON (b."Bill Number" = d."Distribution ID"
-   OR b."Bill Number" LIKE CONCAT('% ', d."Distribution ID"))
-LEFT JOIN "Contacts (Xero)" c
-  ON b."Contact ID" = c."Contact ID"
-WHERE d."Distribution Type" = 'Zakat'
-  AND d."Status" NOT IN ('Cancelled','Rejected','Draft','Void')
-  AND d."Created Time" >= DATEADD(day, -30, GETDATE())
-ORDER BY d."Created Time" DESC
-""".strip()
+VIEW_BILLS_XERO    = "1715382000005868510"
+VIEW_CONTACTS_XERO = "1715382000005868254"
+EXCLUDED_STATUSES  = {"cancelled", "rejected", "draft", "void"}
+LOOKBACK_DAYS      = 30
 
 
 def parse_amount(s):
     if not s:
         return 0.0
-    import re
     return float(re.sub(r"[^0-9.]", "", str(s))) or 0.0
 
 
-def parse_date(s):
-    return zac.parse_dt(s)
-
-
-def get_status(row):
-    """
-    Xero payment is the source of truth.
-    Status logic matches the original standalone dashboard exactly:
-      paid    — Xero has a payment date (confirmed paid)
-      nobill  — no Xero bill at all (control bypass — investigate)
-      overdue — >72h elapsed from approved/created, bill exists but unpaid
-      urgent  — 48–72h elapsed
-      pending — bill exists, <48h elapsed
-    """
-    if row.get("xero_payment_date"):
+def get_status(xero_bill, base_dt, now_utc):
+    if xero_bill and xero_bill.get("fully_paid_on_date"):
         return "paid"
-    base = parse_date(row.get("approved_date")) or parse_date(row.get("created_time"))
-    hours = (datetime.now(timezone.utc) - base).total_seconds() / 3600 if base else None
-    if not row.get("xero_bill_num"):
+    if not xero_bill:
         return "nobill"
-    if hours is not None and hours > 72:
+    if not base_dt:
+        return "pending"
+    hours = (now_utc - base_dt).total_seconds() / 3600
+    if hours > 72:
         return "overdue"
-    if hours is not None and hours > 48:
+    if hours > 48:
         return "urgent"
     return "pending"
 
 
-def get_hours(row):
-    base = parse_date(row.get("approved_date")) or parse_date(row.get("created_time"))
-    if not base:
+def get_hours(base_dt, xero_bill, now_utc):
+    if not base_dt:
         return None
-    end = parse_date(row.get("xero_payment_date")) or datetime.now(timezone.utc)
-    return round((end - base).total_seconds() / 3600)
+    end_dt = None
+    if xero_bill:
+        end_dt = zac.parse_dt(xero_bill.get("fully_paid_on_date") or "")
+    return round(((end_dt or now_utc) - base_dt).total_seconds() / 3600)
 
 
 def build_reconciliation_report(token):
     print("\n=== Distribution Reconciliation ===")
-    print(f"  Running SQL query against Zoho Analytics...")
+    now_utc = datetime.now(timezone.utc)
+    cutoff  = now_utc - timedelta(days=LOOKBACK_DAYS)
 
-    rows_raw = zac.run_sql_query(token, SQL)
-    if not rows_raw:
-        print("  WARNING: No data returned from Analytics")
-        return None
+    # Fetch all three views
+    all_dists    = zac.fetch_view(token, zac.VIEW_DISTRIBUTIONS, label="Distributions")
+    all_bills    = zac.fetch_view(token, VIEW_BILLS_XERO,        label="Bills (Xero)")
+    all_contacts = zac.fetch_view(token, VIEW_CONTACTS_XERO,     label="Contacts (Xero)")
 
-    print(f"  Raw rows: {len(rows_raw):,}")
+    # Filter distributions to Zakat + last 30 days + not excluded
+    dists = [
+        d for d in all_dists
+        if (d.get("distribution_type") or "").lower().strip() == "zakat"
+        and (d.get("status") or "").lower().strip() not in EXCLUDED_STATUSES
+        and zac.parse_dt(d.get("created_time") or "") is not None
+        and zac.parse_dt(d.get("created_time")) >= cutoff
+    ]
+    print(f"  Filtered: {len(dists):,} Zakat distributions in last {LOOKBACK_DAYS} days")
 
+    # Build lookups
+    bills_by_num   = {(b.get("bill_number") or "").strip(): b for b in all_bills
+                      if (b.get("bill_number") or "").strip()}
+    contacts_by_id = {(c.get("contact_id") or "").strip(): c.get("name", "")
+                      for c in all_contacts if (c.get("contact_id") or "").strip()}
+
+    # JOIN and build rows
     rows = []
-    for r in rows_raw:
+    for d in dists:
+        dist_id   = (d.get("distribution_id") or "").strip()
+        xero_bill = bills_by_num.get(dist_id)
+
+        xero_payee = ""
+        if xero_bill:
+            xero_payee = contacts_by_id.get(
+                (xero_bill.get("contact_id") or "").strip(), "")
+
+        # SLA clock base: approved_date → created_time fallback
+        base_dt = (zac.parse_dt(d.get("approved_date") or "")
+                   or zac.parse_dt(d.get("created_time") or ""))
+
         row = {
-            "dist_id":           r.get("dist_id", ""),
-            "subject":           r.get("subject", ""),
-            "crm_status":        r.get("crm_status", ""),
-            "amount":            r.get("amount", ""),
-            "created_time":      r.get("created_time", ""),
-            "approved_date":     r.get("approved_date", ""),
-            "crm_paid_date":     r.get("crm_paid_date", ""),
-            "crm_payee":         r.get("crm_payee", ""),
-            "xero_bill_num":     r.get("xero_bill_num", ""),
-            "xero_bill_status":  r.get("xero_bill_status", ""),
-            "xero_payment_date": r.get("xero_payment_date", ""),
-            "xero_amount":       r.get("xero_amount", ""),
-            "xero_payee":        r.get("xero_payee", "") or r.get("crm_payee", ""),
+            "dist_id":           dist_id,
+            "subject":           d.get("subject", ""),
+            "crm_status":        d.get("status", ""),
+            "amount":            d.get("grand_total", ""),
+            "created_time":      d.get("created_time", ""),
+            "approved_date":     d.get("approved_date", ""),
+            "crm_paid_date":     d.get("paid_date", ""),
+            "crm_payee":         d.get("acc_name", ""),
+            "xero_bill_num":     xero_bill.get("bill_number", "") if xero_bill else "",
+            "xero_bill_status":  xero_bill.get("status", "")      if xero_bill else "",
+            "xero_payment_date": xero_bill.get("fully_paid_on_date", "") if xero_bill else "",
+            "xero_amount":       xero_bill.get("total__fcy_", "")  if xero_bill else "",
+            "xero_payee":        xero_payee or d.get("acc_name", ""),
         }
-        row["_status"] = get_status(row)
-        row["_hours"]  = get_hours(row)
+        row["_status"] = get_status(xero_bill, base_dt, now_utc)
+        row["_hours"]  = get_hours(base_dt, xero_bill, now_utc)
         rows.append(row)
 
-    # Compute summary KPIs
     paid    = [r for r in rows if r["_status"] == "paid"]
     overdue = [r for r in rows if r["_status"] == "overdue"]
     urgent  = [r for r in rows if r["_status"] == "urgent"]
@@ -142,26 +137,24 @@ def build_reconciliation_report(token):
     paid_amt   = sum(parse_amount(r["amount"]) for r in paid)
     unpaid_amt = total_amt - paid_amt
 
-    print(f"  Total: {len(rows)} | Paid: {len(paid)} | Overdue: {len(overdue)} "
-          f"| Urgent: {len(urgent)} | Pending: {len(pending)} | No Bill: {len(nobill)}")
-    print(f"  Total AUD: ${total_amt:,.0f} | Paid: ${paid_amt:,.0f} | Unpaid: ${unpaid_amt:,.0f}")
+    print(f"  Paid: {len(paid)} | Overdue: {len(overdue)} | Urgent: {len(urgent)} "
+          f"| Pending: {len(pending)} | No Bill: {len(nobill)}")
+    print(f"  AUD → Total: ${total_amt:,.0f} | Paid: ${paid_amt:,.0f} | Unpaid: ${unpaid_amt:,.0f}")
 
     return {
         "meta": {
-            "last_updated": datetime.now(timezone.utc).isoformat(),
-            "record_count": len(rows),
-            "crm_base_url": CRM_BASE_URL,
+            "last_updated":  now_utc.isoformat(),
+            "record_count":  len(rows),
+            "crm_base_url":  CRM_BASE_URL,
+            "lookback_days": LOOKBACK_DAYS,
         },
         "summary": {
-            "total":        len(rows),
-            "paid":         len(paid),
-            "overdue":      len(overdue),
-            "urgent":       len(urgent),
-            "pending":      len(pending),
-            "nobill":       len(nobill),
-            "total_aud":    round(total_amt, 2),
-            "paid_aud":     round(paid_amt, 2),
-            "unpaid_aud":   round(unpaid_amt, 2),
+            "total": len(rows), "paid": len(paid),
+            "overdue": len(overdue), "urgent": len(urgent),
+            "pending": len(pending), "nobill": len(nobill),
+            "total_aud": round(total_amt, 2),
+            "paid_aud":  round(paid_amt, 2),
+            "unpaid_aud": round(unpaid_amt, 2),
         },
         "rows": rows,
     }
@@ -174,9 +167,8 @@ def main():
     print("=" * 55)
 
     token = zac.get_access_token()
-    print("✓ Access token obtained")
+    data  = build_reconciliation_report(token)
 
-    data = build_reconciliation_report(token)
     if not data:
         print("ERROR: No data produced")
         sys.exit(1)
@@ -185,12 +177,7 @@ def main():
     with open(out_path, "w") as f:
         json.dump(data, f, default=str)
 
-    print(f"\nDone. reconciliation.json written")
-    print(f"  Total distributions:  {data['summary']['total']}")
-    print(f"  Paid in Xero:         {data['summary']['paid']}")
-    print(f"  Overdue >72h:         {data['summary']['overdue']}")
-    print(f"  No Xero bill:         {data['summary']['nobill']}")
-    print(f"  Unpaid AUD:           ${data['summary']['unpaid_aud']:,.0f}")
+    print(f"\nDone. {data['summary']['total']} distributions written to reconciliation.json")
     print("=" * 55)
 
 
