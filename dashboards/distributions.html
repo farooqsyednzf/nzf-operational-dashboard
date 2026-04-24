@@ -964,10 +964,9 @@ function renderReconMonth(monthKey, activeEl) {
     window._unmatchedRows = unmatchedRows;
     window._unmatchedTF.renderRow = _renderUnmatchedRow; // refresh closure
     window._unmatchedTF.refresh();
-  } else {
-    // Fallback if table not found
+  }
 
-
+  // ── Xero-only bills table ─────────────────────────────────────────
   document.getElementById('recon-xero-tbody').innerHTML = cats.length === 0
     ? '<tr><td colspan="4" style="padding:24px;text-align:center;font-family:Cambay;color:var(--text-muted)">No Xero-only bills this month</td></tr>'
     : cats.map(([cat, v]) => {
