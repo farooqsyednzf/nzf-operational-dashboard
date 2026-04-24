@@ -685,3 +685,99 @@ tbody td            { padding: 11px 16px; color: var(--text-primary); }
   .page-content { padding: 16px; }
   .page-header  { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   TABLE FILTER COMPONENT — column-level filters (table-filter.js)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Filter row sits directly under the header row */
+.tf-filter-row th.tf-filter-cell {
+  background: var(--surface-2, #F8F7F7);
+  border-bottom: 2px solid var(--border-subtle);
+  padding: 4px 8px;
+  vertical-align: top;
+}
+
+/* Individual filter inputs */
+.tf-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 26px;
+  padding: 0 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-family: 'Cambay', sans-serif;
+  font-size: 0.72rem;
+  color: var(--text-primary);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.tf-input:focus {
+  border-color: var(--color-blue, #0081C6);
+  box-shadow: 0 0 0 2px rgba(0,129,198,0.12);
+}
+.tf-input:not(:placeholder-shown):not([value=""]) {
+  border-color: var(--color-primary, #EE3526);
+  background: rgba(238,53,38,0.03);
+}
+/* Select arrow */
+.tf-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239F9393'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  padding-right: 22px;
+  cursor: pointer;
+}
+.tf-select:not([value=""]):focus,
+.tf-select option:checked ~ .tf-select {
+  border-color: var(--color-primary, #EE3526);
+}
+
+/* Range pairs (amount / date) — two small inputs side by side */
+.tf-range-pair {
+  display: flex;
+  gap: 3px;
+}
+.tf-range-pair .tf-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
+  font-size: 0.68rem;
+}
+.tf-date-input {
+  padding: 0 3px !important;
+}
+
+/* Column header active state — turns red when filter applied */
+thead tr:first-child th.tf-col-active {
+  color: var(--color-primary, #EE3526) !important;
+  position: relative;
+}
+thead tr:first-child th.tf-col-active::after {
+  content: ' ▼';
+  font-size: 0.6rem;
+  color: var(--color-primary, #EE3526);
+  vertical-align: middle;
+}
+
+/* Clear all filters button */
+.tf-clear-btn {
+  display: none;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--color-primary, #EE3526);
+  background: rgba(238,53,38,0.06);
+  color: var(--color-primary, #EE3526);
+  font-family: 'Cambay', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+.tf-clear-btn:hover {
+  background: rgba(238,53,38,0.12);
+}
