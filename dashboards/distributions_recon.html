@@ -222,14 +222,15 @@
         <button class="recon-tab"           id="tab-pending" onclick="setFilter('pending',this)">Pending <span id="c-pending"></span></button>
         <button class="recon-tab t-nobill"  id="tab-nobill"  onclick="setFilter('nobill',this)">No bill <span id="c-nobill"></span></button>
         <button class="recon-tab t-paid"    id="tab-paid"    onclick="setFilter('paid',this)">Paid in Xero <span id="c-paid"></span></button>
-        <input  class="recon-search" type="text" id="searchBox" placeholder="Search ID / subject / payee…" oninput="renderTable()">
+        <input  class="recon-search" type="text" id="searchBox" placeholder="Search ID / subject / payee…" oninput="_reconTF ? _reconTF.render() : renderTable()">
+        <button class="tf-clear-btn" id="recon-clear-btn">&#10005; Clear column filters</button>
       </div>
 
       <!-- Table -->
       <div class="chart-card" style="overflow:hidden;padding:0;">
         <div style="overflow-x:auto;">
-          <table>
-            <thead>
+          <table id="recon-table">
+            <thead id="recon-thead">
               <tr>
                 <th>Status</th>
                 <th>Dist. ID</th>
@@ -259,11 +260,13 @@
   </div>
 </div>
 
+<script src="/assets/js/table-filter.js"></script>
 <script src="/assets/js/auth.js"></script>
 <script src="/assets/js/nav.js"></script>
 <script>
-let _rows       = [];
-let _filter     = 'all';
+let _rows    = [];
+let _filter  = 'all';
+let _reconTF = null;
 
 // ── Bootstrap ─────────────────────────────────────────────────────
 (async () => {
@@ -295,7 +298,7 @@ let _filter     = 'all';
   _rows = data.rows || [];
   updateKPIs(data.summary);
   updateTabCounts(data.summary);
-  renderTable();
+  initReconTableFilter();
 })();
 
 // ── Helpers ───────────────────────────────────────────────────────
@@ -335,15 +338,15 @@ function updateTabCounts(s) {
   document.getElementById('c-nobill').textContent  = `(${s.nobill})`;
 }
 
-// ── Filter ────────────────────────────────────────────────────────
+// ── Filter tabs ───────────────────────────────────────────────────
 function setFilter(f, el) {
   _filter = f;
   document.querySelectorAll('.recon-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  renderTable();
+  _reconTF ? _reconTF.render() : renderTable();
 }
 
-// ── Table ─────────────────────────────────────────────────────────
+// ── Row config & renderer ─────────────────────────────────────────
 const STATUS_CFG = {
   paid:    { label:'Paid in Xero',   cls:'s-paid'    },
   overdue: { label:'Overdue >72h',   cls:'s-overdue' },
@@ -351,95 +354,92 @@ const STATUS_CFG = {
   pending: { label:'Pending',        cls:'s-pending' },
   nobill:  { label:'No Xero bill',   cls:'s-nobill'  },
 };
+const STATUS_ORDER = { overdue: 0, nobill: 1, urgent: 2, pending: 3, paid: 4 };
+
+function _sortRows(rows) {
+  return [...rows].sort((a, b) => {
+    const sa = STATUS_ORDER[a._status] ?? 99, sb = STATUS_ORDER[b._status] ?? 99;
+    if (sa !== sb) return sa - sb;
+    return new Date(b.approved_date||b.created_time||0) - new Date(a.approved_date||a.created_time||0);
+  });
+}
+
+function _renderReconRow(r) {
+  const crmBase = window.__NZF_META?.crm_base_url || '';
+  const cfg   = STATUS_CFG[r._status] || STATUS_CFG.pending;
+  const hrs   = r._hours;
+  const payee = r.xero_payee || r.crm_payee || r.subject || '—';
+  const base  = r.approved_date || r.created_time;
+  const dated = r.approved_date ? 'approved' : 'created';
+  const hrsHtml = hrs === null ? `<span class="h-na">—</span>`
+    : hrs > 72 ? `<span class="h-danger">${hrs}h</span>`
+    : hrs > 48 ? `<span class="h-warn">${hrs}h</span>`
+    : `<span class="h-ok">${hrs}h</span>`;
+  const xeroHtml = r.xero_payment_date
+    ? `<span class="xero-paid">&#10003; ${fmtDate(r.xero_payment_date)}</span>`
+    : r.xero_bill_num
+      ? `<span class="xero-pending">Bill raised &middot; awaiting payment</span>`
+      : `<span class="xero-missing">No bill in Xero</span>`;
+  const billHtml = r.xero_bill_num
+    ? `<span style="font-family:'Courier New',monospace;font-size:0.75rem;color:var(--text-secondary)">${r.xero_bill_num}</span>`
+    : `<span style="color:var(--text-muted);font-style:italic;font-size:0.78rem">—</span>`;
+  const distLink = (crmBase && r.record_id)
+    ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
+        style="font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700;color:var(--color-primary);text-decoration:none"
+        title="Open in CRM">${r.dist_id} &#8599;</a>`
+    : `<span style="font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700;color:var(--color-primary)">${r.dist_id}</span>`;
+  return `<tr>
+    <td><span class="badge ${cfg.cls}" style="padding:3px 9px;border-radius:12px;font-family:'Cambay';font-size:0.7rem;font-weight:700;white-space:nowrap">${cfg.label}</span></td>
+    <td style="white-space:nowrap">${distLink}</td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem" title="${payee}">${payee}</td>
+    <td style="text-align:right;font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700">${r.amount||'—'}</td>
+    <td style="font-size:0.8rem;white-space:nowrap">${fmtDate(base)}<br><span style="font-size:0.7rem;color:var(--text-muted)">${dated}</span></td>
+    <td style="text-align:center">${hrsHtml}</td>
+    <td>${xeroHtml}</td>
+    <td style="font-size:0.78rem;color:var(--text-secondary)">${r.crm_status||'—'}</td>
+    <td>${billHtml}</td>
+  </tr>`;
+}
+
+// ── TableFilter init ──────────────────────────────────────────────
+function initReconTableFilter() {
+  _reconTF = new TableFilter({
+    tableEl:   document.getElementById('recon-table'),
+    tbodyId:   'recon-tbody',
+    colspan:   9,
+    clearBtnId:'recon-clear-btn',
+    getRows:   () => _sortRows(_rows),
+    renderRow: _renderReconRow,
+    externalFilter: row => {
+      if (_filter !== 'all' && row._status !== _filter) return false;
+      const s = (document.getElementById('searchBox')?.value||'').toLowerCase();
+      if (!s) return true;
+      return (row.dist_id||'').toLowerCase().includes(s)
+          || (row.subject||'').toLowerCase().includes(s)
+          || (row.xero_payee||row.crm_payee||'').toLowerCase().includes(s);
+    },
+    onUpdate: (shown, total) => {
+      document.getElementById('footer-left').textContent = `Showing ${shown} of ${total} distributions`;
+    },
+    columns: [
+      { key:'_status',           type:'select', label:'Status',
+        values:['overdue','nobill','urgent','pending','paid'] },
+      { key:'dist_id',           type:'text',   label:'Dist. ID'      },
+      { key:'xero_payee',        type:'text',   label:'Subject/Payee' },
+      { key:'amount',            type:'amount', label:'Amount'        },
+      { key:'approved_date',     type:'date',   label:'Date'          },
+      { key:'_hours',            type:'hours',  label:'Hours elapsed' },
+      { key:'xero_payment_date', type:'date',   label:'Xero date'     },
+      { key:'crm_status',        type:'select', label:'CRM status'    },
+      { key:'xero_bill_num',     type:'text',   label:'Xero bill'     },
+    ],
+  });
+  _reconTF.build();
+  _reconTF.refresh();
+}
 
 function renderTable() {
-  const search = document.getElementById('searchBox').value.toLowerCase();
-  const crmBase = window.__NZF_META?.crm_base_url || '';
-
-  const STATUS_ORDER = { overdue: 0, nobill: 1, urgent: 2, pending: 3, paid: 4 };
-
-  const filtered = _rows.filter(r => {
-    if (_filter !== 'all' && r._status !== _filter) return false;
-    if (search) {
-      return (r.dist_id||'').toLowerCase().includes(search)
-          || (r.subject||'').toLowerCase().includes(search)
-          || (r.xero_payee||r.crm_payee||'').toLowerCase().includes(search);
-    }
-    return true;
-  }).sort((a, b) => {
-    // Primary: status category order
-    const sa = STATUS_ORDER[a._status] ?? 99;
-    const sb = STATUS_ORDER[b._status] ?? 99;
-    if (sa !== sb) return sa - sb;
-    // Secondary: approved_date → created_time, descending
-    const da = new Date(a.approved_date || a.created_time || 0);
-    const db = new Date(b.approved_date || b.created_time || 0);
-    return db - da;
-  });
-
-  const tbody = document.getElementById('recon-tbody');
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="padding:50px;text-align:center;
-      font-family:'Cambay';color:var(--text-muted)">No records match this filter</td></tr>`;
-    document.getElementById('footer-left').textContent = '0 records';
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(r => {
-    const cfg    = STATUS_CFG[r._status] || STATUS_CFG.pending;
-    const hrs    = r._hours;
-    const payee  = r.xero_payee || r.crm_payee || r.subject || '—';
-    const base   = r.approved_date || r.created_time;
-    const dated  = r.approved_date ? 'approved' : 'created';
-
-    const hrsHtml = hrs === null
-      ? `<span class="h-na">—</span>`
-      : hrs > 72
-        ? `<span class="h-danger">${hrs}h</span>`
-        : hrs > 48
-          ? `<span class="h-warn">${hrs}h</span>`
-          : `<span class="h-ok">${hrs}h</span>`;
-
-    const xeroHtml = r.xero_payment_date
-      ? `<span class="xero-paid">&#10003; ${fmtDate(r.xero_payment_date)}</span>`
-      : r.xero_bill_num
-        ? `<span class="xero-pending">Bill raised &middot; awaiting payment</span>`
-        : `<span class="xero-missing">No bill in Xero</span>`;
-
-    const billHtml = r.xero_bill_num
-      ? `<span style="font-family:'Courier New',monospace;font-size:0.75rem;color:var(--text-secondary)">${r.xero_bill_num}</span>`
-      : `<span style="color:var(--text-muted);font-style:italic;font-size:0.78rem">—</span>`;
-
-    const distLink = (crmBase && r.record_id)
-      ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
-          style="font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700;
-                 color:var(--color-primary);text-decoration:none"
-          title="Open in CRM">${r.dist_id} &#8599;</a>`
-      : `<span style="font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700;
-                      color:var(--color-primary)">${r.dist_id}</span>`;
-
-    return `<tr>
-      <td><span class="badge ${cfg.cls}" style="padding:3px 9px;border-radius:12px;
-        font-family:'Cambay';font-size:0.7rem;font-weight:700;white-space:nowrap">${cfg.label}</span></td>
-      <td style="white-space:nowrap">${distLink}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-                 font-size:0.82rem" title="${payee}">${payee}</td>
-      <td style="text-align:right;font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700">
-        ${r.amount || '—'}</td>
-      <td style="font-size:0.8rem;white-space:nowrap">
-        ${fmtDate(base)}<br>
-        <span style="font-size:0.7rem;color:var(--text-muted)">${dated}</span>
-      </td>
-      <td style="text-align:center">${hrsHtml}</td>
-      <td>${xeroHtml}</td>
-      <td style="font-size:0.78rem;color:var(--text-secondary)">${r.crm_status || '—'}</td>
-      <td>${billHtml}</td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('footer-left').textContent =
-    `Showing ${filtered.length} of ${_rows.length} distributions`;
+  if (_reconTF) { _reconTF.render(); return; }
 }
 </script>
 </body>
