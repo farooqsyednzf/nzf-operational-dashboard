@@ -103,8 +103,7 @@ def build_monthly_recon(token):
     # --- Filter CRM distributions to scope ---
     dists_in_scope = [
         d for d in all_dists
-        if (d.get("distribution_type") or "").lower().strip() == "zakat"
-        and (d.get("status") or "").lower().strip() in INCLUDED_STATUSES
+        if (d.get("status") or "").lower().strip() in INCLUDED_STATUSES
         and to_month(d.get("created_time") or "") is not None
         and to_month(d.get("created_time")) >= cutoff_month
     ]
@@ -192,17 +191,23 @@ def build_monthly_recon(token):
             tb["unmatched_count"] += 1
             tb["unmatched_aud"]   += amount
             if len(tb["unmatched_rows"]) < 200:  # cap per transfer type per month
+                _base_dt = (zac.parse_dt(d.get("approved_date") or "")
+                           or zac.parse_dt(d.get("created_time") or ""))
+                _hrs = round((_base_dt and (now_utc - _base_dt).total_seconds() / 3600) or 0)
                 tb["unmatched_rows"].append({
-                    "dist_id":      dist_id,
-                    "record_id":    (d.get("id") or "").strip(),
-                    "subject":      d.get("subject", ""),
-                    "payee":        d.get("acc_name", "") or d.get("vendor_name", ""),
-                    "amount":       amount,
-                    "crm_status":   d.get("status", ""),
-                    "created_time": d.get("created_time", ""),
-                    "approved_date": d.get("approved_date", ""),
-                    "transfer_type": transfer,
-                    "xero_bill_exists": bool(xero_bill),  # bill exists but unpaid vs no bill at all
+                    "dist_id":          dist_id,
+                    "record_id":        (d.get("id") or "").strip(),
+                    "subject":          d.get("subject", ""),
+                    "payee":            d.get("acc_name", "") or d.get("vendor_name", ""),
+                    "amount":           amount,
+                    "crm_status":       d.get("status", ""),
+                    "created_time":     d.get("created_time", ""),
+                    "approved_date":    d.get("approved_date", ""),
+                    "transfer_type":    transfer,
+                    "distribution_type": (d.get("distribution_type") or "").strip(),
+                    "xero_bill_exists": bool(xero_bill),
+                    "_hours":           _hrs,
+                    "_overdue":         _hrs > 72,
                 })
 
     # --- Process Xero-only bills ---
