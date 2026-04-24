@@ -89,7 +89,7 @@ class TableFilter {
             return `<option value="${v}">${label}</option>`;
           })
           .join('');
-        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}" size="1">
+        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}">
                   <option value="">All</option>${opts}
                 </select>`;
       }
@@ -111,7 +111,7 @@ class TableFilter {
                 </div>`;
 
       case 'hours':
-        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}" size="1">
+        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}">
                   <option value="">All</option>
                   <option value="lt48">&lt; 48h</option>
                   <option value="48to72">48 – 72h</option>
@@ -170,6 +170,13 @@ class TableFilter {
       this._state[key][bound] = val;
     } else {
       this._state[key] = inp.value;
+    }
+
+    // Highlight active selects with a CSS class (can't use :placeholder-shown on select)
+    if (inp.tagName === 'SELECT') {
+      const hasVal = inp.value && inp.value.trim() !== '';
+      inp.style.borderColor    = hasVal ? 'var(--color-primary, #EE3526)' : '';
+      inp.style.background     = hasVal ? 'rgba(238,53,38,0.03)' : '';
     }
 
     this._updateHeaderHighlight(key);
@@ -298,7 +305,13 @@ class TableFilter {
   clearAll() {
     this._state = {};
     const inputs = this._filterRow?.querySelectorAll('input, select');
-    inputs?.forEach(inp => { inp.value = ''; });
+    inputs?.forEach(inp => {
+      inp.value = '';
+      if (inp.tagName === 'SELECT') {
+        inp.style.borderColor = '';
+        inp.style.background  = '';
+      }
+    });
     // Remove all header highlights
     const headerRow = this.tableEl.querySelector('thead tr:first-child');
     headerRow?.querySelectorAll('th').forEach(th => th.classList.remove('tf-col-active'));
