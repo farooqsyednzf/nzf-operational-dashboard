@@ -698,7 +698,7 @@ tbody td            { padding: 11px 16px; color: var(--text-primary); }
   vertical-align: top;
 }
 
-/* Individual filter inputs */
+/* Individual filter inputs — shared base */
 .tf-input {
   width: 100%;
   box-sizing: border-box;
@@ -712,6 +712,9 @@ tbody td            { padding: 11px 16px; color: var(--text-primary); }
   background: var(--surface);
   outline: none;
   transition: border-color 0.12s, box-shadow 0.12s;
+}
+/* Strip appearance only for text/number/date inputs — NOT selects */
+input.tf-input {
   appearance: none;
   -webkit-appearance: none;
 }
@@ -719,29 +722,19 @@ tbody td            { padding: 11px 16px; color: var(--text-primary); }
   border-color: var(--color-blue, #0081C6);
   box-shadow: 0 0 0 2px rgba(0,129,198,0.12);
 }
-.tf-input:not(:placeholder-shown):not([value=""]) {
+input.tf-input:not(:placeholder-shown) {
   border-color: var(--color-primary, #EE3526);
   background: rgba(238,53,38,0.03);
 }
-/* Select arrow */
-.tf-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239F9393'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-  padding-right: 22px;
+/* Selects: restore native dropdown appearance so they render as compact dropdowns */
+select.tf-input {
+  appearance: auto;
+  -webkit-appearance: auto;
   cursor: pointer;
-  overflow: hidden;
-  max-height: 26px;
-  line-height: 26px;
+  padding-right: 4px;
 }
-/* Force select to render as compact dropdown across all browsers */
-.tf-filter-cell select.tf-input {
-  height: 26px !important;
-  max-height: 26px !important;
-  overflow: hidden;
-}
-.tf-select:not([value=""]):focus,
-.tf-select option:checked ~ .tf-select {
+/* Active state for selects — highlight when a value is selected */
+select.tf-input:not([data-active=""]):focus {
   border-color: var(--color-primary, #EE3526);
 }
 
