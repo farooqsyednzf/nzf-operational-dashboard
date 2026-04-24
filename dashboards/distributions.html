@@ -329,7 +329,7 @@
           <div id="recon-unmatched-count-badge"></div>
         </div>
         <div style="overflow-x:auto;">
-          <table>
+          <table id="unmatched-table">
             <thead>
               <tr>
                 <th>Dist. ID</th>
@@ -381,6 +381,7 @@
   </div>
 </div>
 
+<script src="/assets/js/table-filter.js"></script>
 <script src="/assets/js/auth.js"></script>
 <script src="/assets/js/nav.js"></script>
 <script>
@@ -893,36 +894,79 @@ function renderReconMonth(monthKey, activeEl) {
          </span>`;
   }
 
+  // Ensure clear button exists in the card header
+  if (!document.getElementById('unmatched-clear-btn')) {
+    const hdr = document.querySelector('#recon-unmatched-card .chart-card-header');
+    if (hdr) {
+      const btn = document.createElement('button');
+      btn.id = 'unmatched-clear-btn';
+      btn.className = 'tf-clear-btn';
+      btn.textContent = '✕ Clear column filters';
+      btn.onclick = () => _unmatchedTF?.clearAll();
+      hdr.appendChild(btn);
+    }
+  }
+
+  // Build row renderer closure over current crmBase
   const crmBase = _reconData?.meta?.crm_base_url || '';
-  document.getElementById('recon-unmatched-tbody').innerHTML = unmatchedRows.length === 0
-    ? '<tr><td colspan="8" style="padding:24px;text-align:center;font-family:Cambay;color:var(--text-muted)">No unmatched distributions this month ✓</td></tr>'
-    : unmatchedRows.map(r => {
-        const distLink = (crmBase && r.record_id)
-          ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
-               style="font-family:'Courier New',monospace;font-size:0.8rem;font-weight:700;
-                      color:var(--color-primary);text-decoration:none">${r.dist_id} &#8599;</a>`
-          : `<span style="font-family:'Courier New',monospace;font-size:0.8rem;font-weight:700;
-                         color:var(--color-primary)">${r.dist_id}</span>`;
+  function _renderUnmatchedRow(r) {
+    const distLink = (crmBase && r.record_id)
+      ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
+           style="font-family:'Courier New',monospace;font-size:0.8rem;font-weight:700;
+                  color:var(--color-primary);text-decoration:none">${r.dist_id} &#8599;</a>`
+      : `<span style="font-family:'Courier New',monospace;font-size:0.8rem;font-weight:700;color:var(--color-primary)">${r.dist_id}</span>`;
+    const xeroBadge = r.xero_bill_exists
+      ? `<span style="background:rgba(253,185,19,0.12);color:#7a5c00;border:1px solid rgba(253,185,19,0.4);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700">Bill raised · unpaid</span>`
+      : `<span style="background:rgba(123,63,160,0.08);color:#7B3FA0;border:1px solid rgba(123,63,160,0.3);padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700">No bill</span>`;
+    return `<tr>
+      <td style="white-space:nowrap">${distLink}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem"
+          title="${r.payee||r.subject}">${r.payee||r.subject||'—'}</td>
+      <td style="text-align:right;font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700">${fmtAUD(r.amount)}</td>
+      <td style="font-size:0.78rem;color:var(--text-secondary)">${r.transfer_type}</td>
+      <td style="font-size:0.78rem;white-space:nowrap">${fmtDate(r.created_time)}</td>
+      <td style="font-size:0.78rem;white-space:nowrap">${fmtDate(r.approved_date)||'—'}</td>
+      <td style="font-size:0.78rem;color:var(--text-secondary)">${r.crm_status}</td>
+      <td>${xeroBadge}</td>
+    </tr>`;
+  }
 
-        const xeroBadge = r.xero_bill_exists
-          ? `<span style="background:rgba(253,185,19,0.12);color:#7a5c00;border:1px solid rgba(253,185,19,0.4);
-                          padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700">Bill raised · unpaid</span>`
-          : `<span style="background:rgba(123,63,160,0.08);color:#7B3FA0;border:1px solid rgba(123,63,160,0.3);
-                          padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700">No bill</span>`;
+  // Init or refresh TableFilter for the unmatched table
+  const unmatchedTable = document.getElementById('unmatched-table');
+  if (unmatchedTable) {
+    if (!window._unmatchedTF) {
+      window._unmatchedTF = new TableFilter({
+        tableEl:   unmatchedTable,
+        tbodyId:   'recon-unmatched-tbody',
+        colspan:   8,
+        clearBtnId:'unmatched-clear-btn',
+        getRows:   () => window._unmatchedRows || [],
+        renderRow: _renderUnmatchedRow,
+        onUpdate:  (shown, total) => {
+          const f = document.getElementById('footer-dist-recon');
+          if (f) f.textContent = shown < total ? `Showing ${shown} of ${total}` : `${total} distributions`;
+        },
+        columns: [
+          { key:'dist_id',       type:'text',   label:'Dist. ID'      },
+          { key:'payee',         type:'text',   label:'Subject/Payee' },
+          { key:'amount',        type:'amount', label:'Amount'        },
+          { key:'transfer_type', type:'select', label:'Transfer Type' },
+          { key:'created_time',  type:'date',   label:'Created'       },
+          { key:'approved_date', type:'date',   label:'Approved'      },
+          { key:'crm_status',    type:'select', label:'CRM Status'    },
+          { key:'xero_bill_exists', type:'select', label:'Xero',
+            values:['true','false'] },
+        ],
+      });
+      window._unmatchedTF.build();
+    }
+    // Always update the data and re-render
+    window._unmatchedRows = unmatchedRows;
+    window._unmatchedTF.renderRow = _renderUnmatchedRow; // refresh closure
+    window._unmatchedTF.refresh();
+  } else {
+    // Fallback if table not found
 
-        return `<tr>
-          <td style="white-space:nowrap">${distLink}</td>
-          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem"
-              title="${r.payee || r.subject}">${r.payee || r.subject || '—'}</td>
-          <td style="text-align:right;font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700">
-            ${fmtAUD(r.amount)}</td>
-          <td style="font-size:0.78rem;color:var(--text-secondary)">${r.transfer_type}</td>
-          <td style="font-size:0.78rem;white-space:nowrap">${fmtDate(r.created_time)}</td>
-          <td style="font-size:0.78rem;white-space:nowrap">${fmtDate(r.approved_date) || '—'}</td>
-          <td style="font-size:0.78rem;color:var(--text-secondary)">${r.crm_status}</td>
-          <td>${xeroBadge}</td>
-        </tr>`;
-      }).join('');
 
   document.getElementById('recon-xero-tbody').innerHTML = cats.length === 0
     ? '<tr><td colspan="4" style="padding:24px;text-align:center;font-family:Cambay;color:var(--text-muted)">No Xero-only bills this month</td></tr>'
