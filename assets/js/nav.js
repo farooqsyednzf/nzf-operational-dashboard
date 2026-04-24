@@ -11,6 +11,13 @@ const NAV_ITEMS = [
     ]
   },
   {
+    section: "Operations",
+    items: [
+      { label: "Case Priority Intelligence",    href: "/dashboards/cases_priority.html",    icon: "priority"       },
+      { label: "Distribution Reconciliation",   href: "/dashboards/distributions_recon.html", icon: "reconciliation" },
+    ]
+  },
+  {
     section: "Clients",
     items: [
       { label: "Client Report",    href: "/dashboards/clients.html",  icon: "clients" },
@@ -19,16 +26,14 @@ const NAV_ITEMS = [
   {
     section: "Cases",
     items: [
-      { label: "Cases Report",              href: "/dashboards/cases.html",          icon: "chart"    },
-      { label: "Cases Performance",         href: "/dashboards/cases_perf.html",     icon: "pipeline" },
-      { label: "Case Priority Intelligence",href: "/dashboards/cases_priority.html", icon: "priority" },
+      { label: "Cases Report",      href: "/dashboards/cases.html",      icon: "chart"    },
+      { label: "Cases Performance", href: "/dashboards/cases_perf.html", icon: "pipeline" },
     ]
   },
   {
     section: "Distributions",
     items: [
-      { label: "Distributions",  href: "/dashboards/distributions.html",       icon: "distributions" },
-      { label: "Reconciliation", href: "/dashboards/distributions_recon.html", icon: "reconciliation" },
+      { label: "Distributions", href: "/dashboards/distributions.html", icon: "distributions" },
     ]
   },
 ];
