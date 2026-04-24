@@ -718,20 +718,20 @@ function _renderUnifiedRow(r) {
       ? '<span class="xero-pending">Bill raised</span>'
       : '<span class="xero-missing">No bill</span>';
   const link = (crmBase && r.record_id)
-    ? '<a href="' + crmBase + '/PurchaseOrders/' + r.record_id + '" target="_blank" rel="noopener" style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;color:var(--color-primary);text-decoration:none">' + r.dist_id + ' &#8599;</a>'
-    : '<span style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;color:var(--color-primary)">' + r.dist_id + '</span>';
+    ? '<a href="' + crmBase + '/PurchaseOrders/' + r.record_id + '" target="_blank" rel="noopener" style="font-family:monospace;font-size:.8rem;font-weight:700;color:var(--color-primary);text-decoration:none">' + r.dist_id + ' &#8599;</a>'
+    : '<span style="font-family:monospace;font-size:.8rem;font-weight:700;color:var(--color-primary)">' + r.dist_id + '</span>';
   const rowCls = r._status === 'overdue' ? ' class="row-overdue"' : '';
   return '<tr' + rowCls + '>'
     + '<td style="white-space:nowrap">' + link + '</td>'
     + '<td style="font-size:.75rem;color:var(--text-muted)">' + (r.distribution_type||'—') + '</td>'
     + '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem" title="' + payee + '">' + payee + '</td>'
-    + '<td style="text-align:right;font-family:'Courier New',monospace;font-size:.82rem;font-weight:700">' + fmtAUD(r.amount) + '</td>'
+    + '<td style="text-align:right;font-family:monospace;font-size:.82rem;font-weight:700">' + fmtAUD(r.amount) + '</td>'
     + '<td style="font-size:.76rem;color:var(--text-secondary)">' + (r.transfer_type||'—') + '</td>'
     + '<td style="font-size:.78rem;white-space:nowrap">' + fmtDate(date) + '<br><span style="font-size:.68rem;color:var(--text-muted)">' + dated + '</span></td>'
     + '<td style="text-align:center"><span class="' + hc + '">' + hTxt + '</span></td>'
     + '<td>' + xeroHtml + '</td>'
     + '<td style="font-size:.76rem;color:var(--text-secondary)">' + (r.crm_status||'—') + '</td>'
-    + '<td><span class="badge ' + cfg.cls + '" style="padding:2px 8px;border-radius:10px;font-family:'Cambay';font-size:.68rem;font-weight:700;white-space:nowrap">' + cfg.label + '</span></td>'
+    + '<td><span class="badge ' + cfg.cls + '" style="padding:2px 8px;border-radius:10px;font-family:var(--font-body,Cambay);font-size:.68rem;font-weight:700;white-space:nowrap">' + cfg.label + '</span></td>'
     + '</tr>';
 }
 
