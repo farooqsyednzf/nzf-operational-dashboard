@@ -84,9 +84,12 @@ class TableFilter {
 
       case 'select': {
         const opts = (col.values || [])
-          .map(v => `<option value="${v}">${v}</option>`)
+          .map(v => {
+            const label = col.valueLabels?.[v] || v;
+            return `<option value="${v}">${label}</option>`;
+          })
           .join('');
-        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}">
+        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}" size="1">
                   <option value="">All</option>${opts}
                 </select>`;
       }
@@ -108,7 +111,7 @@ class TableFilter {
                 </div>`;
 
       case 'hours':
-        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}">
+        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}" size="1">
                   <option value="">All</option>
                   <option value="lt48">&lt; 48h</option>
                   <option value="48to72">48 – 72h</option>
@@ -129,10 +132,13 @@ class TableFilter {
       if (col.type !== 'select' || col.values) return;  // skip if values predefined
       const sel = this._filterRow?.querySelector(`[data-key="${col.key}"]`);
       if (!sel) return;
-      const uniq = [...new Set(rows.map(r => (r[col.key] || '')).filter(Boolean))].sort();
+      const uniq = [...new Set(rows.map(r => (r[col.key] ?? '').toString()).filter(Boolean))].sort();
       const cur  = sel.value;
       sel.innerHTML = `<option value="">All</option>` +
-        uniq.map(v => `<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
+        uniq.map(v => {
+          const label = col.valueLabels?.[v] || v;
+          return `<option value="${v}"${v===cur?' selected':''}>${label}</option>`;
+        }).join('');
     });
   }
 
@@ -217,12 +223,19 @@ class TableFilter {
         const cellVal = row[col.key];
 
         switch (col.type) {
-          case 'text':
-          case 'select': {
+          case 'text': {
             if (!v || !v.trim()) break;
             const needle = v.toLowerCase().trim();
             const hay    = (cellVal || '').toString().toLowerCase();
             if (!hay.includes(needle)) return false;
+            break;
+          }
+          case 'select': {
+            if (!v || !v.trim()) break;
+            // Exact match for selects (dropdowns have known discrete values)
+            const selected = v.toLowerCase().trim();
+            const actual   = (cellVal ?? '').toString().toLowerCase();
+            if (actual !== selected) return false;
             break;
           }
           case 'amount': {
