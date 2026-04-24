@@ -485,7 +485,13 @@ function _renderMonthPanelInner() {
   if (isLiveMonth && _liveRows.length > 0) {
     // Filter liveRows to the selected month using effective_date logic
     unifiedRows = _liveRows.filter(r => {
-      let d = r.xero_payment_date || r.approved_date || r.created_time;
+      // Use same effective_date logic as the Transfer Type table
+      // (paid_date for Paid, created_time fallback) so both tables bucket to the same month
+      let d = null;
+      const st = (r.crm_status || '').trim();
+      if (st === 'Paid' && r.crm_paid_date)       d = r.crm_paid_date;
+      else if (st === 'Extracted' && r.crm_paid_date) d = r.crm_paid_date;
+      if (!d) d = r.created_time;
       if (!d) return false;
       const ym = new Date(d).toISOString().slice(0, 7);
       return ym === _selMonth;
