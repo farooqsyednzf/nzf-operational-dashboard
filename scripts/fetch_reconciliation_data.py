@@ -33,7 +33,7 @@ CRM_BASE_URL = zac.RULES["_meta"].get("zoho_crm_base_url", "")
 
 VIEW_BILLS_XERO    = "1715382000005868510"
 VIEW_CONTACTS_XERO = "1715382000005868254"
-EXCLUDED_STATUSES  = {"cancelled", "rejected", "draft", "void"}
+INCLUDED_STATUSES  = {"approved", "extracted", "paid"}
 LOOKBACK_DAYS      = 30
 
 
@@ -81,7 +81,7 @@ def build_reconciliation_report(token):
     dists = [
         d for d in all_dists
         if (d.get("distribution_type") or "").lower().strip() == "zakat"
-        and (d.get("status") or "").lower().strip() not in EXCLUDED_STATUSES
+        and (d.get("status") or "").lower().strip() in INCLUDED_STATUSES
         and zac.parse_dt(d.get("created_time") or "") is not None
         and zac.parse_dt(d.get("created_time")) >= cutoff
     ]
@@ -126,6 +126,7 @@ def build_reconciliation_report(token):
 
         row = {
             "dist_id":           dist_id,
+            "record_id":         (d.get("id") or "").strip(),
             "subject":           d.get("subject", ""),
             "crm_status":        d.get("status", ""),
             "amount":            d.get("grand_total", ""),
