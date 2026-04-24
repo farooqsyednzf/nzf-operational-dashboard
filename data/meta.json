@@ -1,29 +1,29 @@
 {
-  "last_updated": "2026-04-24T01:00:55.575796+00:00",
+  "last_updated": "2026-04-24T01:26:12.020558+00:00",
   "datasets": [
     {
       "name": "Client Report",
       "file": "clients.json",
       "record_count": 3132,
-      "last_updated": "2026-04-24T00:58:32.441948+00:00"
+      "last_updated": "2026-04-24T01:23:54.162318+00:00"
     },
     {
       "name": "Cases Report",
       "file": "cases.json",
       "record_count": 3132,
-      "last_updated": "2026-04-24T00:59:36.504433+00:00"
+      "last_updated": "2026-04-24T01:24:52.776167+00:00"
     },
     {
       "name": "Cases Performance",
       "file": "cases_perf.json",
       "record_count": 0,
-      "last_updated": "2026-04-24T01:00:15.039284+00:00"
+      "last_updated": "2026-04-24T01:25:31.965808+00:00"
     },
     {
       "name": "Distributions",
       "file": "distributions.json",
       "record_count": 2475,
-      "last_updated": "2026-04-24T01:00:27.954914+00:00"
+      "last_updated": "2026-04-24T01:25:45.386198+00:00"
     }
   ]
 }
