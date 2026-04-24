@@ -955,7 +955,8 @@ function renderReconMonth(monthKey, activeEl) {
           { key:'approved_date', type:'date',   label:'Approved'      },
           { key:'crm_status',    type:'select', label:'CRM Status'    },
           { key:'xero_bill_exists', type:'select', label:'Xero',
-            values:['true','false'] },
+            values:['true','false'],
+            valueLabels:{'true':'Bill raised · unpaid','false':'No bill'} },
         ],
       });
       window._unmatchedTF.build();
