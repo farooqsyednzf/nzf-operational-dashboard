@@ -426,6 +426,13 @@ function selectMonth(m) {
 // ── Month panel ───────────────────────────────────────────────────
 function renderMonthPanel() {
   if (!_monthData || !_selMonth) return;
+  const inner = document.getElementById('month-panel-inner');
+  try { _renderMonthPanelInner(); } catch(e) {
+    console.error('renderMonthPanel:', e);
+    if (inner) inner.innerHTML = '<div style="padding:24px;text-align:center;font-family:Cambay;color:var(--color-primary)">Error: ' + e.message + '</div>';
+  }
+}
+function _renderMonthPanelInner() {
   const mb   = _monthData.by_month[_selMonth];
   const inner = document.getElementById('month-panel-inner');
   if (!mb) { inner.innerHTML = '<div style="padding:24px;text-align:center;font-family:Cambay;color:var(--text-muted)">No data for this month</div>'; return; }
@@ -509,7 +516,12 @@ function renderMonthPanel() {
   }
 
   // Rows rendered by TableFilter via _renderUnifiedRow
-  const unmRows = '<tr><td colspan="10" style="padding:30px;text-align:center;font-family:Cambay;color:var(--text-muted)"><div class="spinner" style="margin:0 auto 10px"></div>Loading…</td></tr>';
+  // Render rows inline — always visible, TableFilter adds column filters on top
+  const unmRows = unifiedRows.length === 0
+    ? '<tr><td colspan="10" style="padding:24px;text-align:center;font-family:\'Cambay\';color:var(--text-muted)">' +
+      (isPartialData ? 'No unmatched distributions on record for this month' : '&#10003; All distributions in Xero for this month') +
+      '</td></tr>'
+    : unifiedRows.map(_renderUnifiedRow).join('');
 
   // ── Xero-only table ─────────────────────────────────────────────
   const CAT_STYLE = {
@@ -612,8 +624,8 @@ function renderMonthPanel() {
     </div>`;
 
   window._unifiedRows = unifiedRows;
-  setTimeout(() => initUnifiedFilter(), 0);
-}
+  initUnifiedFilter();
+}  // end _renderMonthPanelInner
 
 // ── Live section ──────────────────────────────────────────────────
 const STATUS_CFG = {
@@ -644,7 +656,8 @@ let _unifiedTF = null;
 
 function initUnifiedFilter() {
   const tbl = document.getElementById('unified-dist-table');
-  if (!tbl || !window._unifiedRows || !window._unifiedRows.length) return;
+  if (!tbl) return;
+  if (!window._unifiedRows) window._unifiedRows = [];
 
   // Remove any existing filter row so TableFilter can rebuild cleanly
   tbl.querySelector('tr.tf-filter-row')?.remove();
