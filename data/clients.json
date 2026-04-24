@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-24T07:12:41.471358+00:00",
+    "last_updated": "2026-04-24T07:23:02.140068+00:00",
     "record_count": 3132,
     "months_covered": [
       "2025-04",
@@ -1300,29 +1300,29 @@
     }
   ],
   "ai_analysis": {
-    "summary": "Clients are returning primarily due to ongoing structural disadvantage and cyclical crises rather than resolved situations. They face persistent challenges including job loss, housing instability, and family breakdown that create recurring need for assistance.",
+    "summary": "Clients are primarily returning due to ongoing structural vulnerabilities including job loss, family breakdown, and health crises that create recurring financial instability. Many face compounding issues where one crisis (unemployment, domestic violence, illness) leads to cascading financial problems requiring multiple assistance episodes.",
     "themes": [
       {
         "label": "Employment Loss and Income Instability",
-        "description": "Job loss, reduction in work hours, or inability to find stable employment creating ongoing financial hardship. Clients struggle to maintain financial stability between assistance periods.",
+        "description": "Job loss or reduced income creating inability to meet basic expenses like rent, bills, and essential needs. Often leads to debt accumulation and cascading financial problems.",
         "count_estimate": "~35% of cases"
       },
       {
-        "label": "Housing Crisis and Rental Stress",
-        "description": "Rental arrears, bond payments, homelessness, or housing instability requiring repeated intervention. Housing costs consume disproportionate income leading to cyclical need.",
+        "label": "Family Crisis and Relationship Breakdown",
+        "description": "Separation, divorce, domestic violence, or death of spouse creating sudden financial vulnerability and housing instability. Often affects single mothers with dependent children.",
         "count_estimate": "~30% of cases"
       },
       {
-        "label": "Family Breakdown and Relationship Changes",
-        "description": "Separation, divorce, domestic violence, or loss of spousal support creating new financial vulnerabilities. Single parenthood increases financial pressure and reduces support systems.",
+        "label": "Health-Related Financial Strain",
+        "description": "Medical conditions, operations, or caring for ill family members creating additional expenses and reduced earning capacity. Includes ongoing chronic conditions requiring specialist care.",
         "count_estimate": "~20% of cases"
       },
       {
-        "label": "Health Issues and Medical Expenses",
-        "description": "Ongoing medical conditions, operations, or health-related expenses that impact earning capacity and increase costs. Chronic conditions create persistent financial strain beyond initial treatment.",
+        "label": "Housing Instability and Essential Needs",
+        "description": "Rental arrears, homelessness, or need for basic household items and services like registration, appliances, or immediate living expenses. Often represents acute crisis requiring immediate intervention.",
         "count_estimate": "~15% of cases"
       }
     ],
-    "generated_at": "2026-04-24T07:12:10.710334+00:00"
+    "generated_at": "2026-04-24T07:22:30.234583+00:00"
   }
 }
