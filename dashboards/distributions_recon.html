@@ -76,14 +76,7 @@
     }
     .zone { margin-bottom: 32px; }
 
-    /* ── YTD KPI row ───────────────────────────────────────────── */
-    .ytd-kpis {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    @media (max-width: 1100px) { .ytd-kpis { grid-template-columns: repeat(3, 1fr); } }
+    /* ── KPI rows ──────────────────────────────────────────────── */
 
     .ytd-kpi {
       background: var(--surface);
@@ -128,43 +121,7 @@
     .ytd-kpi.accent-purple{ --kpi-accent: #7B3FA0; }
     .ytd-kpi.accent-navy  { --kpi-accent: #1F3864; }
 
-    /* ── Monthly sparkline strip ───────────────────────────────── */
-    .month-strip {
-      display: grid;
-      gap: 4px;
-      margin-bottom: 20px;
-    }
-    .month-strip-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 4px;
-      height: 60px;
-      padding: 0 2px;
-    }
-    .ms-bar-wrap {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-    }
-    .ms-bar-wrap:hover .ms-bar { opacity: 0.75; }
-    .ms-bar-wrap.active .ms-bar { background: var(--color-primary); }
-    .ms-bar {
-      width: 100%;
-      background: var(--color-blue);
-      border-radius: 3px 3px 0 0;
-      min-height: 4px;
-      transition: background .15s;
-    }
-    .ms-bar-label {
-      font-family: 'Cambay', sans-serif;
-      font-size: 0.6rem;
-      color: var(--text-muted);
-      white-space: nowrap;
-    }
-    .ms-bar-wrap.active .ms-bar-label { color: var(--color-primary); font-weight: 700; }
+
 
     /* ── Month tabs ────────────────────────────────────────────── */
     .month-tabs {
@@ -327,60 +284,12 @@
       <!-- Controls -->
       <div class="recon-controls">
         <div class="ctrl-group">
-          <div class="ctrl-label">Financial Year</div>
-          <div class="ctrl-picker" id="fy-picker"><!-- populated by JS --></div>
-        </div>
-        <div class="ctrl-group">
           <div class="ctrl-label">Distribution Type</div>
           <div class="ctrl-picker" id="type-picker"><!-- populated by JS --></div>
         </div>
       </div>
 
-      <!-- ════════════════════════════════════════════════════
-           ZONE 1 — YTD SUMMARY
-      ═════════════════════════════════════════════════════ -->
-      <div class="zone">
-        <div class="zone-header">
-          <h2>Year to Date</h2>
-          <span class="zone-sub" id="ytd-label">—</span>
-        </div>
-        <div class="ytd-kpis" id="ytd-kpis">
-          <div class="ytd-kpi accent-navy">
-            <div class="ytd-kpi-label">CRM Distributions</div>
-            <div class="ytd-kpi-value" id="ytd-total">—</div>
-            <div class="ytd-kpi-sub" id="ytd-total-sub">—</div>
-          </div>
-          <div class="ytd-kpi accent-green">
-            <div class="ytd-kpi-label">Paid in Xero</div>
-            <div class="ytd-kpi-value" id="ytd-paid">—</div>
-            <div class="ytd-kpi-sub" id="ytd-paid-sub">—</div>
-          </div>
-          <div class="ytd-kpi accent-red">
-            <div class="ytd-kpi-label">No Xero Payment</div>
-            <div class="ytd-kpi-value" id="ytd-unmatched">—</div>
-            <div class="ytd-kpi-sub" id="ytd-unmatched-sub">—</div>
-          </div>
-          <div class="ytd-kpi accent-amber">
-            <div class="ytd-kpi-label">Overdue &gt;72h</div>
-            <div class="ytd-kpi-value" id="ytd-overdue">—</div>
-            <div class="ytd-kpi-sub">Across all months</div>
-          </div>
-          <div class="ytd-kpi accent-purple">
-            <div class="ytd-kpi-label">No Xero Bill</div>
-            <div class="ytd-kpi-value" id="ytd-nobill">—</div>
-            <div class="ytd-kpi-sub">Not in Xero at all</div>
-          </div>
-        </div>
 
-        <!-- Monthly sparkline -->
-        <div class="chart-card" style="padding:16px 18px 12px;">
-          <div style="font-family:'Cambay';font-size:.66rem;font-weight:700;text-transform:uppercase;
-                      letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px">
-            Monthly paid amount — click to jump to month
-          </div>
-          <div class="month-strip-bars" id="sparkline-bars"></div>
-        </div>
-      </div>
 
       <!-- ════════════════════════════════════════════════════
            ZONE 2 — MONTHLY RECONCILIATION
@@ -514,7 +423,6 @@ let _liveRows   = [];
 let _monthData  = null;
 let _liveFilter = 'all';
 let _liveTF     = null;
-let _selFY      = null;
 let _selType    = 'All';
 let _selMonth   = null;
 
@@ -537,21 +445,6 @@ const monthFull = ym => {
 };
 
 // ── Financial year helpers ────────────────────────────────────────
-function currentFY() {
-  const now = new Date();
-  const yr  = now.getFullYear();
-  return now.getMonth() >= 6 ? yr : yr - 1; // Jul=6
-}
-function fyLabel(startYear) { return `FY${String(startYear).slice(2)}/${String(startYear+1).slice(2)}`; }
-function fyMonths(startYear) {
-  const months = [];
-  for (let m = 0; m < 12; m++) {
-    const d = new Date(startYear, 6 + m, 1);  // Jul of startYear
-    months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
-  }
-  return months;
-}
-
 // ── Bootstrap ─────────────────────────────────────────────────────
 (async () => {
   await requireAuth();
@@ -595,7 +488,6 @@ function fyMonths(startYear) {
   // Store and initialise
   _liveRows  = liveData?.rows || [];
   _monthData = monthData;
-  _selFY     = currentFY();
 
   if (liveData)  initLiveSection(liveData);
   else           document.getElementById('live-tbody').innerHTML =
@@ -608,25 +500,6 @@ function fyMonths(startYear) {
 
 // ── Pickers ───────────────────────────────────────────────────────
 function buildPickers(types) {
-  // FY picker — current FY + prior FY if we have data
-  const fy1  = currentFY();
-  const fy0  = fy1 - 1;
-  const fyEl = document.getElementById('fy-picker');
-  [fy0, fy1].forEach(fy => {
-    const b = document.createElement('button');
-    b.textContent = fyLabel(fy);
-    b.dataset.fy  = fy;
-    if (fy === fy1) b.classList.add('active');
-    b.onclick = () => {
-      fyEl.querySelectorAll('button').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      _selFY = fy;
-      refreshAll();
-    };
-    fyEl.appendChild(b);
-  });
-
-  // Type picker
   const tEl = document.getElementById('type-picker');
   types.forEach(t => {
     const b = document.createElement('button');
@@ -644,111 +517,18 @@ function buildPickers(types) {
 }
 
 function refreshAll() {
-  renderYTD();
-  renderSparkline();
   renderMonthTabs();
   renderMonthPanel();
   if (_liveTF) _liveTF.refresh();
 }
 
 // ── YTD ───────────────────────────────────────────────────────────
-function fyMonthsInData() {
-  if (!_monthData) return [];
-  const all     = _monthData.meta.months || [];
-  const fy      = fyMonths(_selFY);
-  return fy.filter(m => all.includes(m));
-}
-
 function filterRowsByType(rows) {
   if (_selType === 'All') return rows;
   return rows.filter(r => r.distribution_type === _selType);
 }
 
-function computeYTD() {
-  if (!_monthData) return null;
-  const months = fyMonthsInData();
-  let total=0, paid=0, unmatched=0, overdue=0, nobill=0, totalAUD=0, paidAUD=0;
-  const typeOk = r => _selType === 'All' || r.distribution_type === _selType;
-
-  months.forEach(m => {
-    const mb = _monthData.by_month[m];
-    if (!mb) return;
-
-    Object.values(mb.crm_dists.by_transfer_type).forEach(tt => {
-      if (_selType === 'All') {
-        // Full aggregates available
-        total     += tt.count || 0;
-        paid      += tt.matched_count || 0;
-        unmatched += tt.unmatched_count || 0;
-        totalAUD  += tt.aud || 0;
-        paidAUD   += tt.matched_aud || 0;
-        const rows = tt.unmatched_rows || [];
-        overdue   += rows.filter(r => r._overdue).length;
-        nobill    += rows.filter(r => !r.xero_bill_exists).length;
-      } else {
-        // Filter unmatched rows by type — only unmatched rows carry type info
-        const rows = (tt.unmatched_rows || []).filter(typeOk);
-        unmatched += rows.length;
-        overdue   += rows.filter(r => r._overdue).length;
-        nobill    += rows.filter(r => !r.xero_bill_exists).length;
-        totalAUD  += rows.reduce((s, r) => s + (r.amount || 0), 0);
-      }
-    });
-  });
-
-  return { total, paid, unmatched, overdue, nobill, totalAUD, paidAUD };
-}
-
-function renderYTD() {
-  if (!_monthData) return;
-  const ytd   = computeYTD();
-  const months = fyMonthsInData();
-  const label  = months.length
-    ? `${monthFull(months[0])} – ${monthFull(months[months.length-1])}`
-    : fyLabel(_selFY);
-
-  document.getElementById('ytd-label').textContent = label;
-
-  if (!ytd) return;
-  document.getElementById('ytd-total').textContent     = (_selType==='All' ? ytd.total : ytd.unmatched+ytd.paid).toLocaleString();
-  document.getElementById('ytd-total-sub').textContent  = fmtAUD(ytd.totalAUD) + ' total';
-  document.getElementById('ytd-paid').textContent      = ytd.paid.toLocaleString();
-  document.getElementById('ytd-paid-sub').textContent   = fmtAUD(ytd.paidAUD) + ' confirmed';
-  document.getElementById('ytd-unmatched').textContent = ytd.unmatched.toLocaleString();
-  document.getElementById('ytd-unmatched-sub').textContent = fmtAUD(ytd.totalAUD - ytd.paidAUD) + ' outstanding';
-  document.getElementById('ytd-overdue').textContent   = ytd.overdue.toLocaleString();
-  document.getElementById('ytd-nobill').textContent    = ytd.nobill.toLocaleString();
-}
-
 // ── Sparkline ─────────────────────────────────────────────────────
-function renderSparkline() {
-  if (!_monthData) return;
-  const months = fyMonthsInData();
-  const vals   = months.map(m => {
-    const mb = _monthData.by_month[m];
-    if (!mb) return 0;
-    return Object.values(mb.crm_dists.by_transfer_type).reduce((s,tt)=>s+(tt.matched_aud||0),0);
-  });
-  const maxVal = Math.max(...vals, 1);
-  const bar    = document.getElementById('sparkline-bars');
-  bar.innerHTML = months.map((m,i) => {
-    const h   = Math.max(4, Math.round((vals[i]/maxVal)*56));
-    const act = m === _selMonth ? ' active' : '';
-    return `<div class="ms-bar-wrap${act}" onclick="jumpToMonth('${m}')">
-      <div class="ms-bar" style="height:${h}px" title="${monthFull(m)}: ${fmtAUD(vals[i])}"></div>
-      <div class="ms-bar-label">${monthLabel(m)}</div>
-    </div>`;
-  }).join('');
-}
-
-function jumpToMonth(m) {
-  _selMonth = m;
-  renderSparkline();
-  renderMonthTabs();
-  renderMonthPanel();
-  document.querySelector('.zone-header + div + .month-tabs')?.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
 // ── Month tabs ────────────────────────────────────────────────────
 function renderMonthTabs() {
   if (!_monthData) return;
@@ -783,8 +563,8 @@ function renderMonthPanel() {
     .sort((a,b) => b[1].aud - a[1].aud);
 
   const TRANSFER_NOTES = {
-    'Credit Card':   'Paid by distribution team — no Xero bill expected',
-    'Cash':          'Verify physical receipt held',
+    'Credit Card':   'Paid by distribution team — excluded from unmatched',
+    'Cash':          'Paid by distribution team — excluded from unmatched',
     'Not specified': 'Transfer type not set in CRM',
   };
 
@@ -818,7 +598,7 @@ function renderMonthPanel() {
   // ── Unmatched detail rows (with hours + overdue) ────────────────
   let unmatchedRows = [];
   ttypes.forEach(([type,v]) => {
-    if (type.toLowerCase() === 'credit card') return;
+    if (['credit card','cash'].includes(type.toLowerCase())) return;
     (v.unmatched_rows||[]).forEach(r => unmatchedRows.push(r));
   });
   if (_selType !== 'All') unmatchedRows = unmatchedRows.filter(r => r.distribution_type === _selType);
@@ -906,7 +686,7 @@ function renderMonthPanel() {
                     letter-spacing:.07em;color:var(--text-muted)">
           CRM Distributions with No Xero Payment
           <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.72rem">
-            — excludes Credit Card (paid by distribution team)
+            — excludes Credit Card and Cash (paid by distribution team)
           </span>
         </div>
         ${unmatchedRows.length > 0
@@ -1078,8 +858,6 @@ function initLiveSection(data) {
 }
 
 function initMonthSection() {
-  renderYTD();
-  renderSparkline();
   renderMonthTabs();
   renderMonthPanel();
 }
