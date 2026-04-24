@@ -120,6 +120,9 @@ def build_monthly_recon(token):
     crm_ids = set(crm_by_id.keys())
 
     # --- Build Xero bills lookup (best-bill-wins for duplicates) ---
+    # NOTE: No date filter here — bills_by_num covers ALL time.
+    # A CRM distribution created in March can legitimately have a Xero payment in April
+    # or later, so we must check across all bills when matching CRM distributions.
     def _bill_priority(b):
         if b.get("fully_paid_on_date"):
             return 0
@@ -152,6 +155,7 @@ def build_monthly_recon(token):
                 "count": 0, "aud": 0.0,
                 "matched_count": 0, "matched_aud": 0.0,
                 "unmatched_count": 0, "unmatched_aud": 0.0,
+                "unmatched_rows": [],  # individual dist detail for verification table
             })
         },
         "xero_only": {
@@ -187,6 +191,19 @@ def build_monthly_recon(token):
         else:
             tb["unmatched_count"] += 1
             tb["unmatched_aud"]   += amount
+            if len(tb["unmatched_rows"]) < 200:  # cap per transfer type per month
+                tb["unmatched_rows"].append({
+                    "dist_id":      dist_id,
+                    "record_id":    (d.get("id") or "").strip(),
+                    "subject":      d.get("subject", ""),
+                    "payee":        d.get("acc_name", "") or d.get("vendor_name", ""),
+                    "amount":       amount,
+                    "crm_status":   d.get("status", ""),
+                    "created_time": d.get("created_time", ""),
+                    "approved_date": d.get("approved_date", ""),
+                    "transfer_type": transfer,
+                    "xero_bill_exists": bool(xero_bill),  # bill exists but unpaid vs no bill at all
+                })
 
     # --- Process Xero-only bills ---
     for b in bills_in_scope:
