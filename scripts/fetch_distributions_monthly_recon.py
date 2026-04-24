@@ -31,7 +31,8 @@ CRM_BASE_URL = zac.RULES["_meta"].get("zoho_crm_base_url", "")
 VIEW_BILLS_XERO    = "1715382000005868510"
 VIEW_CONTACTS_XERO = "1715382000005868254"
 
-INCLUDED_STATUSES = {"approved", "extracted", "paid"}
+INCLUDED_STATUSES          = {"approved", "extracted", "paid"}
+EXCLUDED_FROM_UNMATCHED    = {"credit card", "cash"}  # paid by distribution team, no Xero bill expected
 LOOKBACK_MONTHS   = 12
 
 # --- Helpers ---
@@ -189,9 +190,9 @@ def build_monthly_recon(token):
         amount   = parse_amount(d.get("grand_total"))
         xero_bill = bills_by_num.get(dist_id)
         matched   = bool(xero_bill and xero_bill.get("fully_paid_on_date"))
-        # Credit card: expected no Xero — mark as "matched by design"
-        if transfer.lower() == "credit card":
-            matched = True  # CC intentionally not in Xero
+        # Credit card and Cash: paid by distribution team — no Xero bill expected
+        if transfer.lower() in EXCLUDED_FROM_UNMATCHED:
+            matched = True  # intentionally not in Xero
 
         bucket = by_month[m]["crm_dists"]
         bucket["total_count"] += 1
