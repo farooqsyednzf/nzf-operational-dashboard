@@ -356,6 +356,8 @@ function renderTable() {
   const search = document.getElementById('searchBox').value.toLowerCase();
   const crmBase = window.__NZF_META?.crm_base_url || '';
 
+  const STATUS_ORDER = { overdue: 0, nobill: 1, urgent: 2, pending: 3, paid: 4 };
+
   const filtered = _rows.filter(r => {
     if (_filter !== 'all' && r._status !== _filter) return false;
     if (search) {
@@ -364,6 +366,15 @@ function renderTable() {
           || (r.xero_payee||r.crm_payee||'').toLowerCase().includes(search);
     }
     return true;
+  }).sort((a, b) => {
+    // Primary: status category order
+    const sa = STATUS_ORDER[a._status] ?? 99;
+    const sb = STATUS_ORDER[b._status] ?? 99;
+    if (sa !== sb) return sa - sb;
+    // Secondary: approved_date → created_time, descending
+    const da = new Date(a.approved_date || a.created_time || 0);
+    const db = new Date(b.approved_date || b.created_time || 0);
+    return db - da;
   });
 
   const tbody = document.getElementById('recon-tbody');
