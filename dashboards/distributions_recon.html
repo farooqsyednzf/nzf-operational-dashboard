@@ -207,17 +207,7 @@
     tr.row-overdue { border-left: 3px solid var(--color-primary); }
 
     /* ── Live section filter bar ───────────────────────────────── */
-    .live-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-      padding: 10px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      margin-bottom: 10px;
-    }
+    
     .recon-tab {
       padding: 4px 12px;
       border-radius: 20px;
@@ -237,18 +227,7 @@
     .recon-tab.t-urgent.active  { background:#FDB913; color:#3a2e00; border-color:#FDB913; }
     .recon-tab.t-paid.active    { background:#49A942; border-color:#49A942; }
     .recon-tab.t-nobill.active  { background:#7B3FA0; border-color:#7B3FA0; }
-    .live-search {
-      margin-left: auto;
-      padding: 4px 12px;
-      border: 1px solid var(--border-subtle);
-      border-radius: 20px;
-      font-family: 'Cambay', sans-serif;
-      font-size: 0.75rem;
-      background: var(--surface);
-      color: var(--text-primary);
-      width: 200px;
-      outline: none;
-    }
+    
     .live-search:focus { border-color: var(--color-blue); }
 
     /* ── Info banner ───────────────────────────────────────────── */
@@ -310,107 +289,9 @@
         </div>
       </div>
 
-      <!-- ════════════════════════════════════════════════════
-           ZONE 3 — LIVE TRANSACTION VIEW (rolling 30 days)
-      ═════════════════════════════════════════════════════ -->
-      <div class="zone">
-        <div class="zone-header">
-          <h2>Live View — last 30 days</h2>
-          <span class="zone-sub">Individual distributions with real-time Xero status</span>
-        </div>
-
-        <div class="info-banner">
-          <strong>Source of truth: Xero payment date.</strong>
-          CRM "Paid" status is not used for reconciliation.
-          The 72-hour SLA clock starts from <em>Approved Date</em> (or Created Time if no approval date).
-          "No Xero bill" = control bypass — investigate.
-          Data refreshes 4× daily at 8AM, 12PM, 4PM, 9PM AEST.
-        </div>
-
-        <!-- Live KPI strip -->
-        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px" id="live-kpis">
-          <div class="ytd-kpi accent-navy" style="padding:12px 14px">
-            <div class="ytd-kpi-label">Total</div>
-            <div class="ytd-kpi-value" id="lkpi-total" style="font-size:1.6rem">—</div>
-            <div class="ytd-kpi-sub" id="lkpi-total-sub"></div>
-          </div>
-          <div class="ytd-kpi accent-green" style="padding:12px 14px">
-            <div class="ytd-kpi-label">Paid in Xero</div>
-            <div class="ytd-kpi-value" id="lkpi-paid" style="font-size:1.6rem">—</div>
-            <div class="ytd-kpi-sub" id="lkpi-paid-sub"></div>
-          </div>
-          <div class="ytd-kpi accent-red" style="padding:12px 14px">
-            <div class="ytd-kpi-label">Overdue &gt;72h</div>
-            <div class="ytd-kpi-value" id="lkpi-overdue" style="font-size:1.6rem">—</div>
-            <div class="ytd-kpi-sub">Needs action</div>
-          </div>
-          <div class="ytd-kpi accent-amber" style="padding:12px 14px">
-            <div class="ytd-kpi-label">Due soon</div>
-            <div class="ytd-kpi-value" id="lkpi-urgent" style="font-size:1.6rem">—</div>
-            <div class="ytd-kpi-sub">48–72h elapsed</div>
-          </div>
-          <div class="ytd-kpi accent-purple" style="padding:12px 14px">
-            <div class="ytd-kpi-label">No Xero bill</div>
-            <div class="ytd-kpi-value" id="lkpi-nobill" style="font-size:1.6rem">—</div>
-            <div class="ytd-kpi-sub">Investigate</div>
-          </div>
-          <div class="ytd-kpi" style="padding:12px 14px;--kpi-accent:#2E4A78">
-            <div class="ytd-kpi-label">Unpaid AUD</div>
-            <div class="ytd-kpi-value" id="lkpi-unpaid" style="font-size:1.4rem">—</div>
-            <div class="ytd-kpi-sub" id="lkpi-unpaid-sub"></div>
-          </div>
-        </div>
-
-        <!-- Filter tabs -->
-        <div class="live-toolbar">
-          <button class="recon-tab active"   onclick="setLiveFilter('all',this)">All <span id="lc-all"></span></button>
-          <button class="recon-tab t-overdue" onclick="setLiveFilter('overdue',this)">Overdue &gt;72h <span id="lc-overdue"></span></button>
-          <button class="recon-tab t-urgent"  onclick="setLiveFilter('urgent',this)">Due soon <span id="lc-urgent"></span></button>
-          <button class="recon-tab"           onclick="setLiveFilter('pending',this)">Pending <span id="lc-pending"></span></button>
-          <button class="recon-tab t-nobill"  onclick="setLiveFilter('nobill',this)">No bill <span id="lc-nobill"></span></button>
-          <button class="recon-tab t-paid"    onclick="setLiveFilter('paid',this)">Paid in Xero <span id="lc-paid"></span></button>
-          <input class="live-search" type="text" id="liveSearch"
-            placeholder="Search ID / subject / payee…"
-            oninput="_liveTF ? _liveTF.render() : null">
-          <button class="tf-clear-btn" id="live-clear-btn">&#10005; Clear filters</button>
-        </div>
-
-        <!-- Live table -->
-        <div class="chart-card" style="overflow:hidden;padding:0;">
-          <div style="overflow-x:auto;">
-            <table id="live-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Dist. ID</th>
-                  <th>Type</th>
-                  <th>Subject / Payee</th>
-                  <th style="text-align:right">Amount</th>
-                  <th>Transfer</th>
-                  <th>Approved / Created</th>
-                  <th style="text-align:center">Hours</th>
-                  <th>Xero payment</th>
-                  <th>CRM status</th>
-                  <th>Xero bill</th>
-                </tr>
-              </thead>
-              <tbody id="live-tbody">
-                <tr><td colspan="11"><div style="padding:50px;text-align:center;color:var(--text-muted)">
-                  <div class="spinner" style="margin:0 auto 14px"></div>Loading…
-                </div></td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;
-                      border-top:1px solid var(--border-subtle);font-family:'Cambay';font-size:.72rem;
-                      color:var(--text-muted);background:var(--surface-2)">
-            <span id="live-footer">—</span>
-            <span>Zoho Analytics · Distributions (CRM) × Bills (Xero) · last 30 days</span>
-          </div>
-        </div>
-      </div>
 
     </div><!-- /page-content -->
+
   </div>
 </div>
 
@@ -421,8 +302,6 @@
 // ── State ─────────────────────────────────────────────────────────
 let _liveRows   = [];
 let _monthData  = null;
-let _liveFilter = 'all';
-let _liveTF     = null;
 let _selType    = 'All';
 let _selMonth   = null;
 
@@ -489,9 +368,7 @@ const monthFull = ym => {
   _liveRows  = liveData?.rows || [];
   _monthData = monthData;
 
-  if (liveData)  initLiveSection(liveData);
-  else           document.getElementById('live-tbody').innerHTML =
-    '<tr><td colspan="11" style="padding:30px;text-align:center;font-family:Cambay;color:var(--text-muted)">reconciliation.json not yet available — run the data refresh workflow.</td></tr>';
+
 
   if (monthData) initMonthSection();
   else           document.getElementById('month-panel-inner').innerHTML =
@@ -519,7 +396,6 @@ function buildPickers(types) {
 function refreshAll() {
   renderMonthTabs();
   renderMonthPanel();
-  if (_liveTF) _liveTF.refresh();
 }
 
 // ── YTD ───────────────────────────────────────────────────────────
@@ -591,43 +467,101 @@ function renderMonthPanel() {
     </tr>`;
   }).join('');
 
-  // ── Unmatched detail rows (with hours + overdue) ────────────────
-  let unmatchedRows = [];
-  ttypes.forEach(([type,v]) => {
-    if (['credit card','cash'].includes(type.toLowerCase())) return;
-    (v.unmatched_rows||[]).forEach(r => unmatchedRows.push(r));
-  });
-  if (_selType !== 'All') unmatchedRows = unmatchedRows.filter(r => r.distribution_type === _selType);
-  unmatchedRows.sort((a,b) => new Date(b.created_time||0) - new Date(a.created_time||0));
-
+  // ── Unified distributions table ──────────────────────────────────
+  // Source: liveRows (reconciliation.json, rolling 30 days) when month is in range,
+  // falling back to monthly recon unmatched rows for older months.
   const crmBase = window.__NZF_META?.crm_base_url || '';
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const selMonthDate  = new Date(_selMonth + '-01');
+  const isLiveMonth   = selMonthDate >= new Date(thirtyDaysAgo.getFullYear(), thirtyDaysAgo.getMonth(), 1);
 
-  const unmRows = unmatchedRows.length === 0
-    ? '<tr><td colspan="9" style="padding:20px;text-align:center;font-family:Cambay;color:#2d7a27">&#10003; All matched this month</td></tr>'
-    : unmatchedRows.map(r => {
+  // Build row set — live rows for recent months, unmatched fallback for older
+  let unifiedRows = [];
+  let isPartialData = false;
+
+  if (isLiveMonth && _liveRows.length > 0) {
+    // Filter liveRows to the selected month using effective_date logic
+    unifiedRows = _liveRows.filter(r => {
+      let d = r.xero_payment_date || r.approved_date || r.created_time;
+      if (!d) return false;
+      const ym = new Date(d).toISOString().slice(0, 7);
+      return ym === _selMonth;
+    });
+    if (_selType !== 'All') unifiedRows = unifiedRows.filter(r => r.distribution_type === _selType);
+    // Sort: overdue first, then by date desc
+    const STATUS_ORDER = { overdue:0, nobill:1, urgent:2, pending:3, paid:4 };
+    unifiedRows.sort((a,b) => {
+      const sa = STATUS_ORDER[a._status]??99, sb = STATUS_ORDER[b._status]??99;
+      if (sa !== sb) return sa - sb;
+      return new Date(b.approved_date||b.created_time||0) - new Date(a.approved_date||a.created_time||0);
+    });
+  } else {
+    // Older month — use unmatched rows only (partial data)
+    isPartialData = true;
+    ttypes.forEach(([type,v]) => {
+      if (['credit card','cash'].includes(type.toLowerCase())) return;
+      (v.unmatched_rows||[]).forEach(r => unifiedRows.push({
+        ...r,
+        _status: r.xero_bill_exists ? 'pending' : 'nobill',
+        xero_payment_date: '',
+        xero_bill_num: r.xero_bill_exists ? '(bill exists)' : '',
+        crm_status: r.crm_status || '',
+      }));
+    });
+    if (_selType !== 'All') unifiedRows = unifiedRows.filter(r => r.distribution_type === _selType);
+    unifiedRows.sort((a,b) => new Date(b.created_time||0) - new Date(a.created_time||0));
+  }
+
+  const STATUS_CFG = {
+    paid:    { label:'Paid in Xero',   cls:'s-paid'    },
+    overdue: { label:'Overdue >72h',   cls:'s-overdue' },
+    urgent:  { label:'Due soon',       cls:'s-urgent'  },
+    pending: { label:'Pending',        cls:'s-pending' },
+    nobill:  { label:'No Xero bill',   cls:'s-nobill'  },
+  };
+
+  const unmRows = unifiedRows.length === 0
+    ? `<tr><td colspan="10" style="padding:24px;text-align:center;font-family:Cambay;color:${isPartialData?'var(--text-muted)':'#2d7a27'}">
+        ${isPartialData ? 'No unmatched distributions on record for this month' : '&#10003; All distributions matched in Xero this month'}
+       </td></tr>`
+    : unifiedRows.map(r => {
+        const cfg = STATUS_CFG[r._status] || STATUS_CFG.pending;
         const hrs = r._hours;
-        const hc  = hrs > 72 ? 'h-danger' : hrs > 48 ? 'h-warn' : 'h-ok';
-        const overdueBadge = r._overdue
-          ? `<span class="badge s-overdue" style="padding:2px 7px;font-size:.68rem;border-radius:10px">Overdue</span>` : '';
-        const xeroBadge = r.xero_bill_exists
-          ? `<span style="background:rgba(253,185,19,.12);color:#7a5c00;border:1px solid rgba(253,185,19,.4);padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:700">Bill raised · unpaid</span>`
-          : `<span class="badge s-nobill" style="padding:2px 7px;font-size:.68rem;border-radius:10px">No bill</span>`;
+        const hc  = hrs === null ? 'h-na' : hrs > 72 ? 'h-danger' : hrs > 48 ? 'h-warn' : 'h-ok';
+        const hTxt = hrs === null ? '—' : hrs + 'h';
+        const payee = r.xero_payee || r.crm_payee || r.payee || r.subject || '—';
+        const date  = r.approved_date || r.created_time || '';
+        const dated = r.approved_date ? 'approved' : 'created';
+        const xeroHtml = r.xero_payment_date
+          ? `<span class="xero-paid">&#10003; ${fmtDate(r.xero_payment_date)}</span>`
+          : r.xero_bill_num && r.xero_bill_num !== '(bill exists)'
+            ? `<span class="xero-pending" title="${r.xero_bill_num}">Bill raised</span>`
+            : r.xero_bill_exists || (r.xero_bill_num === '(bill exists)')
+              ? `<span class="xero-pending">Bill raised</span>`
+              : `<span class="xero-missing">No bill</span>`;
+        const billHtml = r.xero_bill_num && r.xero_bill_num !== '(bill exists)'
+          ? `<span style="font-family:'Courier New',monospace;font-size:.74rem;color:var(--text-secondary)">${r.xero_bill_num}</span>`
+          : `<span style="color:var(--text-muted);font-style:italic;font-size:.74rem">—</span>`;
         const link = (crmBase && r.record_id)
           ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
                style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;
                       color:var(--color-primary);text-decoration:none">${r.dist_id} &#8599;</a>`
-          : `<span style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;color:var(--color-primary)">${r.dist_id}</span>`;
-        const rowCls = r._overdue ? ' class="row-overdue"' : '';
+          : `<span style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;
+                         color:var(--color-primary)">${r.dist_id}</span>`;
+        const rowCls = r._status === 'overdue' ? ' class="row-overdue"' : '';
         return `<tr${rowCls}>
+          <td><span class="badge ${cfg.cls}" style="padding:2px 8px;border-radius:10px;font-family:'Cambay';font-size:.68rem;font-weight:700;white-space:nowrap">${cfg.label}</span></td>
           <td style="white-space:nowrap">${link}</td>
           <td style="font-size:.75rem;color:var(--text-muted)">${r.distribution_type||'—'}</td>
-          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem">${r.payee||r.subject||'—'}</td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem" title="${payee}">${payee}</td>
           <td style="text-align:right;font-family:'Courier New',monospace;font-size:.82rem;font-weight:700">${fmtAUD(r.amount)}</td>
-          <td style="font-size:.78rem">${r.transfer_type}</td>
-          <td style="font-size:.78rem;white-space:nowrap">${fmtDate(r.created_time)}</td>
-          <td style="text-align:center"><span class="${hc}">${hrs}h</span></td>
-          <td>${overdueBadge}</td>
-          <td>${xeroBadge}</td>
+          <td style="font-size:.76rem;color:var(--text-secondary)">${r.transfer_type||'—'}</td>
+          <td style="font-size:.78rem;white-space:nowrap">${fmtDate(date)}<br>
+              <span style="font-size:.68rem;color:var(--text-muted)">${dated}</span></td>
+          <td style="text-align:center"><span class="${hc}">${hTxt}</span></td>
+          <td>${xeroHtml}</td>
+          <td style="font-size:.76rem;color:var(--text-secondary)">${r.crm_status||'—'}</td>
         </tr>`;
       }).join('');
 
@@ -675,37 +609,38 @@ function renderMonthPanel() {
       </div>
     </div>
 
-    <!-- Unmatched detail -->
+    <!-- Unified distributions table -->
     <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
         <div style="font-family:'Cambay';font-size:.68rem;font-weight:700;text-transform:uppercase;
                     letter-spacing:.07em;color:var(--text-muted)">
-          CRM Distributions with No Xero Payment
-          <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.72rem">
-            — excludes Credit Card and Cash (paid by distribution team)
-          </span>
+          Individual Distributions
+          ${isPartialData ? '<span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.72rem;color:var(--text-muted)"> — older month, showing unmatched only · Credit Card &amp; Cash excluded</span>' : ''}
         </div>
-        ${unmatchedRows.length > 0
-          ? `<span style="background:rgba(238,53,38,.08);color:#c0392b;border:1px solid rgba(238,53,38,.25);
-              padding:3px 12px;border-radius:12px;font-family:'Cambay';font-size:.72rem;font-weight:700">
-              ${unmatchedRows.length} distributions</span>`
-          : `<span style="background:rgba(73,169,66,.08);color:#2d7a27;border:1px solid rgba(73,169,66,.25);
-              padding:3px 12px;border-radius:12px;font-family:'Cambay';font-size:.72rem;font-weight:700">
-              All matched &#10003;</span>`}
+        <div style="display:flex;align-items:center;gap:6px">
+          ${unifiedRows.filter(r=>r._status==='overdue').length > 0
+            ? `<span style="background:rgba(238,53,38,.08);color:#c0392b;border:1px solid rgba(238,53,38,.25);
+                padding:2px 10px;border-radius:10px;font-family:'Cambay';font-size:.7rem;font-weight:700">
+                &#9888; ${unifiedRows.filter(r=>r._status==='overdue').length} overdue</span>` : ''}
+          <span style="font-family:'Cambay';font-size:.72rem;color:var(--text-muted)">${unifiedRows.length} distributions</span>
+        </div>
       </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>Dist. ID</th>
-            <th>Type</th>
-            <th>Subject / Payee</th>
-            <th style="text-align:right">Amount</th>
-            <th>Transfer</th>
-            <th>Created</th>
-            <th style="text-align:center">Hours</th>
-            <th>Flag</th>
-            <th>Xero</th>
-          </tr></thead>
+      <div style="overflow-x:auto" id="unified-table-wrap">
+        <table id="unified-dist-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Dist. ID</th>
+              <th>Type</th>
+              <th>Subject / Payee</th>
+              <th style="text-align:right">Amount</th>
+              <th>Transfer</th>
+              <th>Date</th>
+              <th style="text-align:center">Hours</th>
+              <th>Xero payment</th>
+              <th>CRM status</th>
+            </tr>
+          </thead>
           <tbody>${unmRows}</tbody>
         </table>
       </div>
@@ -749,108 +684,6 @@ function liveRowsFiltered() {
     if (sa!==sb) return sa-sb;
     return new Date(b.approved_date||b.created_time||0) - new Date(a.approved_date||a.created_time||0);
   });
-}
-
-function setLiveFilter(f, el) {
-  _liveFilter = f;
-  document.querySelectorAll('.recon-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  if (_liveTF) _liveTF.render();
-}
-
-function _renderLiveRow(r) {
-  const crmBase = window.__NZF_META?.crm_base_url || '';
-  const cfg  = STATUS_CFG[r._status] || STATUS_CFG.pending;
-  const hrs  = r._hours;
-  const hc   = hrs===null?'h-na':hrs>72?'h-danger':hrs>48?'h-warn':'h-ok';
-  const hTxt = hrs===null ? '—' : hrs+'h';
-  const payee = r.xero_payee||r.crm_payee||r.subject||'—';
-  const base  = r.approved_date||r.created_time;
-  const dated = r.approved_date ? 'approved' : 'created';
-  const xeroHtml = r.xero_payment_date
-    ? `<span class="xero-paid">&#10003; ${fmtDate(r.xero_payment_date)}</span>`
-    : r.xero_bill_num
-      ? `<span class="xero-pending">Bill raised</span>`
-      : `<span class="xero-missing">No bill</span>`;
-  const billHtml = r.xero_bill_num
-    ? `<span style="font-family:'Courier New',monospace;font-size:.74rem;color:var(--text-secondary)">${r.xero_bill_num}</span>`
-    : `<span style="color:var(--text-muted);font-style:italic;font-size:.76rem">—</span>`;
-  const distLink = (crmBase && r.record_id)
-    ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
-        style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;
-               color:var(--color-primary);text-decoration:none">${r.dist_id} &#8599;</a>`
-    : `<span style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;color:var(--color-primary)">${r.dist_id}</span>`;
-  const rowCls = r._status === 'overdue' ? ' class="row-overdue"' : '';
-  return `<tr${rowCls}>
-    <td><span class="badge ${cfg.cls}" style="padding:2px 8px;border-radius:10px;font-family:'Cambay';font-size:.68rem;font-weight:700;white-space:nowrap">${cfg.label}</span></td>
-    <td style="white-space:nowrap">${distLink}</td>
-    <td style="font-size:.74rem;color:var(--text-muted)">${r.distribution_type||'—'}</td>
-    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem" title="${payee}">${payee}</td>
-    <td style="text-align:right;font-family:'Courier New',monospace;font-size:.8rem;font-weight:700">${r.amount||'—'}</td>
-    <td style="font-size:.76rem;color:var(--text-secondary)">${r.transfer_type||'—'}</td>
-    <td style="font-size:.78rem;white-space:nowrap">${fmtDate(base)}<br><span style="font-size:.68rem;color:var(--text-muted)">${dated}</span></td>
-    <td style="text-align:center"><span class="${hc}">${hTxt}</span></td>
-    <td>${xeroHtml}</td>
-    <td style="font-size:.76rem;color:var(--text-secondary)">${r.crm_status||'—'}</td>
-    <td>${billHtml}</td>
-  </tr>`;
-}
-
-function initLiveSection(data) {
-  const s = data.summary;
-  const fmtK = n => n >= 1000 ? '$' + Math.round(n/1000) + 'k' : fmtAUD(n);
-  document.getElementById('lkpi-total').textContent   = s.total;
-  document.getElementById('lkpi-total-sub').textContent = fmtK(s.total_aud);
-  document.getElementById('lkpi-paid').textContent    = s.paid;
-  document.getElementById('lkpi-paid-sub').textContent = fmtK(s.paid_aud);
-  document.getElementById('lkpi-overdue').textContent = s.overdue;
-  document.getElementById('lkpi-urgent').textContent  = s.urgent;
-  document.getElementById('lkpi-nobill').textContent  = s.nobill;
-  document.getElementById('lkpi-unpaid').textContent  = fmtK(s.unpaid_aud);
-  document.getElementById('lkpi-unpaid-sub').textContent = (s.overdue+s.urgent+s.pending+s.nobill)+' pending';
-
-  document.getElementById('lc-all').textContent     = `(${s.total})`;
-  document.getElementById('lc-overdue').textContent = `(${s.overdue})`;
-  document.getElementById('lc-urgent').textContent  = `(${s.urgent})`;
-  document.getElementById('lc-pending').textContent = `(${s.pending})`;
-  document.getElementById('lc-paid').textContent    = `(${s.paid})`;
-  document.getElementById('lc-nobill').textContent  = `(${s.nobill})`;
-
-  _liveTF = new TableFilter({
-    tableEl:   document.getElementById('live-table'),
-    tbodyId:   'live-tbody',
-    colspan:   11,
-    clearBtnId:'live-clear-btn',
-    getRows:   () => liveRowsFiltered(),
-    renderRow: _renderLiveRow,
-    externalFilter: row => {
-      if (_liveFilter !== 'all' && row._status !== _liveFilter) return false;
-      const s = (document.getElementById('liveSearch')?.value||'').toLowerCase();
-      if (!s) return true;
-      return (row.dist_id||'').toLowerCase().includes(s)
-          || (row.subject||'').toLowerCase().includes(s)
-          || (row.xero_payee||row.crm_payee||'').toLowerCase().includes(s);
-    },
-    onUpdate: (shown, total) => {
-      document.getElementById('live-footer').textContent = `Showing ${shown} of ${total} distributions`;
-    },
-    columns: [
-      { key:'_status',           type:'select', label:'Status',
-        values:['overdue','nobill','urgent','pending','paid'] },
-      { key:'dist_id',           type:'text',   label:'Dist. ID'     },
-      { key:'distribution_type', type:'select', label:'Type'         },
-      { key:'xero_payee',        type:'text',   label:'Subject/Payee'},
-      { key:'amount',            type:'amount', label:'Amount'       },
-      { key:'transfer_type',     type:'select', label:'Transfer'     },
-      { key:'approved_date',     type:'date',   label:'Date'         },
-      { key:'_hours',            type:'hours',  label:'Hours'        },
-      { key:'xero_payment_date', type:'date',   label:'Xero date'    },
-      { key:'crm_status',        type:'select', label:'CRM status'   },
-      { key:'xero_bill_num',     type:'text',   label:'Xero bill'    },
-    ],
-  });
-  _liveTF.build();
-  _liveTF.refresh();
 }
 
 function initMonthSection() {
