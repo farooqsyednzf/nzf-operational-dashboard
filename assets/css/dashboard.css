@@ -726,16 +726,17 @@ input.tf-input:not(:placeholder-shown) {
   border-color: var(--color-primary, #EE3526);
   background: rgba(238,53,38,0.03);
 }
-/* Selects: restore native dropdown appearance so they render as compact dropdowns */
+/* Selects: native appearance + crucially height:auto overrides the 26px from .tf-input.
+   An explicit px height on a <select> causes browsers to calculate how many option rows
+   fit and potentially render as a listbox. height:auto lets the browser size it naturally
+   as a single-row dropdown. */
 select.tf-input {
   appearance: auto;
-  -webkit-appearance: auto;
+  -webkit-appearance: menulist;
+  height: auto !important;
+  min-height: 24px;
   cursor: pointer;
-  padding-right: 4px;
-}
-/* Active state for selects — highlight when a value is selected */
-select.tf-input:not([data-active=""]):focus {
-  border-color: var(--color-primary, #EE3526);
+  padding: 2px 4px;
 }
 
 /* Range pairs (amount / date) — two small inputs side by side */
