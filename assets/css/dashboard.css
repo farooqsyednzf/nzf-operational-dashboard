@@ -730,6 +730,15 @@ tbody td            { padding: 11px 16px; color: var(--text-primary); }
   background-position: right 6px center;
   padding-right: 22px;
   cursor: pointer;
+  overflow: hidden;
+  max-height: 26px;
+  line-height: 26px;
+}
+/* Force select to render as compact dropdown across all browsers */
+.tf-filter-cell select.tf-input {
+  height: 26px !important;
+  max-height: 26px !important;
+  overflow: hidden;
 }
 .tf-select:not([value=""]):focus,
 .tf-select option:checked ~ .tf-select {
