@@ -726,17 +726,72 @@ input.tf-input:not(:placeholder-shown) {
   border-color: var(--color-primary, #EE3526);
   background: rgba(238,53,38,0.03);
 }
-/* Selects: native appearance + crucially height:auto overrides the 26px from .tf-input.
-   An explicit px height on a <select> causes browsers to calculate how many option rows
-   fit and potentially render as a listbox. height:auto lets the browser size it naturally
-   as a single-row dropdown. */
-select.tf-input {
-  appearance: auto;
-  -webkit-appearance: menulist;
-  height: auto !important;
-  min-height: 24px;
+/* ── Custom dropdown (replaces native <select> for cross-browser reliability) ─── */
+.tf-dd {
+  position: relative;
+  width: 100%;
+}
+.tf-dd-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 26px;
+  padding: 0 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--surface);
+  font-family: 'Cambay', sans-serif;
+  font-size: 0.72rem;
+  color: var(--text-muted);
   cursor: pointer;
-  padding: 2px 4px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: border-color 0.12s, color 0.12s;
+  box-sizing: border-box;
+}
+.tf-dd-btn:focus {
+  outline: none;
+  border-color: var(--color-blue, #0081C6);
+  box-shadow: 0 0 0 2px rgba(0,129,198,0.12);
+}
+.tf-dd-btn.tf-dd-active {
+  border-color: var(--color-primary, #EE3526);
+  color: var(--color-primary, #EE3526);
+}
+.tf-dd-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.tf-dd-arrow { flex-shrink: 0; margin-left: 4px; opacity: 0.45; }
+.tf-dd-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  min-width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 9999;
+  padding: 4px 0;
+}
+.tf-dd-menu.tf-dd-open { display: block; }
+.tf-dd-option {
+  padding: 6px 12px;
+  font-family: 'Cambay', sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.08s;
+}
+.tf-dd-option:hover    { background: var(--color-primary-bg, #FFF6F5); }
+.tf-dd-option.tf-dd-selected {
+  color: var(--color-primary, #EE3526);
+  font-weight: 700;
+  background: rgba(238,53,38,0.04);
 }
 
 /* Range pairs (amount / date) — two small inputs side by side */
