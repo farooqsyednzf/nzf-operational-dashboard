@@ -34,7 +34,6 @@ CRM_BASE_URL = zac.RULES["_meta"].get("zoho_crm_base_url", "")
 VIEW_BILLS_XERO    = "1715382000005868510"
 VIEW_CONTACTS_XERO = "1715382000005868254"
 INCLUDED_STATUSES  = {"approved", "extracted", "paid"}
-EXCLUDED_TRANSFER  = {"credit card"}   # CC payments handled outside Xero by distribution team
 LOOKBACK_DAYS      = 30
 
 
@@ -81,9 +80,7 @@ def build_reconciliation_report(token):
     # Filter distributions to Zakat + last 30 days + not excluded
     dists = [
         d for d in all_dists
-        if (d.get("distribution_type") or "").lower().strip() == "zakat"
-        and (d.get("status") or "").lower().strip() in INCLUDED_STATUSES
-        and (d.get("transfer_type") or "").lower().strip() not in EXCLUDED_TRANSFER
+        if (d.get("status") or "").lower().strip() in INCLUDED_STATUSES
         and zac.parse_dt(d.get("created_time") or "") is not None
         and zac.parse_dt(d.get("created_time")) >= cutoff
     ]
@@ -129,6 +126,7 @@ def build_reconciliation_report(token):
         row = {
             "dist_id":           dist_id,
             "record_id":         (d.get("id") or "").strip(),
+            "distribution_type": d.get("distribution_type", ""),
             "subject":           d.get("subject", ""),
             "crm_status":        d.get("status", ""),
             "amount":            d.get("grand_total", ""),
