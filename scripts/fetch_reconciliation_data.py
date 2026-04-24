@@ -129,7 +129,8 @@ def build_reconciliation_report(token):
             "distribution_type": d.get("distribution_type", ""),
             "subject":           d.get("subject", ""),
             "crm_status":        d.get("status", ""),
-            "amount":            d.get("grand_total", ""),
+            "amount":            parse_amount(d.get("grand_total", "")),  # stored as float
+            "transfer_type":     d.get("transfer_type", ""),
             "created_time":      d.get("created_time", ""),
             "approved_date":     d.get("approved_date", ""),
             "crm_paid_date":     d.get("paid_date", ""),
@@ -137,7 +138,7 @@ def build_reconciliation_report(token):
             "xero_bill_num":     xero_bill.get("bill_number", "") if xero_bill else "",
             "xero_bill_status":  xero_bill.get("status", "")      if xero_bill else "",
             "xero_payment_date": xero_bill.get("fully_paid_on_date", "") if xero_bill else "",
-            "xero_amount":       xero_bill.get("total__fcy_", "")  if xero_bill else "",
+            "xero_amount":       parse_amount(xero_bill.get("total__fcy_", "")) if xero_bill else 0.0,
             "xero_payee":        xero_payee or d.get("acc_name", ""),
         }
         row["_status"] = get_status(xero_bill, base_dt, now_utc)
