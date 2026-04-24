@@ -316,6 +316,40 @@
         </div>
       </div>
 
+      <!-- CRM distributions with no Xero payment — detail table -->
+      <div class="chart-card" style="overflow:hidden;padding:0;margin-bottom:14px;" id="recon-unmatched-card">
+        <div class="chart-card-header" style="padding:16px 20px 0;">
+          <div>
+            <div class="chart-card-title">CRM Distributions with No Xero Payment</div>
+            <div class="chart-card-subtitle">
+              Excludes Credit Card (paid by distribution team). 
+              "Bill exists" = Xero bill raised but payment not yet confirmed.
+            </div>
+          </div>
+          <div id="recon-unmatched-count-badge"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Dist. ID</th>
+                <th>Subject / Payee</th>
+                <th style="text-align:right">Amount</th>
+                <th>Transfer Type</th>
+                <th>Created</th>
+                <th>Approved</th>
+                <th>CRM Status</th>
+                <th>Xero</th>
+              </tr>
+            </thead>
+            <tbody id="recon-unmatched-tbody">
+              <tr><td colspan="8" style="padding:30px;text-align:center;
+                font-family:'Cambay';color:var(--text-muted)">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Xero-only breakdown -->
       <div class="chart-card" style="overflow:hidden;padding:0;">
         <div class="chart-card-header" style="padding:16px 20px 0;">
@@ -366,6 +400,12 @@ const PALETTE = [
 ];
 
 function fmt(n)    { return (n??0).toLocaleString('en-AU'); }
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-AU', {day:'numeric', month:'short', year:'numeric'});
+}
 function fmtAUD(n) {
   if (n===null||n===undefined) return '—';
   return '$' + Number(n).toLocaleString('en-AU', {minimumFractionDigits:0, maximumFractionDigits:0});
@@ -831,6 +871,58 @@ function renderReconMonth(monthKey, activeEl) {
     'Unmatched D-series': 'background:rgba(238,53,38,0.08);color:#c0392b;border:1px solid rgba(238,53,38,0.25)',
     'Non-case related':   'background:rgba(159,147,147,0.1);color:#4C6060;border:1px solid rgba(159,147,147,0.3)',
   };
+
+  // Unmatched distributions detail table (exclude CC — expected no Xero)
+  const unmatchedRows = [];
+  Object.entries(cd.by_transfer_type).forEach(([type, v]) => {
+    if (type.toLowerCase() === 'credit card') return;
+    (v.unmatched_rows || []).forEach(r => unmatchedRows.push(r));
+  });
+  unmatchedRows.sort((a, b) => new Date(b.created_time||0) - new Date(a.created_time||0));
+
+  const badge = document.getElementById('recon-unmatched-count-badge');
+  if (badge) {
+    badge.innerHTML = unmatchedRows.length > 0
+      ? `<span style="background:rgba(238,53,38,0.08);color:#c0392b;border:1px solid rgba(238,53,38,0.25);
+                      padding:3px 12px;border-radius:12px;font-family:'Cambay';font-size:0.75rem;font-weight:700">
+           ${unmatchedRows.length} distributions
+         </span>`
+      : `<span style="background:rgba(73,169,66,0.08);color:#2d7a27;border:1px solid rgba(73,169,66,0.25);
+                      padding:3px 12px;border-radius:12px;font-family:'Cambay';font-size:0.75rem;font-weight:700">
+           All matched ✓
+         </span>`;
+  }
+
+  const crmBase = _reconData?.meta?.crm_base_url || '';
+  document.getElementById('recon-unmatched-tbody').innerHTML = unmatchedRows.length === 0
+    ? '<tr><td colspan="8" style="padding:24px;text-align:center;font-family:Cambay;color:var(--text-muted)">No unmatched distributions this month ✓</td></tr>'
+    : unmatchedRows.map(r => {
+        const distLink = (crmBase && r.record_id)
+          ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
+               style="font-family:'Courier New',monospace;font-size:0.8rem;font-weight:700;
+                      color:var(--color-primary);text-decoration:none">${r.dist_id} &#8599;</a>`
+          : `<span style="font-family:'Courier New',monospace;font-size:0.8rem;font-weight:700;
+                         color:var(--color-primary)">${r.dist_id}</span>`;
+
+        const xeroBadge = r.xero_bill_exists
+          ? `<span style="background:rgba(253,185,19,0.12);color:#7a5c00;border:1px solid rgba(253,185,19,0.4);
+                          padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700">Bill raised · unpaid</span>`
+          : `<span style="background:rgba(123,63,160,0.08);color:#7B3FA0;border:1px solid rgba(123,63,160,0.3);
+                          padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:700">No bill</span>`;
+
+        return `<tr>
+          <td style="white-space:nowrap">${distLink}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.82rem"
+              title="${r.payee || r.subject}">${r.payee || r.subject || '—'}</td>
+          <td style="text-align:right;font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700">
+            ${fmtAUD(r.amount)}</td>
+          <td style="font-size:0.78rem;color:var(--text-secondary)">${r.transfer_type}</td>
+          <td style="font-size:0.78rem;white-space:nowrap">${fmtDate(r.created_time)}</td>
+          <td style="font-size:0.78rem;white-space:nowrap">${fmtDate(r.approved_date) || '—'}</td>
+          <td style="font-size:0.78rem;color:var(--text-secondary)">${r.crm_status}</td>
+          <td>${xeroBadge}</td>
+        </tr>`;
+      }).join('');
 
   document.getElementById('recon-xero-tbody').innerHTML = cats.length === 0
     ? '<tr><td colspan="4" style="padding:24px;text-align:center;font-family:Cambay;color:var(--text-muted)">No Xero-only bills this month</td></tr>'
