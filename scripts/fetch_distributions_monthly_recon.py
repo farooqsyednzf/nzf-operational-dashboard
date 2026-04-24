@@ -48,6 +48,21 @@ def to_month(s):
         return None
     return dt.strftime("%Y-%m")
 
+def effective_month(d):
+    """
+    Return the month key for a distribution row using the same logic as the
+    Distributions dashboard — so both dashboards bucket into the same month.
+    Priority: Paid_Date (if Paid) → Extracted_Date (if Extracted) → Created_Time.
+    """
+    status = (d.get("status") or "").strip()
+    if status == "Paid":
+        m = to_month(d.get("paid_date") or "")
+        if m: return m
+    elif status == "Extracted":
+        m = to_month(d.get("extracted_date") or "")
+        if m: return m
+    return to_month(d.get("created_time") or "")
+
 def categorise_xero_bill(bill_number):
     """
     Classify a Xero bill that has no matching CRM distribution:
@@ -104,8 +119,8 @@ def build_monthly_recon(token):
     dists_in_scope = [
         d for d in all_dists
         if (d.get("status") or "").lower().strip() in INCLUDED_STATUSES
-        and to_month(d.get("created_time") or "") is not None
-        and to_month(d.get("created_time")) >= cutoff_month
+        and effective_month(d) is not None
+        and effective_month(d) >= cutoff_month
     ]
     print(f"  CRM dists in scope: {len(dists_in_scope):,}")
 
@@ -165,7 +180,7 @@ def build_monthly_recon(token):
 
     # --- Process CRM distributions ---
     for d in dists_in_scope:
-        m = to_month(d.get("created_time"))
+        m = effective_month(d)
         if m not in by_month:
             continue
 
@@ -202,6 +217,8 @@ def build_monthly_recon(token):
                     "amount":           amount,
                     "crm_status":       d.get("status", ""),
                     "created_time":     d.get("created_time", ""),
+                    "paid_date":        d.get("paid_date", ""),
+                    "extracted_date":   d.get("extracted_date", ""),
                     "approved_date":    d.get("approved_date", ""),
                     "transfer_type":    transfer,
                     "distribution_type": (d.get("distribution_type") or "").strip(),
