@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-24T06:51:58.022845+00:00",
+    "last_updated": "2026-04-24T07:14:28.173803+00:00",
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -454,14 +454,6 @@
       }
     },
     "by_outcome": {
-      "Funded": {
-        "stage": "Closed - Funded",
-        "median_days": 99.6,
-        "avg_days": 128.6,
-        "p75_days": 149.9,
-        "count": 985,
-        "colour": "#49A942"
-      },
       "Not Funded": {
         "stage": "Closed - Not Funded",
         "median_days": 11.6,
@@ -469,6 +461,14 @@
         "p75_days": 89.6,
         "count": 745,
         "colour": "#EE3526"
+      },
+      "Funded": {
+        "stage": "Closed - Funded",
+        "median_days": 99.6,
+        "avg_days": 128.6,
+        "p75_days": 149.9,
+        "count": 985,
+        "colour": "#49A942"
       },
       "No Response": {
         "stage": "Closed - NO Response",
@@ -653,26 +653,6 @@
       ],
       "series": [
         {
-          "stage": "Closed - Funded",
-          "label": "Funded",
-          "colour": "#49A942",
-          "data": [
-            158.9,
-            105.8,
-            87.3,
-            119.4,
-            100.5,
-            118.3,
-            105.2,
-            68.5,
-            117.2,
-            85.0,
-            72.7,
-            68.5,
-            43.7
-          ]
-        },
-        {
           "stage": "Closed - Not Funded",
           "label": "Not Funded",
           "colour": "#EE3526",
@@ -690,6 +670,26 @@
             4.4,
             8.5,
             10.5
+          ]
+        },
+        {
+          "stage": "Closed - Funded",
+          "label": "Funded",
+          "colour": "#49A942",
+          "data": [
+            158.9,
+            105.8,
+            87.3,
+            119.4,
+            100.5,
+            118.3,
+            105.2,
+            68.5,
+            117.2,
+            85.0,
+            72.7,
+            68.5,
+            43.7
           ]
         },
         {
