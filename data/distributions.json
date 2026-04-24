@@ -1,7 +1,7 @@
 {
   "meta": {
-    "last_updated": "2026-04-24T15:02:50.414053+00:00",
-    "record_count": 2475,
+    "last_updated": "2026-04-24T21:24:43.623902+00:00",
+    "record_count": 2493,
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -21,18 +21,18 @@
     "previous_month": "2026-03"
   },
   "summary": {
-    "current_month_amount": 552509.43,
+    "current_month_amount": 585062.43,
     "previous_month_amount": 922204.98,
-    "amount_pct_change": -40.1,
-    "total_12m_amount": 4354947.19,
-    "monthly_avg_amount": 334995.94,
-    "current_month_count": 243,
+    "amount_pct_change": -36.6,
+    "total_12m_amount": 4387500.19,
+    "monthly_avg_amount": 337500.01,
+    "current_month_count": 261,
     "previous_month_count": 366,
-    "count_pct_change": -33.6,
-    "total_12m_count": 2303,
-    "avg_distribution_amount": 1890.99,
-    "unique_cases_assisted": 1090,
-    "unique_clients_assisted": 990
+    "count_pct_change": -28.7,
+    "total_12m_count": 2321,
+    "avg_distribution_amount": 1890.35,
+    "unique_cases_assisted": 1096,
+    "unique_clients_assisted": 996
   },
   "trend": [
     {
@@ -97,15 +97,15 @@
     },
     {
       "month": "2026-04",
-      "amount": 552509.43,
-      "count": 243
+      "amount": 585062.43,
+      "count": 261
     }
   ],
   "by_type": {
     "amount": [
       {
         "label": "Zakat",
-        "value": 3144598.54
+        "value": 3176851.54
       },
       {
         "label": "Sadaqah",
@@ -117,17 +117,17 @@
       },
       {
         "label": "Fidya",
-        "value": 130037.5
+        "value": 130337.5
       }
     ],
     "count": [
       {
         "label": "Zakat",
-        "value": 1982
+        "value": 1999
       },
       {
         "label": "Fidya",
-        "value": 228
+        "value": 229
       },
       {
         "label": "Sadaqah",
@@ -172,7 +172,7 @@
           261382.52,
           280408.89,
           691832.67,
-          446295.5
+          478548.5
         ]
       },
       {
@@ -229,7 +229,7 @@
           1400.0,
           2500.0,
           5000.0,
-          31850.0
+          32150.0
         ]
       }
     ]
@@ -238,19 +238,19 @@
     "amount": [
       {
         "label": "981539000139861240",
-        "value": 1571044.46
+        "value": 1573344.46
       },
       {
         "label": "981539000139861258",
-        "value": 458080.48
+        "value": 478580.48
       },
       {
         "label": "981539000147035242",
-        "value": 327033.3
+        "value": 331433.3
       },
       {
         "label": "981539000177652418",
-        "value": 317155.9
+        "value": 319293.9
       },
       {
         "label": "981539000139861249",
@@ -258,7 +258,7 @@
       },
       {
         "label": "981539000139861245",
-        "value": 245300.86
+        "value": 246300.86
       },
       {
         "label": "981539000139861248",
@@ -266,7 +266,7 @@
       },
       {
         "label": "981539000172474281",
-        "value": 227480.75
+        "value": 228495.75
       },
       {
         "label": "981539000199508104",
@@ -278,21 +278,21 @@
       },
       {
         "label": "Other",
-        "value": 427951.41
+        "value": 429151.41
       }
     ],
     "count": [
       {
         "label": "981539000139861240",
-        "value": 506
+        "value": 509
       },
       {
         "label": "981539000147035242",
-        "value": 336
+        "value": 342
       },
       {
         "label": "981539000177652418",
-        "value": 309
+        "value": 313
       },
       {
         "label": "981539000139861249",
@@ -304,11 +304,11 @@
       },
       {
         "label": "981539000139861245",
-        "value": 192
+        "value": 193
       },
       {
         "label": "981539000172474281",
-        "value": 124
+        "value": 125
       },
       {
         "label": "981539000139861261",
@@ -324,7 +324,7 @@
       },
       {
         "label": "Other",
-        "value": 243
+        "value": 246
       }
     ]
   },
@@ -376,13 +376,13 @@
       },
       {
         "label": "Other",
-        "value": 2973663.11
+        "value": 3006216.11
       }
     ],
     "count": [
       {
         "label": "Coles Voucher",
-        "value": 164
+        "value": 165
       },
       {
         "label": "Coles voucher",
@@ -422,7 +422,7 @@
       },
       {
         "label": "Other",
-        "value": 1725
+        "value": 1742
       }
     ]
   }
