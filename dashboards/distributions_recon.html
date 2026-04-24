@@ -300,7 +300,6 @@
 <script src="/assets/js/nav.js"></script>
 <script>
 // ── State ─────────────────────────────────────────────────────────
-let _liveRows   = [];
 let _monthData  = null;
 let _selType    = 'All';
 let _selMonth   = null;
@@ -365,7 +364,6 @@ const monthFull = ym => {
   buildPickers([...types].sort((a,b) => a==='All'?-1:b==='All'?1:a.localeCompare(b)));
 
   // Store and initialise
-  _liveRows  = liveData?.rows || [];
   _monthData = monthData;
 
 
@@ -469,64 +467,40 @@ function _renderMonthPanelInner() {
     </tr>`;
   }).join('');
 
-  // ── Unified distributions table ──────────────────────────────────
-  // Source: liveRows (reconciliation.json, rolling 30 days) when month is in range,
-  // falling back to monthly recon unmatched rows for older months.
+  // ── Individual Distributions table ───────────────────────────────
+  // Always sourced from distributions_monthly_recon.json unmatched_rows.
+  // This guarantees both tables use the same data source and same month bucketing
+  // (effective_date: paid_date → created_time). Using reconciliation.json here
+  // caused missing rows because it only covers distributions CREATED in the last
+  // 30 days, while the Transfer Type table covers all of the month by paid_date.
   const crmBase = window.__NZF_META?.crm_base_url || '';
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const selMonthDate  = new Date(_selMonth + '-01');
-  const isLiveMonth   = selMonthDate >= new Date(thirtyDaysAgo.getFullYear(), thirtyDaysAgo.getMonth(), 1);
-
-  // Build row set — live rows for recent months, unmatched fallback for older
   let unifiedRows = [];
-  let isPartialData = false;
 
-  if (isLiveMonth && _liveRows.length > 0) {
-    // Filter liveRows to the selected month using effective_date logic
-    unifiedRows = _liveRows.filter(r => {
-      // Use same effective_date logic as the Transfer Type table
-      // (paid_date for Paid, created_time fallback) so both tables bucket to the same month
-      let d = null;
-      const st = (r.crm_status || '').trim();
-      if (st === 'Paid' && r.crm_paid_date)       d = r.crm_paid_date;
-      else if (st === 'Extracted' && r.crm_paid_date) d = r.crm_paid_date;
-      if (!d) d = r.created_time;
-      if (!d) return false;
-      const ym = new Date(d).toISOString().slice(0, 7);
-      return ym === _selMonth;
-    });
-    if (_selType !== 'All') unifiedRows = unifiedRows.filter(r => r.distribution_type === _selType);
-    // Sort: overdue first, then by date desc
-    const STATUS_ORDER = { overdue:0, nobill:1, urgent:2, pending:3, paid:4 };
-    unifiedRows.sort((a,b) => {
-      const sa = STATUS_ORDER[a._status]??99, sb = STATUS_ORDER[b._status]??99;
-      if (sa !== sb) return sa - sb;
-      return new Date(b.approved_date||b.created_time||0) - new Date(a.approved_date||a.created_time||0);
-    });
-  } else {
-    // Older month — use unmatched rows only (partial data)
-    isPartialData = true;
-    ttypes.forEach(([type,v]) => {
-      if (['credit card','cash'].includes(type.toLowerCase())) return;
-      (v.unmatched_rows||[]).forEach(r => unifiedRows.push({
-        ...r,
-        _status: r.xero_bill_exists ? 'pending' : 'nobill',
-        xero_payment_date: '',
-        xero_bill_num: r.xero_bill_exists ? '(bill exists)' : '',
-        crm_status: r.crm_status || '',
-      }));
-    });
-    if (_selType !== 'All') unifiedRows = unifiedRows.filter(r => r.distribution_type === _selType);
-    unifiedRows.sort((a,b) => new Date(b.created_time||0) - new Date(a.created_time||0));
-  }
+  ttypes.forEach(([type, v]) => {
+    if (['credit card', 'cash'].includes(type.toLowerCase())) return;
+    (v.unmatched_rows || []).forEach(r => unifiedRows.push({
+      ...r,
+      _status:           r.xero_bill_exists ? 'pending' : 'nobill',
+      xero_payment_date: '',
+      xero_bill_num:     r.xero_bill_exists ? '(bill exists)' : '',
+      crm_status:        r.crm_status || '',
+    }));
+  });
+
+  if (_selType !== 'All') unifiedRows = unifiedRows.filter(r => r.distribution_type === _selType);
+  // Sort: no-bill first (highest concern), then pending, then by date desc
+  unifiedRows.sort((a, b) => {
+    const order = { nobill: 0, overdue: 1, urgent: 2, pending: 3 };
+    const sa = order[a._status] ?? 99, sb = order[b._status] ?? 99;
+    if (sa !== sb) return sa - sb;
+    return new Date(b.approved_date || b.created_time || 0)
+         - new Date(a.approved_date || a.created_time || 0);
+  });
 
   // Rows rendered by TableFilter via _renderUnifiedRow
   // Render rows inline — always visible, TableFilter adds column filters on top
   const unmRows = unifiedRows.length === 0
-    ? '<tr><td colspan="10" style="padding:24px;text-align:center;font-family:\'Cambay\';color:var(--text-muted)">' +
-      (isPartialData ? 'No unmatched distributions on record for this month' : '&#10003; All distributions in Xero for this month') +
-      '</td></tr>'
+    ? '<tr><td colspan="10" style="padding:24px;text-align:center;font-family:\'Cambay\';color:#2d7a27">&#10003; No unmatched distributions this month</td></tr>'
     : unifiedRows.map(_renderUnifiedRow).join('');
 
   // ── Xero-only table ─────────────────────────────────────────────
@@ -578,7 +552,7 @@ function _renderMonthPanelInner() {
         <div style="font-family:'Cambay';font-size:.68rem;font-weight:700;text-transform:uppercase;
                     letter-spacing:.07em;color:var(--text-muted)">
           Individual Distributions
-          ${isPartialData ? '<span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.72rem;color:var(--text-muted)"> — older month, showing unmatched only · Credit Card &amp; Cash excluded</span>' : ''}
+          <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.72rem;color:var(--text-muted)"> — Credit Card &amp; Cash excluded</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           ${unifiedRows.filter(r=>r._status==='overdue').length > 0
@@ -643,15 +617,6 @@ const STATUS_CFG = {
 };
 const STATUS_ORDER = { overdue:0, nobill:1, urgent:2, pending:3, paid:4 };
 
-function liveRowsFiltered() {
-  let rows = _selType === 'All' ? _liveRows
-    : _liveRows.filter(r => r.distribution_type === _selType);
-  return [...rows].sort((a,b) => {
-    const sa = STATUS_ORDER[a._status]??99, sb = STATUS_ORDER[b._status]??99;
-    if (sa!==sb) return sa-sb;
-    return new Date(b.approved_date||b.created_time||0) - new Date(a.approved_date||a.created_time||0);
-  });
-}
 
 function initMonthSection() {
   renderMonthTabs();
