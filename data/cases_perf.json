@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-24T07:38:22.377482+00:00",
+    "last_updated": "2026-04-24T08:04:01.779117+00:00",
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -27,7 +27,7 @@
     "resp_sla_pct": 41.3,
     "resol_sla_pct": 33.2,
     "funding_rate_pct": 37.7,
-    "backlog_over_30d": 642,
+    "backlog_over_30d": 643,
     "resp_trend": "regressing",
     "resol_trend": "improving",
     "close_trend": "improving"
@@ -454,13 +454,13 @@
       }
     },
     "by_outcome": {
-      "Funded": {
-        "stage": "Closed - Funded",
-        "median_days": 99.6,
-        "avg_days": 128.6,
-        "p75_days": 149.9,
-        "count": 985,
-        "colour": "#49A942"
+      "No Response": {
+        "stage": "Closed - NO Response",
+        "median_days": 14.0,
+        "avg_days": 39.8,
+        "p75_days": 49.5,
+        "count": 819,
+        "colour": "#FDB913"
       },
       "Not Funded": {
         "stage": "Closed - Not Funded",
@@ -470,13 +470,13 @@
         "count": 745,
         "colour": "#EE3526"
       },
-      "No Response": {
-        "stage": "Closed - NO Response",
-        "median_days": 14.0,
-        "avg_days": 39.8,
-        "p75_days": 49.5,
-        "count": 819,
-        "colour": "#FDB913"
+      "Funded": {
+        "stage": "Closed - Funded",
+        "median_days": 99.6,
+        "avg_days": 128.6,
+        "p75_days": 149.9,
+        "count": 985,
+        "colour": "#49A942"
       }
     },
     "by_priority": {
@@ -653,23 +653,23 @@
       ],
       "series": [
         {
-          "stage": "Closed - Funded",
-          "label": "Funded",
-          "colour": "#49A942",
+          "stage": "Closed - NO Response",
+          "label": "No Response",
+          "colour": "#FDB913",
           "data": [
-            158.9,
-            105.8,
-            87.3,
-            119.4,
-            100.5,
-            118.3,
-            105.2,
-            68.5,
-            117.2,
-            85.0,
-            72.7,
-            68.5,
-            43.7
+            16.7,
+            14.3,
+            22.5,
+            12.4,
+            12.4,
+            10.6,
+            10.1,
+            8.6,
+            10.3,
+            12.1,
+            10.2,
+            16.4,
+            17.5
           ]
         },
         {
@@ -693,23 +693,23 @@
           ]
         },
         {
-          "stage": "Closed - NO Response",
-          "label": "No Response",
-          "colour": "#FDB913",
+          "stage": "Closed - Funded",
+          "label": "Funded",
+          "colour": "#49A942",
           "data": [
-            16.7,
-            14.3,
-            22.5,
-            12.4,
-            12.4,
-            10.6,
-            10.1,
-            8.6,
-            10.3,
-            12.1,
-            10.2,
-            16.4,
-            17.5
+            158.9,
+            105.8,
+            87.3,
+            119.4,
+            100.5,
+            118.3,
+            105.2,
+            68.5,
+            117.2,
+            85.0,
+            72.7,
+            68.5,
+            43.7
           ]
         }
       ]
@@ -802,7 +802,7 @@
   },
   "backlog": {
     "total_open": 816,
-    "over_30d": 642,
+    "over_30d": 643,
     "by_age": [
       {
         "band": "0\u20137 days",
@@ -814,11 +814,11 @@
       },
       {
         "band": "15\u201330 days",
-        "count": 79
+        "count": 78
       },
       {
         "band": "31\u201360 days",
-        "count": 243
+        "count": 244
       },
       {
         "band": "60+ days",
