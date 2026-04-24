@@ -87,9 +87,25 @@ def build_reconciliation_report(token):
     ]
     print(f"  Filtered: {len(dists):,} Zakat distributions in last {LOOKBACK_DAYS} days")
 
-    # Build lookups
-    bills_by_num   = {(b.get("bill_number") or "").strip(): b for b in all_bills
-                      if (b.get("bill_number") or "").strip()}
+    # Build bills lookup: bill_number → best bill row.
+    # Multiple Xero bills can share the same bill number (e.g. PAID + VOIDED duplicate).
+    # Priority: PAID (has fully_paid_on_date) > any non-VOIDED status > VOIDED.
+    # This prevents a voided duplicate overwriting a real payment.
+    def _bill_priority(b):
+        if b.get("fully_paid_on_date"):
+            return 0   # confirmed paid — highest priority
+        if (b.get("status") or "").upper() == "VOIDED":
+            return 2   # voided — lowest priority
+        return 1       # authorised / submitted / etc.
+
+    bills_by_num = {}
+    for b in all_bills:
+        num = (b.get("bill_number") or "").strip()
+        if not num:
+            continue
+        if num not in bills_by_num or _bill_priority(b) < _bill_priority(bills_by_num[num]):
+            bills_by_num[num] = b
+
     contacts_by_id = {(c.get("contact_id") or "").strip(): c.get("name", "")
                       for c in all_contacts if (c.get("contact_id") or "").strip()}
 
