@@ -74,54 +74,58 @@ class TableFilter {
   }
 
   _buildInput(col) {
-    const id = `tf-${col.key}`;
-    const ph = `Filter…`;
+    const id = 'tf-' + col.key;
+    const ph = 'Filter…';
+
+    // Helper: build a custom dropdown (replaces native <select> which has cross-browser
+    // rendering issues inside table headers — appears as expanded listbox on Chrome/Safari)
+    const dd = (options) => {
+      const items = options.map(([val, label]) =>
+        '<div class="tf-dd-option' + (val===''?' tf-dd-selected':'') + '" data-val="' + val + '">' + label + '</div>'
+      ).join('');
+      return '<div class="tf-dd" data-key="' + col.key + '" id="' + id + '">' +
+        '<button class="tf-dd-btn" type="button">' +
+          '<span class="tf-dd-label">All</span>' +
+          '<svg class="tf-dd-arrow" width="8" height="5" viewBox="0 0 8 5" fill="none"><path d="M0 0l4 5 4-5z" fill="currentColor"/></svg>' +
+        '</button>' +
+        '<div class="tf-dd-menu">' + items + '</div>' +
+      '</div>';
+    };
 
     switch (col.type) {
       case 'text':
-        return `<input class="tf-input tf-text" id="${id}" type="text"
-                  placeholder="${ph}" data-key="${col.key}" autocomplete="off">`;
+        return '<input class="tf-input tf-text" id="' + id + '" type="text" ' +
+               'placeholder="' + ph + '" data-key="' + col.key + '" autocomplete="off">';
 
       case 'select': {
-        const opts = (col.values || [])
-          .map(v => {
-            const label = col.valueLabels?.[v] || v;
-            return `<option value="${v}">${label}</option>`;
-          })
-          .join('');
-        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}">
-                  <option value="">All</option>${opts}
-                </select>`;
+        const opts = [['', 'All']].concat(
+          (col.values || []).map(v => [v, (col.valueLabels && col.valueLabels[v]) || v])
+        );
+        return dd(opts);
       }
 
       case 'amount':
-        return `<div class="tf-range-pair">
-                  <input class="tf-input tf-range-input" type="number" min="0" step="1"
-                    placeholder="Min $" data-key="${col.key}" data-bound="min">
-                  <input class="tf-input tf-range-input" type="number" min="0" step="1"
-                    placeholder="Max $" data-key="${col.key}" data-bound="max">
-                </div>`;
+        return '<div class="tf-range-pair">' +
+          '<input class="tf-input tf-range-input" type="number" min="0" step="1" ' +
+            'placeholder="Min $" data-key="' + col.key + '" data-bound="min">' +
+          '<input class="tf-input tf-range-input" type="number" min="0" step="1" ' +
+            'placeholder="Max $" data-key="' + col.key + '" data-bound="max">' +
+        '</div>';
 
       case 'date':
-        return `<div class="tf-range-pair">
-                  <input class="tf-input tf-date-input" type="date"
-                    title="From" data-key="${col.key}" data-bound="from">
-                  <input class="tf-input tf-date-input" type="date"
-                    title="To"   data-key="${col.key}" data-bound="to">
-                </div>`;
+        return '<div class="tf-range-pair">' +
+          '<input class="tf-input tf-date-input" type="date" ' +
+            'title="From" data-key="' + col.key + '" data-bound="from">' +
+          '<input class="tf-input tf-date-input" type="date" ' +
+            'title="To" data-key="' + col.key + '" data-bound="to">' +
+        '</div>';
 
       case 'hours':
-        return `<select class="tf-input tf-select" id="${id}" data-key="${col.key}">
-                  <option value="">All</option>
-                  <option value="lt48">&lt; 48h</option>
-                  <option value="48to72">48 – 72h</option>
-                  <option value="gt72">&gt; 72h</option>
-                  <option value="null">—</option>
-                </select>`;
+        return dd([['','All'],['lt48','< 48h'],['48to72','48 – 72h'],['gt72','> 72h'],['null','—']]);
 
       default:
-        return `<input class="tf-input tf-text" type="text"
-                  placeholder="${ph}" data-key="${col.key}">`;
+        return '<input class="tf-input tf-text" type="text" ' +
+               'placeholder="' + ph + '" data-key="' + col.key + '">';
     }
   }
 
@@ -129,33 +133,84 @@ class TableFilter {
   populateSelects() {
     const rows = this.getRows();
     this.columns.forEach(col => {
-      if (col.type !== 'select' || col.values) return;  // skip if values predefined
-      const sel = this._filterRow?.querySelector(`[data-key="${col.key}"]`);
-      if (!sel) return;
-      const uniq = [...new Set(rows.map(r => (r[col.key] ?? '').toString()).filter(Boolean))].sort();
-      const cur  = sel.value;
-      sel.innerHTML = `<option value="">All</option>` +
+      if (col.type !== 'select' || col.values) return;
+      const dd = this._filterRow?.querySelector('.tf-dd[data-key="' + col.key + '"]');
+      if (!dd) return;
+      const menu   = dd.querySelector('.tf-dd-menu');
+      const curVal = this._state[col.key] || '';
+      const uniq   = [...new Set(rows.map(r => (r[col.key] ?? '').toString()).filter(Boolean))].sort();
+      menu.innerHTML = '<div class="tf-dd-option' + (curVal===''?' tf-dd-selected':'') + '" data-val="">All</div>' +
         uniq.map(v => {
-          const label = col.valueLabels?.[v] || v;
-          return `<option value="${v}"${v===cur?' selected':''}>${label}</option>`;
+          const label = (col.valueLabels && col.valueLabels[v]) || v;
+          return '<div class="tf-dd-option' + (v===curVal?' tf-dd-selected':'') + '" data-val="' + v + '">' + label + '</div>';
         }).join('');
+      menu.querySelectorAll('.tf-dd-option').forEach(opt => {
+        opt.addEventListener('click', e => {
+          e.stopPropagation();
+          menu.querySelectorAll('.tf-dd-option').forEach(o => o.classList.remove('tf-dd-selected'));
+          opt.classList.add('tf-dd-selected');
+          const val = opt.dataset.val;
+          dd.querySelector('.tf-dd-label').textContent = opt.textContent;
+          menu.classList.remove('tf-dd-open');
+          this._state[col.key] = val;
+          this._updateDDHighlight(dd, val);
+          this._updateHeaderHighlight(col.key);
+          this.render();
+          this._updateClearBtn();
+        });
+      });
     });
   }
 
   // ── Bind events ───────────────────────────────────────────────────
   _bindEvents() {
-    const inputs = this._filterRow.querySelectorAll('input, select');
-    inputs.forEach(inp => {
-      inp.addEventListener('input', () => this._onChange(inp));
+    this._filterRow.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input',  () => this._onChange(inp));
       inp.addEventListener('change', () => this._onChange(inp));
-      // Stop click propagating to th sort handlers if any
-      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('click',  e => e.stopPropagation());
     });
-    // External clear-all button
+    this._filterRow.querySelectorAll('.tf-dd').forEach(dd => this._bindDropdown(dd));
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.tf-dd-menu').forEach(m => m.classList.remove('tf-dd-open'));
+    });
     if (this.clearBtnId) {
       const btn = document.getElementById(this.clearBtnId);
       if (btn) btn.addEventListener('click', () => this.clearAll());
     }
+  }
+
+  _bindDropdown(dd) {
+    const btn  = dd.querySelector('.tf-dd-btn');
+    const menu = dd.querySelector('.tf-dd-menu');
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = menu.classList.contains('tf-dd-open');
+      document.querySelectorAll('.tf-dd-menu').forEach(m => m.classList.remove('tf-dd-open'));
+      if (!isOpen) menu.classList.add('tf-dd-open');
+    });
+    this._bindDropdownOptions(menu, dd);
+  }
+
+  _bindDropdownOptions(menu, dd) {
+    menu.querySelectorAll('.tf-dd-option').forEach(opt => {
+      opt.addEventListener('click', e => {
+        e.stopPropagation();
+        menu.querySelectorAll('.tf-dd-option').forEach(o => o.classList.remove('tf-dd-selected'));
+        opt.classList.add('tf-dd-selected');
+        const val = opt.dataset.val;
+        dd.querySelector('.tf-dd-label').textContent = opt.textContent;
+        menu.classList.remove('tf-dd-open');
+        this._state[dd.dataset.key] = val;
+        this._updateDDHighlight(dd, val);
+        this._updateHeaderHighlight(dd.dataset.key);
+        this.render();
+        this._updateClearBtn();
+      });
+    });
+  }
+
+  _updateDDHighlight(dd, val) {
+    dd.querySelector('.tf-dd-btn').classList.toggle('tf-dd-active', !!(val && val.trim()));
   }
 
   _onChange(inp) {
@@ -170,13 +225,6 @@ class TableFilter {
       this._state[key][bound] = val;
     } else {
       this._state[key] = inp.value;
-    }
-
-    // Highlight active selects with a CSS class (can't use :placeholder-shown on select)
-    if (inp.tagName === 'SELECT') {
-      const hasVal = inp.value && inp.value.trim() !== '';
-      inp.style.borderColor    = hasVal ? 'var(--color-primary, #EE3526)' : '';
-      inp.style.background     = hasVal ? 'rgba(238,53,38,0.03)' : '';
     }
 
     this._updateHeaderHighlight(key);
@@ -304,13 +352,13 @@ class TableFilter {
 
   clearAll() {
     this._state = {};
-    const inputs = this._filterRow?.querySelectorAll('input, select');
-    inputs?.forEach(inp => {
-      inp.value = '';
-      if (inp.tagName === 'SELECT') {
-        inp.style.borderColor = '';
-        inp.style.background  = '';
-      }
+    this._filterRow?.querySelectorAll('input').forEach(inp => { inp.value = ''; });
+    this._filterRow?.querySelectorAll('.tf-dd').forEach(dd => {
+      dd.querySelector('.tf-dd-label').textContent = 'All';
+      dd.querySelector('.tf-dd-menu')?.querySelectorAll('.tf-dd-option').forEach((o,i) => {
+        o.classList.toggle('tf-dd-selected', i===0);
+      });
+      dd.querySelector('.tf-dd-btn')?.classList.remove('tf-dd-active');
     });
     // Remove all header highlights
     const headerRow = this.tableEl.querySelector('thead tr:first-child');
