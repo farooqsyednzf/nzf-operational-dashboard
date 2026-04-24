@@ -528,11 +528,10 @@ function filterRowsByType(rows) {
   return rows.filter(r => r.distribution_type === _selType);
 }
 
-// ── Sparkline ─────────────────────────────────────────────────────
 // ── Month tabs ────────────────────────────────────────────────────
 function renderMonthTabs() {
   if (!_monthData) return;
-  const months = fyMonthsInData();
+  const months = (_monthData.meta.months || []).slice().sort();
   if (!months.length) return;
   if (!_selMonth || !months.includes(_selMonth)) _selMonth = months[months.length-1];
 
@@ -545,9 +544,6 @@ function renderMonthTabs() {
 function selectMonth(m) {
   _selMonth = m;
   document.querySelectorAll('.month-tab').forEach(b => b.classList.toggle('active', b.textContent === monthLabel(m)));
-  document.querySelectorAll('.ms-bar-wrap').forEach(b => {
-    b.classList.toggle('active', b.onclick?.toString().includes(`'${m}'`));
-  });
   renderMonthPanel();
 }
 
