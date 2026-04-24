@@ -668,33 +668,30 @@ function computeYTD() {
   if (!_monthData) return null;
   const months = fyMonthsInData();
   let total=0, paid=0, unmatched=0, overdue=0, nobill=0, totalAUD=0, paidAUD=0;
+  const typeOk = r => _selType === 'All' || r.distribution_type === _selType;
 
   months.forEach(m => {
     const mb = _monthData.by_month[m];
     if (!mb) return;
 
-    Object.entries(mb.crm_dists.by_transfer_type).forEach(([_, tt]) => {
-      const rows = (tt.unmatched_rows||[]);
-      const typeOk = r => _selType === 'All' || r.distribution_type === _selType;
-      const typeCount = _selType === 'All' ? tt.count : rows.length > 0
-        ? rows.filter(typeOk).length + tt.matched_count // rough approximation
-        : 0;
-
-      // Simpler: just sum from unmatched_rows if type filter
+    Object.values(mb.crm_dists.by_transfer_type).forEach(tt => {
       if (_selType === 'All') {
-        total    += tt.count;
-        paid     += tt.matched_count;
-        unmatched+= tt.unmatched_count;
-        totalAUD += tt.aud || 0;
-        paidAUD  += tt.matched_aud || 0;
-        overdue  += rows.filter(r => r._overdue).length;
-        nobill   += rows.filter(r => !r.xero_bill_exists).length;
+        // Full aggregates available
+        total     += tt.count || 0;
+        paid      += tt.matched_count || 0;
+        unmatched += tt.unmatched_count || 0;
+        totalAUD  += tt.aud || 0;
+        paidAUD   += tt.matched_aud || 0;
+        const rows = tt.unmatched_rows || [];
+        overdue   += rows.filter(r => r._overdue).length;
+        nobill    += rows.filter(r => !r.xero_bill_exists).length;
       } else {
-        const filtered = rows.filter(typeOk);
-        unmatched += filtered.length;
-        overdue   += filtered.filter(r => r._overdue).length;
-        nobill    += filtered.filter(r => !r.xero_bill_exists).length;
-        totalAUD  += filtered.reduce((s,r)=>s+(r.amount||0),0);
+        // Filter unmatched rows by type — only unmatched rows carry type info
+        const rows = (tt.unmatched_rows || []).filter(typeOk);
+        unmatched += rows.length;
+        overdue   += rows.filter(r => r._overdue).length;
+        nobill    += rows.filter(r => !r.xero_bill_exists).length;
+        totalAUD  += rows.reduce((s, r) => s + (r.amount || 0), 0);
       }
     });
   });
@@ -882,8 +879,9 @@ function renderMonthPanel() {
     <!-- Transfer type breakdown -->
     <div>
       <div style="font-family:'Cambay';font-size:.68rem;font-weight:700;text-transform:uppercase;
-                  letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px">
+                  letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px;display:flex;align-items:center;gap:8px">
         CRM Distributions by Transfer Type — ${monthFull(_selMonth)}
+        ${_selType !== 'All' ? '<span style="background:rgba(31,56,100,.08);color:#1F3864;border:1px solid rgba(31,56,100,.2);padding:1px 8px;border-radius:10px;font-size:.68rem;font-weight:700;text-transform:none;letter-spacing:0">'+_selType+' only</span>' : ''}
       </div>
       <div style="overflow-x:auto">
         <table>
