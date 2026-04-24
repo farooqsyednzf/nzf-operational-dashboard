@@ -411,8 +411,8 @@ function renderTable() {
       ? `<span style="font-family:'Courier New',monospace;font-size:0.75rem;color:var(--text-secondary)">${r.xero_bill_num}</span>`
       : `<span style="color:var(--text-muted);font-style:italic;font-size:0.78rem">—</span>`;
 
-    const distLink = crmBase
-      ? `<a href="${crmBase}/Purchase_Orders/${r.dist_id}" target="_blank" rel="noopener"
+    const distLink = (crmBase && r.record_id)
+      ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
           style="font-family:'Courier New',monospace;font-size:0.82rem;font-weight:700;
                  color:var(--color-primary);text-decoration:none"
           title="Open in CRM">${r.dist_id} &#8599;</a>`
