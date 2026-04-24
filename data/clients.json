@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-24T05:38:00.618627+00:00",
+    "last_updated": "2026-04-24T05:49:03.913223+00:00",
     "record_count": 3132,
     "months_covered": [
       "2025-04",
@@ -1300,29 +1300,29 @@
     }
   ],
   "ai_analysis": {
-    "summary": "Clients are returning primarily due to ongoing structural challenges including unstable employment, housing insecurity, and relationship breakdowns that create cyclical patterns of financial crisis. Many face intersecting vulnerabilities such as visa uncertainty, health issues, and single parenthood that prevent sustained financial stability.",
+    "summary": "Clients are returning primarily due to ongoing financial vulnerability that persists beyond initial assistance, particularly around housing instability, unemployment/job loss, and recurring basic needs. Many face cyclical crises where temporary help doesn't address underlying structural challenges like visa status, family breakdown, or chronic health conditions.",
     "themes": [
       {
-        "label": "Employment Loss and Income Instability",
-        "description": "Job loss, underemployment, or work permit restrictions creating recurring income gaps that require repeated assistance for basic needs.",
+        "label": "Housing Crisis and Rental Stress",
+        "description": "Clients facing eviction, homelessness, needing rental bonds, or struggling with overdue rent payments. Housing instability appears to be a recurring challenge requiring multiple interventions.",
         "count_estimate": "~35% of cases"
       },
       {
-        "label": "Housing Crisis and Homelessness",
-        "description": "Rental arrears, eviction threats, bond payments, and homelessness cycles requiring multiple interventions for housing stability.",
-        "count_estimate": "~30% of cases"
-      },
-      {
-        "label": "Family Breakdown and Single Parenthood",
-        "description": "Separation, divorce, or domestic violence leaving clients (often mothers) with children facing ongoing financial hardship without partner support.",
+        "label": "Employment Loss and Income Disruption",
+        "description": "Job loss, reduced work hours, or inability to find employment leading to financial hardship. Clients struggle to maintain stability after initial assistance when employment situations don't improve.",
         "count_estimate": "~25% of cases"
       },
       {
-        "label": "Health Issues and Legal/Migration Costs",
-        "description": "Medical expenses, specialist treatments, migration lawyer fees, and other unavoidable costs that create financial shocks requiring assistance.",
+        "label": "Family Breakdown and Domestic Violence",
+        "description": "Separation, divorce, domestic violence situations, or single parenthood creating ongoing financial strain. These life changes create persistent vulnerability requiring repeated support.",
+        "count_estimate": "~20% of cases"
+      },
+      {
+        "label": "Essential Services and Immediate Needs",
+        "description": "Car registration, medical expenses, food assistance, and basic household items. Clients return for different essential needs as they arise, indicating ongoing poverty.",
         "count_estimate": "~20% of cases"
       }
     ],
-    "generated_at": "2026-04-24T05:37:19.603933+00:00"
+    "generated_at": "2026-04-24T05:48:31.673725+00:00"
   }
 }
