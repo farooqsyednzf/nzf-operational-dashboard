@@ -138,6 +138,43 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
 }
 
+/* ── Month tabs + month panel (shared component) ──────────────── */
+.month-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.month-tab {
+  padding: 4px 12px;
+  font-family: 'Cambay', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .1s;
+}
+.month-tab:hover  { background: var(--surface); border-color: var(--border-subtle); }
+.month-tab.active { background: #1F3864; color: #fff; }
+
+.month-panel {
+  border: 1px solid var(--border-subtle);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
 .sidebar-nav {
   flex: 1;
   padding: 12px 0;
