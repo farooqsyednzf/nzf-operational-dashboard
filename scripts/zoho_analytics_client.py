@@ -31,6 +31,7 @@ VIEW_DISTRIBUTIONS  = _modules["distributions"]["analytics_view_id"]
 VIEW_CLIENTS        = _modules["clients"]["analytics_view_id"]
 VIEW_CASE_NOTES     = _modules["notes"]["analytics_view_id"]
 VIEW_PURCHASE_ITEMS = _modules["purchase_items"]["analytics_view_id"]
+VIEW_PROGRAMS       = _modules["programs"]["analytics_view_id"]
 
 # ── Auth ──────────────────────────────────────────────────────────
 def get_access_token():
