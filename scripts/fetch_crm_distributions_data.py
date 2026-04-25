@@ -41,6 +41,12 @@ def parse_amount(s):
 
 
 def to_month(s):
+    """Return 'YYYY-MM' for a string OR a datetime, or None."""
+    if s is None or s == "":
+        return None
+    # If already a datetime, format directly
+    if isinstance(s, datetime):
+        return s.strftime("%Y-%m")
     dt = zac.parse_dt(s)
     return dt.strftime("%Y-%m") if dt else None
 
