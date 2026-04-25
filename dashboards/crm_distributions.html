@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CRM Distributions — NZF Dashboards</title>
+  <link rel="stylesheet" href="/assets/css/dashboard.css"/>
+  <style>
+    /* ── Dashboard layout ──────────────────────────────────────── */
+    .crmd-controls {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .ctrl-group { display: flex; flex-direction: column; gap: 4px; }
+    .ctrl-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: .65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--text-muted);
+    }
+    .ctrl-picker {
+      display: flex; gap: 0;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px; overflow: hidden;
+      background: var(--surface);
+    }
+    .ctrl-picker button {
+      padding: 5px 13px;
+      font-family: 'Cambay', sans-serif;
+      font-size: .75rem; font-weight: 700;
+      border: none; border-right: 1px solid var(--border-subtle);
+      background: transparent; color: var(--text-muted);
+      cursor: pointer; white-space: nowrap;
+      transition: background .1s, color .1s;
+    }
+    .ctrl-picker button:last-child { border-right: none; }
+    .ctrl-picker button:hover { background: var(--surface-2); color: var(--text-primary); }
+    .ctrl-picker button.active { background: #1F3864; color: #fff; }
+
+    /* ── Zone headers ──────────────────────────────────────────── */
+    .zone-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin: 0 0 14px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--border-subtle);
+    }
+    .zone-header h2 {
+      font-family: 'Bree Serif', serif; font-size: 1rem; font-weight: 400;
+      color: var(--text-primary); margin: 0;
+    }
+    .zone-header .zone-sub {
+      font-family: 'Cambay', sans-serif; font-size: .72rem; color: var(--text-muted);
+    }
+    .zone { margin-bottom: 32px; }
+
+    /* ── KPI cards ─────────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid; gap: 10px;
+      grid-template-columns: repeat(5, 1fr);
+      margin-bottom: 16px;
+    }
+    @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      position: relative; overflow: hidden;
+    }
+    .kpi-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--kpi-accent, var(--color-blue));
+    }
+    .kpi-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: .66rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.75rem; font-weight: 400; line-height: 1;
+      color: var(--text-primary);
+    }
+    .kpi-sub {
+      font-family: 'Cambay', sans-serif; font-size: .72rem;
+      color: var(--text-muted); margin-top: 4px;
+    }
+    .kpi-delta { font-weight: 700; }
+    .kpi-delta.up   { color: #2d7a27; }
+    .kpi-delta.down { color: #c0392b; }
+    .kpi-card.accent-red    { --kpi-accent: var(--color-primary); }
+    .kpi-card.accent-green  { --kpi-accent: #49A942; }
+    .kpi-card.accent-amber  { --kpi-accent: #FDB913; }
+    .kpi-card.accent-purple { --kpi-accent: #7B3FA0; }
+    .kpi-card.accent-navy   { --kpi-accent: #1F3864; }
+
+    /* ── Trend chart ───────────────────────────────────────────── */
+    .trend-toggle-bar {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .trend-toggle {
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface);
+      color: var(--text-muted);
+      font-family: 'Cambay', sans-serif;
+      font-size: .72rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      transition: all .12s;
+    }
+    .trend-toggle:hover  { border-color: var(--color-blue); color: var(--color-blue); }
+    .trend-toggle.active { background: #1F3864; color: #fff; border-color: #1F3864; }
+
+    .trend-chart {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    /* ── Alert cards ───────────────────────────────────────────── */
+    .alert-card {
+      background: var(--surface);
+      border-left: 4px solid var(--alert-accent, #FDB913);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .alert-card.severity-high   { --alert-accent: var(--color-primary); background: rgba(238,53,38,.02); }
+    .alert-card.severity-medium { --alert-accent: #FDB913; background: rgba(253,185,19,.03); }
+    .alert-card.severity-low    { --alert-accent: var(--color-blue); }
+    .alert-header {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .alert-severity {
+      padding: 2px 8px; border-radius: 10px;
+      font-family: 'Cambay', sans-serif;
+      font-size: .65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .alert-severity.high   { background: rgba(238,53,38,.1);  color: #c0392b; }
+    .alert-severity.medium { background: rgba(253,185,19,.15); color: #7a5c00; }
+    .alert-severity.low    { background: rgba(0,129,198,.1);  color: #005a8e; }
+    .alert-title {
+      font-family: 'Bree Serif', serif; font-size: .92rem;
+      color: var(--text-primary); flex: 1;
+    }
+    .alert-desc {
+      font-family: 'Cambay', sans-serif; font-size: .8rem;
+      color: var(--text-secondary); margin-bottom: 8px;
+    }
+    .alert-dists {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+    }
+    .alert-dist-link {
+      font-family: 'Courier New', monospace; font-size: .72rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px;
+      background: var(--surface-2);
+      color: var(--color-primary); text-decoration: none;
+    }
+    .alert-dist-link:hover { background: rgba(238,53,38,.1); }
+    .alert-toggle {
+      font-family: 'Cambay', sans-serif; font-size: .72rem;
+      color: var(--color-blue); cursor: pointer;
+      background: none; border: none; padding: 4px 0;
+    }
+
+    /* ── Breakdowns ───────────────────────────────────────────── */
+    .breakdown-grid {
+      display: grid; gap: 12px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: 800px) { .breakdown-grid { grid-template-columns: 1fr; } }
+    .breakdown-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+    }
+    .breakdown-title {
+      font-family: 'Cambay', sans-serif;
+      font-size: .68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--text-muted); margin-bottom: 12px;
+    }
+    .breakdown-row {
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: center; gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: 'Cambay', sans-serif; font-size: .8rem;
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-bar-wrap {
+      grid-column: 1 / -1;
+      height: 4px; background: var(--surface-2);
+      border-radius: 2px; overflow: hidden;
+      margin-top: 2px;
+    }
+    .breakdown-bar {
+      height: 100%; background: var(--color-blue);
+      border-radius: 2px;
+    }
+    .breakdown-amount {
+      font-family: 'Courier New', monospace;
+      font-weight: 700; color: var(--text-primary);
+    }
+    .breakdown-count {
+      font-family: 'Cambay', sans-serif; font-size: .7rem;
+      color: var(--text-muted); margin-top: 2px;
+    }
+
+    /* ── Month tabs ────────────────────────────────────────────── */
+    .month-tabs {
+      display: flex; gap: 4px; flex-wrap: wrap;
+      padding: 10px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-bottom: none;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .month-tab {
+      padding: 4px 12px;
+      font-family: 'Cambay', sans-serif;
+      font-size: .75rem; font-weight: 700;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer; white-space: nowrap;
+      transition: all .1s;
+    }
+    .month-tab:hover { background: var(--surface); border-color: var(--border-subtle); }
+    .month-tab.active { background: #1F3864; color: #fff; }
+
+    .quality-panel {
+      border: 1px solid var(--border-subtle);
+      border-top: none;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      padding: 16px;
+    }
+
+    .quality-summary {
+      display: grid; gap: 10px;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 800px) { .quality-summary { grid-template-columns: 1fr; } }
+    .quality-pill {
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid;
+    }
+    .quality-pill.amber { background: rgba(253,185,19,.05); border-color: rgba(253,185,19,.3); }
+    .quality-pill.red   { background: rgba(238,53,38,.04);  border-color: rgba(238,53,38,.25); }
+    .quality-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: .68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .quality-value {
+      font-family: 'Bree Serif', serif; font-size: 1.4rem;
+      color: var(--text-primary);
+    }
+    .quality-amount {
+      font-family: 'Cambay', sans-serif; font-size: .78rem;
+      color: var(--text-secondary);
+    }
+
+    /* ── Status badges ─────────────────────────────────────────── */
+    .badge.s-approved   { background: rgba(0,129,198,.1);  color: #005a8e; border: 1px solid rgba(0,129,198,.25); }
+    .badge.s-extracted  { background: rgba(123,63,160,.1); color: #7B3FA0; border: 1px solid rgba(123,63,160,.3); }
+    .badge.s-paid       { background: rgba(73,169,66,.1);  color: #2d7a27; border: 1px solid rgba(73,169,66,.3); }
+
+    .row-stalled { border-left: 3px solid #FDB913; }
+    .row-overdue { border-left: 3px solid var(--color-primary); }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="draft-disclaimer">All dashboards are in draft stage. For questions contact <a href="mailto:farooq.syed@nzf.org.au">Farooq</a>.</div>
+    <div class="page-content">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>CRM Distributions</h1>
+          <p>Operational reporting on CRM distribution data — last 12 months</p>
+        </div>
+        <div id="sync-label" style="text-align:right"></div>
+      </div>
+
+      <!-- Global filters -->
+      <div class="crmd-controls">
+        <div class="ctrl-group">
+          <div class="ctrl-label">Distribution Type</div>
+          <div class="ctrl-picker" id="type-picker"></div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           ZONE 1 — YTD vs PRIOR FY
+      ═════════════════════════════════════════════════════ -->
+      <div class="zone">
+        <div class="zone-header">
+          <h2>Year to Date — <span id="ytd-fy-label">—</span></h2>
+          <span class="zone-sub" id="ytd-period-sub">vs same period prior FY</span>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card accent-navy">
+            <div class="kpi-label">Paid YTD</div>
+            <div class="kpi-value" id="kpi-ytd-amount">—</div>
+            <div class="kpi-sub" id="kpi-ytd-amount-sub">—</div>
+          </div>
+          <div class="kpi-card accent-green">
+            <div class="kpi-label">Distributions</div>
+            <div class="kpi-value" id="kpi-ytd-count">—</div>
+            <div class="kpi-sub" id="kpi-ytd-count-sub">—</div>
+          </div>
+          <div class="kpi-card accent-amber">
+            <div class="kpi-label">Pipeline AUD</div>
+            <div class="kpi-value" id="kpi-pipeline-amount">—</div>
+            <div class="kpi-sub" id="kpi-pipeline-sub">Approved + Extracted</div>
+          </div>
+          <div class="kpi-card accent-purple">
+            <div class="kpi-label">Avg velocity</div>
+            <div class="kpi-value" id="kpi-velocity">—</div>
+            <div class="kpi-sub" id="kpi-velocity-sub">Approved → Paid</div>
+          </div>
+          <div class="kpi-card accent-red">
+            <div class="kpi-label">Aged Outstanding</div>
+            <div class="kpi-value" id="kpi-aged">—</div>
+            <div class="kpi-sub">Over 7 days unpaid</div>
+          </div>
+        </div>
+
+        <!-- Cumulative comparison chart -->
+        <div class="chart-card" style="padding:16px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+            <div style="font-family:'Cambay';font-size:.68rem;font-weight:700;text-transform:uppercase;
+                        letter-spacing:.07em;color:var(--text-muted)">
+              Cumulative Paid AUD — current FY vs prior FY
+            </div>
+            <div style="display:flex;gap:14px;font-family:'Cambay';font-size:.72rem">
+              <span><span style="display:inline-block;width:10px;height:10px;background:#1F3864;border-radius:2px;vertical-align:middle"></span>
+                <span id="legend-cur">Current FY</span></span>
+              <span><span style="display:inline-block;width:10px;height:10px;background:#9F9393;border-radius:2px;vertical-align:middle"></span>
+                <span id="legend-prv">Prior FY</span></span>
+            </div>
+          </div>
+          <svg id="ytd-chart" class="trend-chart" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           ZONE 2 — MONTHLY TREND
+      ═════════════════════════════════════════════════════ -->
+      <div class="zone">
+        <div class="zone-header">
+          <h2>Monthly Trend — last 12 months</h2>
+          <span class="zone-sub">Paid distributions only</span>
+        </div>
+
+        <div class="chart-card" style="padding:16px 18px">
+          <div class="trend-toggle-bar" id="trend-toggle-bar"></div>
+          <svg id="trend-chart" class="trend-chart" viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           ZONE 3 — AI ALERTS
+      ═════════════════════════════════════════════════════ -->
+      <div class="zone">
+        <div class="zone-header">
+          <h2>Alerts &amp; Anomalies</h2>
+          <span class="zone-sub" id="alerts-count">Continuous monitoring of distribution patterns</span>
+        </div>
+
+        <div style="background:rgba(0,129,198,.05);border:1px solid rgba(0,129,198,.2);
+                    border-radius:var(--radius-lg);padding:9px 14px;margin-bottom:14px;
+                    font-family:'Cambay';font-size:.75rem;color:#005a8e">
+          <strong>How alerts work:</strong> 7 rule-based heuristics monitor for
+          repeat recipients, threshold splitting, quick approvals, after-hours creation,
+          outlier amounts, status mismatches, and caseworker volume spikes. Investigate flagged distributions in CRM.
+        </div>
+
+        <div id="alerts-container">
+          <div style="padding:30px;text-align:center;color:var(--text-muted);font-family:'Cambay'">
+            <div class="spinner" style="margin:0 auto 12px"></div>Loading alerts…
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           ZONE 4 — DATA QUALITY
+      ═════════════════════════════════════════════════════ -->
+      <div class="zone">
+        <div class="zone-header">
+          <h2>Data Quality — Stalled Distributions</h2>
+          <span class="zone-sub">Approved or Extracted but not Paid for &gt; 3 days</span>
+        </div>
+
+        <div class="month-tabs" id="quality-month-tabs"></div>
+        <div class="quality-panel">
+          <div class="quality-summary">
+            <div class="quality-pill amber">
+              <div class="quality-label">Approved &gt; 3 days unpaid</div>
+              <div class="quality-value" id="q-approved-count">—</div>
+              <div class="quality-amount" id="q-approved-amount">—</div>
+            </div>
+            <div class="quality-pill red">
+              <div class="quality-label">Extracted &gt; 3 days unpaid</div>
+              <div class="quality-value" id="q-extracted-count">—</div>
+              <div class="quality-amount" id="q-extracted-amount">—</div>
+            </div>
+          </div>
+
+          <div style="overflow-x:auto">
+            <table id="quality-table">
+              <thead>
+                <tr>
+                  <th>Dist. ID</th>
+                  <th>Type</th>
+                  <th>Subject / Payee</th>
+                  <th style="text-align:right">Amount</th>
+                  <th>Transfer</th>
+                  <th>Created</th>
+                  <th>Approved</th>
+                  <th style="text-align:center">Days</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="quality-tbody">
+                <tr><td colspan="9" style="padding:30px;text-align:center;font-family:Cambay;color:var(--text-muted)">
+                  <div class="spinner" style="margin:0 auto 10px"></div>Loading…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           ZONE 5 — BREAKDOWNS
+      ═════════════════════════════════════════════════════ -->
+      <div class="zone">
+        <div class="zone-header">
+          <h2>Distribution Breakdowns — Paid YTD</h2>
+          <span class="zone-sub">Top 15 in each dimension</span>
+        </div>
+        <div class="breakdown-grid">
+          <div class="breakdown-card">
+            <div class="breakdown-title">By Zakat Category
+              <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Case</span>
+            </div>
+            <div id="bd-zakat"></div>
+          </div>
+          <div class="breakdown-card">
+            <div class="breakdown-title">By Product Category
+              <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Purchase Items</span>
+            </div>
+            <div id="bd-product"></div>
+          </div>
+          <div class="breakdown-card">
+            <div class="breakdown-title">By Program</div>
+            <div id="bd-program"></div>
+          </div>
+          <div class="breakdown-card">
+            <div class="breakdown-title">By State</div>
+            <div id="bd-state"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/table-filter.js"></script>
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+// ── State ─────────────────────────────────────────────────────────
+let _data = null;
+let _selType = 'All';
+let _trendMode = 'All';   // 'All' or specific transfer type
+let _qualityMonth = null;
+
+// ── Helpers ───────────────────────────────────────────────────────
+const fmtAUD  = n => '$' + Math.round(n||0).toLocaleString('en-AU');
+const fmtAUDk = n => n >= 1000000 ? '$' + (n/1000000).toFixed(2) + 'm'
+                    : n >= 1000   ? '$' + Math.round(n/1000) + 'k'
+                    : fmtAUD(n);
+const fmtNum  = n => (n||0).toLocaleString('en-AU');
+const fmtDate = s => {
+  if (!s) return '—';
+  const d = new Date(s); if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-AU', {day:'numeric', month:'short', year:'numeric'});
+};
+const monthLabel = ym => {
+  if (!ym) return '';
+  const [y,m] = ym.split('-');
+  return new Date(y, m-1, 1).toLocaleString('en-AU', {month:'short', year:'2-digit'});
+};
+const monthFull = ym => {
+  if (!ym) return '';
+  const [y,m] = ym.split('-');
+  return new Date(y, m-1, 1).toLocaleString('en-AU', {month:'long', year:'numeric'});
+};
+
+// ── Bootstrap ─────────────────────────────────────────────────────
+(async () => {
+  await requireAuth();
+  renderNav('CRM Distributions');
+
+  try {
+    const res = await fetch('/data/crm_distributions.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    _data = await res.json();
+  } catch(e) {
+    document.querySelector('.page-content').insertAdjacentHTML('beforeend',
+      '<div style="padding:40px;text-align:center;font-family:Cambay;color:var(--text-muted)">' +
+      'crm_distributions.json not yet available — run the data refresh workflow.</div>');
+    return;
+  }
+
+  window.__NZF_META = _data.meta;
+
+  // Last updated
+  if (_data.meta.last_updated) {
+    document.getElementById('sync-label').innerHTML =
+      '<div style="font-family:Cambay;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Data as of</div>' +
+      '<div style="font-family:\'Bree Serif\';font-size:.9rem;color:var(--text-primary)">' +
+      new Date(_data.meta.last_updated).toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) +
+      '</div>';
+  }
+
+  buildPickers();
+  refreshAll();
+})();
+
+function buildPickers() {
+  // Distribution Type picker
+  const typeEl = document.getElementById('type-picker');
+  (_data.meta.distribution_types || ['All']).forEach(t => {
+    const b = document.createElement('button');
+    b.textContent = t;
+    if (t === _selType) b.classList.add('active');
+    b.onclick = () => {
+      typeEl.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      _selType = t;
+      refreshAll();
+    };
+    typeEl.appendChild(b);
+  });
+
+  // Trend toggle bar — All + each transfer type
+  const tbar = document.getElementById('trend-toggle-bar');
+  const transferOptions = ['All'].concat(
+    (_data.meta.transfer_types || []).filter(t => t !== 'All')
+  );
+  transferOptions.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'trend-toggle' + (t === _trendMode ? ' active' : '');
+    b.textContent = t;
+    b.onclick = () => {
+      tbar.querySelectorAll('.trend-toggle').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      _trendMode = t;
+      renderTrendChart();
+    };
+    tbar.appendChild(b);
+  });
+}
+
+function refreshAll() {
+  renderYTD();
+  renderTrendChart();
+  renderAlerts();
+  buildQualityTabs();
+  renderQualityPanel();
+  renderBreakdowns();
+}
+
+// ── ZONE 1: YTD ───────────────────────────────────────────────────
+function renderYTD() {
+  const ytd = _data.ytd[_selType] || _data.ytd['All'];
+  const cur = ytd[_data.meta.current_fy] || [];
+  const prv = ytd[_data.meta.previous_fy] || [];
+
+  const monthsElapsed = _data.meta.months_elapsed || 0;
+  const curYTD = cur.slice(0, monthsElapsed);
+  const prvYTD = prv.slice(0, monthsElapsed);
+
+  const curAmount = curYTD.reduce((s, r) => s + r.amount, 0);
+  const prvAmount = prvYTD.reduce((s, r) => s + r.amount, 0);
+  const curCount  = curYTD.reduce((s, r) => s + r.count, 0);
+  const prvCount  = prvYTD.reduce((s, r) => s + r.count, 0);
+
+  document.getElementById('ytd-fy-label').textContent = _data.meta.current_fy_label;
+  document.getElementById('ytd-period-sub').textContent =
+    `${monthsElapsed} months elapsed · vs ${_data.meta.previous_fy_label} same period`;
+
+  // KPI: Paid YTD
+  document.getElementById('kpi-ytd-amount').textContent = fmtAUDk(curAmount);
+  const amountDelta = prvAmount > 0 ? ((curAmount - prvAmount) / prvAmount) * 100 : 0;
+  const amountDeltaClass = amountDelta >= 0 ? 'up' : 'down';
+  const amountDeltaSign  = amountDelta >= 0 ? '▲' : '▼';
+  document.getElementById('kpi-ytd-amount-sub').innerHTML =
+    `<span class="kpi-delta ${amountDeltaClass}">${amountDeltaSign} ${Math.abs(amountDelta).toFixed(1)}%</span> ` +
+    `vs ${fmtAUDk(prvAmount)} prior FY`;
+
+  // KPI: Count
+  document.getElementById('kpi-ytd-count').textContent = fmtNum(curCount);
+  const countDelta = prvCount > 0 ? ((curCount - prvCount) / prvCount) * 100 : 0;
+  const countDeltaClass = countDelta >= 0 ? 'up' : 'down';
+  const countDeltaSign  = countDelta >= 0 ? '▲' : '▼';
+  document.getElementById('kpi-ytd-count-sub').innerHTML =
+    `<span class="kpi-delta ${countDeltaClass}">${countDeltaSign} ${Math.abs(countDelta).toFixed(1)}%</span> ` +
+    `vs ${fmtNum(prvCount)} prior FY`;
+
+  // KPI: Pipeline (NB: not type-filtered — all-types only, displayed always)
+  const pipeline = _data.pipeline || {};
+  const pipeAmount = (pipeline.approved_unpaid?.amount || 0) +
+                     (pipeline.extracted_unpaid?.amount || 0);
+  const pipeCount  = (pipeline.approved_unpaid?.count  || 0) +
+                     (pipeline.extracted_unpaid?.count  || 0);
+  document.getElementById('kpi-pipeline-amount').textContent = fmtAUDk(pipeAmount);
+  document.getElementById('kpi-pipeline-sub').textContent =
+    `${fmtNum(pipeCount)} distributions awaiting payment`;
+
+  // KPI: Velocity
+  const v = _data.velocity || {};
+  document.getElementById('kpi-velocity').textContent =
+    v.median_days != null ? `${v.median_days}d` : '—';
+  document.getElementById('kpi-velocity-sub').textContent =
+    `Median over ${fmtNum(v.sample_size)} paid`;
+
+  // KPI: Aged
+  const aged = (pipeline.ages?.['7_14d']||0) + (pipeline.ages?.['14d_plus']||0);
+  document.getElementById('kpi-aged').textContent = fmtNum(aged);
+
+  // Cumulative chart
+  renderYTDChart(cur, prv);
+  document.getElementById('legend-cur').textContent = _data.meta.current_fy_label;
+  document.getElementById('legend-prv').textContent = _data.meta.previous_fy_label;
+}
+
+function renderYTDChart(curMonths, prvMonths) {
+  const svg = document.getElementById('ytd-chart');
+  const W = 800, H = 240;
+  const PAD_L = 60, PAD_R = 20, PAD_T = 14, PAD_B = 30;
+  const W_PLOT = W - PAD_L - PAD_R;
+  const H_PLOT = H - PAD_T - PAD_B;
+
+  if (!curMonths.length) { svg.innerHTML = ''; return; }
+
+  const allCum = [...curMonths.map(m => m.cum_amount), ...prvMonths.map(m => m.cum_amount)];
+  const maxY = Math.max(...allCum, 1);
+
+  // Y-axis ticks
+  const ticks = 4;
+  let yLines = '';
+  let yLabels = '';
+  for (let i = 0; i <= ticks; i++) {
+    const y = PAD_T + (H_PLOT * (1 - i / ticks));
+    const v = (maxY * i / ticks);
+    yLines  += `<line x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" stroke="#E5E0E0" stroke-width="1"/>`;
+    yLabels += `<text x="${PAD_L - 8}" y="${y + 4}" text-anchor="end"
+                  font-family="Cambay" font-size="10" fill="#9F9393">${fmtAUDk(v)}</text>`;
+  }
+
+  // X-axis labels (month abbreviations)
+  let xLabels = '';
+  curMonths.forEach((pt, i) => {
+    const x = PAD_L + (W_PLOT * i / (curMonths.length - 1 || 1));
+    xLabels += `<text x="${x}" y="${H - 10}" text-anchor="middle"
+                  font-family="Cambay" font-size="10" fill="#9F9393">${monthLabel(pt.month)}</text>`;
+  });
+
+  // Build line paths
+  const linePath = (months, color, dasharray) => {
+    if (!months.length) return '';
+    const points = months.map((pt, i) => {
+      const x = PAD_L + (W_PLOT * i / (months.length - 1 || 1));
+      const y = PAD_T + (H_PLOT * (1 - pt.cum_amount / maxY));
+      return [x, y, pt];
+    });
+    const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ');
+    const dots = points.map(p =>
+      `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${color}"/>`
+    ).join('');
+    return `<path d="${path}" fill="none" stroke="${color}" stroke-width="2" ${dasharray}/>` + dots;
+  };
+
+  svg.innerHTML = `
+    ${yLines}
+    ${yLabels}
+    ${xLabels}
+    ${linePath(prvMonths.slice(0, _data.meta.months_elapsed || prvMonths.length), '#9F9393', 'stroke-dasharray="4 3"')}
+    ${linePath(curMonths.slice(0, _data.meta.months_elapsed || curMonths.length), '#1F3864', '')}
+  `;
+}
+
+// ── ZONE 2: Monthly trend ─────────────────────────────────────────
+function renderTrendChart() {
+  const svg = document.getElementById('trend-chart');
+  const W = 800, H = 280;
+  const PAD_L = 60, PAD_R = 20, PAD_T = 24, PAD_B = 36;
+  const W_PLOT = W - PAD_L - PAD_R;
+  const H_PLOT = H - PAD_T - PAD_B;
+
+  const months = _data.meta.trend_months || [];
+  if (!months.length) { svg.innerHTML = ''; return; }
+
+  // Build series based on toggle
+  // _trendMode = 'All' shows total; otherwise shows just that transfer type
+  // _selType filters by distribution type at the same time
+  const series = months.map(m => {
+    const mb = _data.monthly[m] || {};
+    let amount, count;
+
+    if (_selType !== 'All') {
+      // Distribution-type-filtered: we only have aggregate by dist_type at top level,
+      // not cross-tabulated with transfer. Fall back to dist_type total.
+      const dt = mb.dist_type?.[_selType];
+      if (_trendMode === 'All') {
+        amount = dt?.amount || 0;
+        count  = dt?.count  || 0;
+      } else {
+        // Cross-tab (transfer × dist_type) not in the JSON — show as 'unavailable'
+        amount = null;
+        count  = null;
+      }
+    } else if (_trendMode === 'All') {
+      amount = mb.total?.amount || 0;
+      count  = mb.total?.count  || 0;
+    } else {
+      const tt = mb.transfer?.[_trendMode];
+      amount = tt?.amount || 0;
+      count  = tt?.count  || 0;
+    }
+    return { month: m, amount, count };
+  });
+
+  const validValues = series.filter(s => s.amount != null).map(s => s.amount);
+  const maxY = Math.max(...validValues, 1);
+
+  if (!validValues.length || (_selType !== 'All' && _trendMode !== 'All')) {
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle"
+      font-family="Cambay" font-size="13" fill="#9F9393">
+      Cross-filter (Distribution Type × Transfer Type) not available — pick "All" for one dimension</text>`;
+    return;
+  }
+
+  // Y-axis ticks
+  const ticks = 4;
+  let yLines = '', yLabels = '';
+  for (let i = 0; i <= ticks; i++) {
+    const y = PAD_T + (H_PLOT * (1 - i / ticks));
+    const v = maxY * i / ticks;
+    yLines  += `<line x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" stroke="#E5E0E0" stroke-width="1"/>`;
+    yLabels += `<text x="${PAD_L - 8}" y="${y + 4}" text-anchor="end"
+                  font-family="Cambay" font-size="10" fill="#9F9393">${fmtAUDk(v)}</text>`;
+  }
+
+  // X-axis labels
+  let xLabels = '';
+  series.forEach((pt, i) => {
+    const x = PAD_L + (W_PLOT * i / (series.length - 1 || 1));
+    xLabels += `<text x="${x}" y="${H - 18}" text-anchor="middle"
+                  font-family="Cambay" font-size="10" fill="#9F9393">${monthLabel(pt.month)}</text>`;
+  });
+
+  // Color based on toggle
+  const color = _trendMode === 'All' ? '#1F3864'
+              : _trendMode === 'Bank Transfer' ? '#0081C6'
+              : _trendMode === 'Cash' ? '#49A942'
+              : _trendMode === 'Credit Card' ? '#7B3FA0'
+              : _trendMode === 'BPAY' ? '#FDB913'
+              : '#EE3526';
+
+  // Build path + value labels
+  const points = series.map((pt, i) => {
+    const x = PAD_L + (W_PLOT * i / (series.length - 1 || 1));
+    const y = PAD_T + (H_PLOT * (1 - (pt.amount || 0) / maxY));
+    return [x, y, pt];
+  });
+
+  const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ');
+  const dots = points.map(p =>
+    `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${color}" stroke="#fff" stroke-width="1"/>`
+  ).join('');
+
+  // Value labels above each dot — only if amount > 0
+  const valueLabels = points.map(p => {
+    if (!p[2].amount || p[2].amount === 0) return '';
+    return `<text x="${p[0]}" y="${p[1] - 10}" text-anchor="middle"
+              font-family="Cambay" font-size="10" font-weight="700" fill="${color}">${fmtAUDk(p[2].amount)}</text>`;
+  }).join('');
+
+  // Title
+  const title = _trendMode === 'All'
+    ? `All transfer types${_selType !== 'All' ? ' · ' + _selType : ''}`
+    : `${_trendMode}${_selType !== 'All' ? ' · ' + _selType : ''}`;
+
+  svg.innerHTML = `
+    <text x="${PAD_L}" y="14" font-family="Cambay" font-size="11"
+          font-weight="700" fill="#4C6060">${title}</text>
+    ${yLines}
+    ${yLabels}
+    ${xLabels}
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2.5"/>
+    ${dots}
+    ${valueLabels}
+  `;
+}
+
+// ── ZONE 3: Alerts ────────────────────────────────────────────────
+function renderAlerts() {
+  const container = document.getElementById('alerts-container');
+  let alerts = _data.alerts || [];
+  if (_selType !== 'All') {
+    // Filter alert distributions to selected type
+    alerts = alerts.map(a => ({
+      ...a,
+      distributions: (a.distributions || []).filter(d => {
+        // alerts don't carry dist_type per-dist — keep alert if any in scope
+        // simpler: don't filter alerts by type, since they're aggregate observations
+        return true;
+      })
+    }));
+  }
+
+  document.getElementById('alerts-count').textContent =
+    alerts.length === 0 ? 'No anomalies detected' : `${alerts.length} alert${alerts.length>1?'s':''} requiring review`;
+
+  if (alerts.length === 0) {
+    container.innerHTML = `
+      <div style="padding:30px;text-align:center;background:rgba(73,169,66,.04);
+                  border:1px solid rgba(73,169,66,.2);border-radius:var(--radius-lg)">
+        <div style="font-family:'Bree Serif';font-size:1.1rem;color:#2d7a27;margin-bottom:6px">
+          ✓ No anomalies detected
+        </div>
+        <div style="font-family:Cambay;font-size:.85rem;color:var(--text-muted)">
+          All 7 fraud heuristics are passing for the current monitoring window.
+        </div>
+      </div>`;
+    return;
+  }
+
+  const crmBase = _data.meta.crm_base_url || '';
+  container.innerHTML = alerts.map((a, i) => {
+    const dists = (a.distributions || []).slice(0, 8);
+    const more  = (a.distributions || []).length - dists.length;
+    const links = dists.map(d => {
+      const href = crmBase && d.record_id ? `${crmBase}/PurchaseOrders/${d.record_id}` : '#';
+      const lbl = d.dist_id || '?';
+      return `<a class="alert-dist-link" href="${href}" target="_blank" rel="noopener"
+                 title="${(d.payee||'').replace(/"/g,'')} · ${fmtAUD(d.amount)}">
+                ${lbl} ↗
+              </a>`;
+    }).join('');
+    return `
+      <div class="alert-card severity-${a.severity}">
+        <div class="alert-header">
+          <span class="alert-severity ${a.severity}">${a.severity}</span>
+          <span class="alert-title">${a.title}</span>
+        </div>
+        <div class="alert-desc">${a.description}</div>
+        <div class="alert-dists">${links}${more > 0 ? `<span style="font-family:Cambay;font-size:.72rem;color:var(--text-muted);align-self:center">+${more} more</span>` : ''}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── ZONE 4: Data Quality ──────────────────────────────────────────
+function buildQualityTabs() {
+  const tabBar = document.getElementById('quality-month-tabs');
+  const months = (_data.meta.trend_months || []).slice().sort();
+  if (!months.length) { tabBar.innerHTML = ''; return; }
+
+  if (!_qualityMonth || !months.includes(_qualityMonth)) {
+    _qualityMonth = months[months.length - 1];
+  }
+
+  tabBar.innerHTML = months.map(m =>
+    `<button class="month-tab${m===_qualityMonth?' active':''}"
+       onclick="selectQualityMonth('${m}')">${monthLabel(m)}</button>`
+  ).join('');
+}
+
+function selectQualityMonth(m) {
+  _qualityMonth = m;
+  document.querySelectorAll('.month-tab').forEach(b => {
+    b.classList.toggle('active', b.textContent === monthLabel(m));
+  });
+  renderQualityPanel();
+}
+
+function renderQualityPanel() {
+  const dq = _data.data_quality?.[_qualityMonth];
+  if (!dq) {
+    document.getElementById('quality-tbody').innerHTML =
+      '<tr><td colspan="9" style="padding:30px;text-align:center;font-family:Cambay;color:var(--text-muted)">No data for this month</td></tr>';
+    return;
+  }
+
+  // Filter by distribution type
+  const filterType = r => _selType === 'All' || r.distribution_type === _selType;
+  const approved   = (dq.approved_unpaid_3d.rows  || []).filter(filterType);
+  const extracted  = (dq.extracted_unpaid_3d.rows || []).filter(filterType);
+
+  const approvedAmount  = approved.reduce ((s,r) => s + (r.amount||0), 0);
+  const extractedAmount = extracted.reduce((s,r) => s + (r.amount||0), 0);
+
+  document.getElementById('q-approved-count').textContent  = fmtNum(approved.length);
+  document.getElementById('q-approved-amount').textContent = fmtAUDk(approvedAmount);
+  document.getElementById('q-extracted-count').textContent  = fmtNum(extracted.length);
+  document.getElementById('q-extracted-amount').textContent = fmtAUDk(extractedAmount);
+
+  const allRows = [...approved, ...extracted].sort((a,b) => b._days - a._days);
+
+  if (allRows.length === 0) {
+    document.getElementById('quality-tbody').innerHTML =
+      '<tr><td colspan="9" style="padding:30px;text-align:center;font-family:Cambay;color:#2d7a27">' +
+      '✓ No stalled distributions for this month</td></tr>';
+    return;
+  }
+
+  const crmBase = _data.meta.crm_base_url || '';
+  document.getElementById('quality-tbody').innerHTML = allRows.map(r => {
+    const link = (crmBase && r.record_id)
+      ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
+           style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;
+                  color:var(--color-primary);text-decoration:none">${r.dist_id} ↗</a>`
+      : `<span style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;color:var(--color-primary)">${r.dist_id}</span>`;
+
+    const statusBadge = r.crm_status === 'Approved'
+      ? '<span class="badge s-approved" style="padding:2px 8px;border-radius:10px;font-family:Cambay;font-size:.68rem;font-weight:700">Approved</span>'
+      : '<span class="badge s-extracted" style="padding:2px 8px;border-radius:10px;font-family:Cambay;font-size:.68rem;font-weight:700">Extracted</span>';
+
+    const daysCls = r._days > 7 ? 'h-danger' : 'h-warn';
+    const daysHtml = `<span class="${daysCls}">${r._days}d</span>`;
+
+    const rowCls = r._days > 7 ? ' class="row-overdue"' : ' class="row-stalled"';
+
+    return `<tr${rowCls}>
+      <td style="white-space:nowrap">${link}</td>
+      <td style="font-size:.74rem;color:var(--text-muted)">${r.distribution_type||'—'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem"
+          title="${(r.payee||r.subject||'').replace(/"/g,'')}">${r.payee||r.subject||'—'}</td>
+      <td style="text-align:right;font-family:'Courier New',monospace;font-size:.82rem;font-weight:700">${fmtAUD(r.amount)}</td>
+      <td style="font-size:.76rem;color:var(--text-secondary)">${r.transfer_type||'—'}</td>
+      <td style="font-size:.78rem;white-space:nowrap">${fmtDate(r.created_time)}</td>
+      <td style="font-size:.78rem;white-space:nowrap">${fmtDate(r.approved_date)}</td>
+      <td style="text-align:center">${daysHtml}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ZONE 5: Breakdowns ────────────────────────────────────────────
+function renderBreakdowns() {
+  const bd = _data.breakdowns || {};
+  const cards = [
+    ['zakat_category',   'bd-zakat'],
+    ['product_category', 'bd-product'],
+    ['program',          'bd-program'],
+    ['state',            'bd-state'],
+  ];
+  cards.forEach(([key, elId]) => {
+    const el   = document.getElementById(elId);
+    const rows = bd[key] || [];
+    if (!rows.length) {
+      el.innerHTML = '<div style="padding:14px;font-family:Cambay;font-size:.78rem;color:var(--text-muted);text-align:center">No data</div>';
+      return;
+    }
+    const max = Math.max(...rows.map(r => r.amount), 1);
+    el.innerHTML = rows.map(r => {
+      const w = (r.amount / max * 100).toFixed(1);
+      return `
+        <div class="breakdown-row">
+          <div>
+            <div>${r.label}</div>
+            <div class="breakdown-count">${fmtNum(r.count)} distributions</div>
+          </div>
+          <div class="breakdown-amount">${fmtAUDk(r.amount)}</div>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar" style="width:${w}%"></div>
+          </div>
+        </div>`;
+    }).join('');
+  });
+}
+</script>
+</body>
+</html>
