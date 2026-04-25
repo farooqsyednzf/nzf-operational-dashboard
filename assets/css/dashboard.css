@@ -8,8 +8,8 @@
 
 /* ── Design Tokens ────────────────────────────────────────────── */
 :root {
-  /* Primary */
-  --color-primary:        #EE3526;
+  /* Primary — exact NZF brand red */
+  --color-primary:        #EE3524;
   --color-primary-dark:   #B51E10;
   --color-primary-bg:     #FFF6F5;
 
@@ -99,37 +99,43 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar-logo {
-  padding: 22px 20px 18px;
+  padding: 20px 18px 18px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-logo-link {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.sidebar-logo-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  background: var(--color-white);
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
-.sidebar-logo::before {
-  content: '';
+.sidebar-logo-card img {
   display: block;
-  width: 4px;
-  height: 36px;
-  background: var(--color-primary);
-  border-radius: 2px;
-  flex-shrink: 0;
+  width: 100%;
+  height: auto;
+  max-height: 44px;
+  object-fit: contain;
 }
 
-.sidebar-logo .org-name {
-  font-family: 'Bree Serif', serif;
-  font-size: 1.25rem;
-  color: var(--color-white);
-  letter-spacing: 0.01em;
-}
-
-.sidebar-logo .org-sub {
+.sidebar-tagline {
   font-family: 'Cambay', sans-serif;
-  color: var(--color-mid-grey);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 1px;
+  letter-spacing: 0.12em;
+  text-align: center;
 }
 
 .sidebar-nav {
