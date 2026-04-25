@@ -33,7 +33,7 @@ const NAV_ITEMS = [
   {
     section: "Distributions",
     items: [
-      { label: "Distributions", href: "/dashboards/distributions.html", icon: "distributions" },
+      { label: "CRM Distributions", href: "/dashboards/crm_distributions.html", icon: "distributions" },
     ]
   },
 ];
