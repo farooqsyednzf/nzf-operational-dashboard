@@ -80,6 +80,15 @@ jobs:
           ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
         run: python scripts/fetch_distributions_monthly_recon.py
 
+      - name: Fetch CRM distributions report
+        if: ${{ github.event.inputs.report == 'all' || github.event.inputs.report == 'distributions' || github.event_name == 'schedule' }}
+        env:
+          ZOHO_CLIENT_ID:     ${{ secrets.ZOHO_CLIENT_ID }}
+          ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
+          ZOHO_REFRESH_TOKEN: ${{ secrets.ZOHO_REFRESH_TOKEN }}
+          ZOHO_ACCOUNTS_URL:  ${{ secrets.ZOHO_ACCOUNTS_URL }}
+        run: python scripts/fetch_crm_distributions_data.py
+
       - name: Fetch reconciliation data
         if: ${{ github.event.inputs.report == 'all' || github.event.inputs.report == 'distributions' || github.event.inputs.report == 'reconciliation' || github.event_name == 'schedule' }}
         env:
