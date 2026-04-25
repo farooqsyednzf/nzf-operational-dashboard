@@ -167,10 +167,11 @@ def build_crm_distributions_report(token):
     print("  Computing YTD comparison…")
 
     def ytd_data(dist_type_filter):
-        """Returns {fy_year: [(month, count, amount, cum_count, cum_amount), ...]}."""
+        """Per-FY cumulative series with unique client/case tracking."""
         result = {cur_fy: [], prv_fy: []}
         for fy in [cur_fy, prv_fy]:
             cum_count, cum_amount = 0, 0.0
+            cum_clients, cum_cases = set(), set()
             for m in fy_months(fy):
                 rows = [d for d in in_scope
                         if to_month(effective_date(d)) == m
@@ -179,11 +180,21 @@ def build_crm_distributions_report(token):
                              (d.get("distribution_type") or "").strip() == dist_type_filter)]
                 cnt = len(rows)
                 amt = sum(parse_amount(r.get("grand_total")) for r in rows)
-                cum_count += cnt
+                month_clients = {(r.get("client_name") or "").strip() for r in rows}
+                month_cases   = {(r.get("case_name")   or "").strip() for r in rows}
+                month_clients.discard("")
+                month_cases.discard("")
+                cum_count  += cnt
                 cum_amount += amt
+                cum_clients.update(month_clients)
+                cum_cases.update(month_cases)
                 result[fy].append({
                     "month": m, "count": cnt, "amount": round(amt, 2),
                     "cum_count": cum_count, "cum_amount": round(cum_amount, 2),
+                    "unique_clients":     len(month_clients),
+                    "unique_cases":       len(month_cases),
+                    "cum_unique_clients": len(cum_clients),
+                    "cum_unique_cases":   len(cum_cases),
                 })
         return result
 
@@ -200,10 +211,13 @@ def build_crm_distributions_report(token):
 
     monthly = {}
     for m in trend_months:
+        total_clients, total_cases = set(), set()
         bucket = {
             "total":     {"count": 0, "amount": 0.0},
-            "transfer":  defaultdict(lambda: {"count": 0, "amount": 0.0}),
-            "dist_type": defaultdict(lambda: {"count": 0, "amount": 0.0}),
+            "transfer":  defaultdict(lambda: {"count": 0, "amount": 0.0,
+                                                "clients": set(), "cases": set()}),
+            "dist_type": defaultdict(lambda: {"count": 0, "amount": 0.0,
+                                                "clients": set(), "cases": set()}),
         }
         for d in in_scope:
             if (d.get("status") or "").strip() != "Paid":
@@ -213,105 +227,177 @@ def build_crm_distributions_report(token):
             amt = parse_amount(d.get("grand_total"))
             tt  = (d.get("transfer_type") or "Not specified").strip()
             dt  = (d.get("distribution_type") or "Unknown").strip()
-            bucket["total"]["count"] += 1
+            client = (d.get("client_name") or "").strip()
+            case   = (d.get("case_name")   or "").strip()
+            bucket["total"]["count"]  += 1
             bucket["total"]["amount"] += amt
-            bucket["transfer"][tt]["count"] += 1
+            bucket["transfer"][tt]["count"]  += 1
             bucket["transfer"][tt]["amount"] += amt
-            bucket["dist_type"][dt]["count"] += 1
+            bucket["dist_type"][dt]["count"]  += 1
             bucket["dist_type"][dt]["amount"] += amt
+            if client:
+                total_clients.add(client)
+                bucket["transfer"][tt]["clients"].add(client)
+                bucket["dist_type"][dt]["clients"].add(client)
+            if case:
+                total_cases.add(case)
+                bucket["transfer"][tt]["cases"].add(case)
+                bucket["dist_type"][dt]["cases"].add(case)
         # Round and convert to dict
-        bucket["total"]["amount"] = round(bucket["total"]["amount"], 2)
-        bucket["transfer"]  = {k: {"count": v["count"], "amount": round(v["amount"], 2)}
-                               for k, v in bucket["transfer"].items()}
-        bucket["dist_type"] = {k: {"count": v["count"], "amount": round(v["amount"], 2)}
-                               for k, v in bucket["dist_type"].items()}
+        bucket["total"]["amount"]         = round(bucket["total"]["amount"], 2)
+        bucket["total"]["unique_clients"] = len(total_clients)
+        bucket["total"]["unique_cases"]   = len(total_cases)
+        bucket["transfer"]  = {k: {"count": v["count"], "amount": round(v["amount"], 2),
+                                     "unique_clients": len(v["clients"]),
+                                     "unique_cases":   len(v["cases"])}
+                                for k, v in bucket["transfer"].items()}
+        bucket["dist_type"] = {k: {"count": v["count"], "amount": round(v["amount"], 2),
+                                     "unique_clients": len(v["clients"]),
+                                     "unique_cases":   len(v["cases"])}
+                                for k, v in bucket["dist_type"].items()}
         monthly[m] = bucket
 
     # ── Breakdowns by category, program, state ─────────────────────
+    # Computed for every (month, distribution_type) combination so the dashboard
+    # can show the right slice for any tab + filter selection.
     print("  Computing breakdowns…")
 
-    # Zakat Category — sourced from the Distribution's "Zakat Category/ies" field.
-    # Multi-select: amount split equally across the listed categories.
-    zakat_agg = defaultdict(lambda: {"count": 0.0, "amount": 0.0})
-    for d in in_scope:
-        if (d.get("status") or "").strip() != "Paid":
-            continue
-        raw = (d.get("zakat_category_ies") or "").strip()
-        if not raw:
-            continue
-        cats = [c.strip() for c in raw.split(";") if c.strip()]
-        if not cats:
-            continue
-        amt   = parse_amount(d.get("grand_total"))
-        share = amt / len(cats)
-        cnt_s = 1 / len(cats)
-        for c in cats:
-            zakat_agg[c]["count"]  += cnt_s
-            zakat_agg[c]["amount"] += share
-    zakat_rows = [{"label": k, "count": round(v["count"], 1), "amount": round(v["amount"], 2)}
-                  for k, v in zakat_agg.items()]
-    zakat_rows.sort(key=lambda r: r["amount"], reverse=True)
+    paid_in_scope = [d for d in in_scope if (d.get("status") or "").strip() == "Paid"]
 
-    # Product Category — sourced from Purchase Items (line item Product Display Name).
-    # A distribution can have multiple line items, each with own Amount and product.
-    product_agg = defaultdict(lambda: {"count": 0, "amount": 0.0})
-    paid_dist_ids = {(d.get("id") or "").strip()
-                     for d in in_scope
-                     if (d.get("status") or "").strip() == "Paid"}
-    for dist_id, items in items_by_dist.items():
-        if dist_id not in paid_dist_ids:
-            continue
-        for it in items:
-            label = (it.get("product_display_name") or "").strip()
-            if not label:
-                continue
-            amt = parse_amount(it.get("amount") or it.get("total_after_discount"))
-            product_agg[label]["count"]  += 1
-            product_agg[label]["amount"] += amt
-    product_rows = [{"label": k, "count": v["count"], "amount": round(v["amount"], 2)}
-                    for k, v in product_agg.items()]
-    product_rows.sort(key=lambda r: r["amount"], reverse=True)
+    def compute_breakdowns_for(dists):
+        """Compute all 4 breakdowns from a filtered list of paid distributions.
+        Each breakdown row carries amount, count, unique_clients, unique_cases."""
+        dist_id_set = {(d.get("id") or "").strip() for d in dists}
 
-    # Program — resolve Program ID to human-readable name via lookup map.
-    program_agg = defaultdict(lambda: {"count": 0, "amount": 0.0})
-    for d in in_scope:
-        if (d.get("status") or "").strip() != "Paid":
-            continue
-        pid = (d.get("program") or "").strip()
-        if not pid:
-            continue
-        # Resolve to name; fall back to ID if not in lookup
-        name = program_name_map.get(pid, f"Unknown ({pid[-6:]})")
-        amt  = parse_amount(d.get("grand_total"))
-        program_agg[name]["count"]  += 1
-        program_agg[name]["amount"] += amt
-    program_rows = [{"label": k, "count": v["count"], "amount": round(v["amount"], 2)}
-                    for k, v in program_agg.items()]
-    program_rows.sort(key=lambda r: r["amount"], reverse=True)
+        # Zakat Category — split amount equally across multi-select categories.
+        zakat_agg = defaultdict(lambda: {"count": 0.0, "amount": 0.0,
+                                          "clients": set(), "cases": set()})
+        for d in dists:
+            raw = (d.get("zakat_category_ies") or "").strip()
+            if not raw: continue
+            cats = [c.strip() for c in raw.split(";") if c.strip()]
+            if not cats: continue
+            amt   = parse_amount(d.get("grand_total"))
+            share = amt / len(cats)
+            cnt_s = 1 / len(cats)
+            client = (d.get("client_name") or "").strip()
+            case   = (d.get("case_name")   or "").strip()
+            for c in cats:
+                zakat_agg[c]["count"]  += cnt_s
+                zakat_agg[c]["amount"] += share
+                if client: zakat_agg[c]["clients"].add(client)
+                if case:   zakat_agg[c]["cases"].add(case)
+        zakat_rows = [{"label": k, "count": round(v["count"], 1),
+                       "amount": round(v["amount"], 2),
+                       "unique_clients": len(v["clients"]),
+                       "unique_cases":   len(v["cases"])}
+                      for k, v in zakat_agg.items()]
+        zakat_rows.sort(key=lambda r: r["amount"], reverse=True)
 
-    # State — sourced from the parent Client's Mailing State, joined via Client Name FK.
-    state_agg = defaultdict(lambda: {"count": 0, "amount": 0.0})
-    for d in in_scope:
-        if (d.get("status") or "").strip() != "Paid":
-            continue
-        client_id = (d.get("client_name") or "").strip()
-        state     = client_state_map.get(client_id, "")
-        norm      = normalise_state(state)
-        if norm == "Unknown":
-            continue  # skip rather than show 'Unknown' bucket dominating
-        amt = parse_amount(d.get("grand_total"))
-        state_agg[norm]["count"]  += 1
-        state_agg[norm]["amount"] += amt
-    state_rows = [{"label": k, "count": v["count"], "amount": round(v["amount"], 2)}
-                  for k, v in state_agg.items()]
-    state_rows.sort(key=lambda r: r["amount"], reverse=True)
+        # Product Category — line items via Purchase Items
+        product_agg = defaultdict(lambda: {"count": 0, "amount": 0.0,
+                                            "clients": set(), "cases": set()})
+        # Build dist_id → row for client/case lookup on items
+        dist_lookup = {(d.get("id") or "").strip(): d for d in dists}
+        for dist_id in dist_id_set:
+            if dist_id not in items_by_dist: continue
+            d = dist_lookup.get(dist_id, {})
+            client = (d.get("client_name") or "").strip()
+            case   = (d.get("case_name")   or "").strip()
+            for it in items_by_dist[dist_id]:
+                label = (it.get("product_display_name") or "").strip()
+                if not label: continue
+                amt = parse_amount(it.get("amount") or it.get("total_after_discount"))
+                product_agg[label]["count"]  += 1
+                product_agg[label]["amount"] += amt
+                if client: product_agg[label]["clients"].add(client)
+                if case:   product_agg[label]["cases"].add(case)
+        product_rows = [{"label": k, "count": v["count"],
+                         "amount": round(v["amount"], 2),
+                         "unique_clients": len(v["clients"]),
+                         "unique_cases":   len(v["cases"])}
+                        for k, v in product_agg.items()]
+        product_rows.sort(key=lambda r: r["amount"], reverse=True)
 
-    breakdowns = {
-        "zakat_category":   zakat_rows[:15],
-        "product_category": product_rows[:15],
-        "program":          program_rows[:15],
-        "state":            state_rows[:15],
-    }
+        # Program — resolve ID to readable name
+        program_agg = defaultdict(lambda: {"count": 0, "amount": 0.0,
+                                             "clients": set(), "cases": set()})
+        for d in dists:
+            pid = (d.get("program") or "").strip()
+            if not pid: continue
+            name   = program_name_map.get(pid, f"Unknown ({pid[-6:]})")
+            amt    = parse_amount(d.get("grand_total"))
+            client = (d.get("client_name") or "").strip()
+            case   = (d.get("case_name")   or "").strip()
+            program_agg[name]["count"]  += 1
+            program_agg[name]["amount"] += amt
+            if client: program_agg[name]["clients"].add(client)
+            if case:   program_agg[name]["cases"].add(case)
+        program_rows = [{"label": k, "count": v["count"],
+                         "amount": round(v["amount"], 2),
+                         "unique_clients": len(v["clients"]),
+                         "unique_cases":   len(v["cases"])}
+                        for k, v in program_agg.items()]
+        program_rows.sort(key=lambda r: r["amount"], reverse=True)
+
+        # State — via Client.Mailing_State lookup
+        state_agg = defaultdict(lambda: {"count": 0, "amount": 0.0,
+                                           "clients": set(), "cases": set()})
+        for d in dists:
+            cid  = (d.get("client_name") or "").strip()
+            norm = normalise_state(client_state_map.get(cid, ""))
+            if norm == "Unknown": continue
+            amt    = parse_amount(d.get("grand_total"))
+            client = cid
+            case   = (d.get("case_name") or "").strip()
+            state_agg[norm]["count"]  += 1
+            state_agg[norm]["amount"] += amt
+            if client: state_agg[norm]["clients"].add(client)
+            if case:   state_agg[norm]["cases"].add(case)
+        state_rows = [{"label": k, "count": v["count"],
+                       "amount": round(v["amount"], 2),
+                       "unique_clients": len(v["clients"]),
+                       "unique_cases":   len(v["cases"])}
+                      for k, v in state_agg.items()]
+        state_rows.sort(key=lambda r: r["amount"], reverse=True)
+
+        return {
+            "zakat_category":   zakat_rows[:15],
+            "product_category": product_rows[:15],
+            "program":          program_rows[:15],
+            "state":            state_rows[:15],
+        }
+
+    # Pre-bucket paid distributions by (month, type) for fast lookup
+    by_m_t = defaultdict(list)
+    for d in paid_in_scope:
+        m = to_month(effective_date(d))
+        t = (d.get("distribution_type") or "").strip()
+        if not m: continue
+        by_m_t[(m, t)].append(d)
+
+    # All combinations of {Total, each month} × {All, each type}
+    breakdowns_by_month = {}
+    type_options = ["All"] + sorted({t for _, t in by_m_t.keys() if t})
+    for m_key in ["Total"] + trend_months:
+        breakdowns_by_month[m_key] = {}
+        for t_key in type_options:
+            if m_key == "Total" and t_key == "All":
+                dists = paid_in_scope
+            elif m_key == "Total":
+                dists = [d for d in paid_in_scope
+                         if (d.get("distribution_type") or "").strip() == t_key]
+            elif t_key == "All":
+                dists = [d for d in paid_in_scope
+                         if to_month(effective_date(d)) == m_key]
+            else:
+                dists = by_m_t.get((m_key, t_key), [])
+            breakdowns_by_month[m_key][t_key] = compute_breakdowns_for(dists)
+    print(f"  Breakdowns: {len(breakdowns_by_month)} month keys × "
+          f"{len(type_options)} type keys = {len(breakdowns_by_month)*len(type_options)} cells")
+
+    # Keep top-level "breakdowns" as Total/All for any consumer that needs the simple shape
+    breakdowns = breakdowns_by_month["Total"]["All"]
 
     # ── Fraud / anomaly alerts (rule-based) ────────────────────────
     print("  Computing fraud alerts…")
@@ -514,6 +600,8 @@ def build_crm_distributions_report(token):
         "extracted_unpaid": {"count": 0, "amount": 0.0},
         "ages": {"0_3d": 0, "3_7d": 0, "7_14d": 0, "14d_plus": 0},
     }
+    pipe_clients = {"approved": set(), "extracted": set()}
+    pipe_cases   = {"approved": set(), "extracted": set()}
     for d in in_scope:
         status_l = (d.get("status") or "").lower().strip()
         if status_l == "paid": continue
@@ -521,20 +609,33 @@ def build_crm_distributions_report(token):
         base = (zac.parse_dt(d.get("approved_date") or "")
                 or zac.parse_dt(d.get("created_time") or ""))
         if not base: continue
-        hours = (now_utc - base).total_seconds() / 3600
+        hours  = (now_utc - base).total_seconds() / 3600
+        client = (d.get("client_name") or "").strip()
+        case   = (d.get("case_name")   or "").strip()
         if status_l == "approved":
-            pipeline["approved_unpaid"]["count"] += 1
+            pipeline["approved_unpaid"]["count"]  += 1
             pipeline["approved_unpaid"]["amount"] += amt
+            if client: pipe_clients["approved"].add(client)
+            if case:   pipe_cases["approved"].add(case)
         elif status_l == "extracted":
-            pipeline["extracted_unpaid"]["count"] += 1
+            pipeline["extracted_unpaid"]["count"]  += 1
             pipeline["extracted_unpaid"]["amount"] += amt
+            if client: pipe_clients["extracted"].add(client)
+            if case:   pipe_cases["extracted"].add(case)
         # Age bucket (only for non-paid)
         if hours < 72:           pipeline["ages"]["0_3d"] += 1
         elif hours < 168:        pipeline["ages"]["3_7d"] += 1
         elif hours < 336:        pipeline["ages"]["7_14d"] += 1
         else:                    pipeline["ages"]["14d_plus"] += 1
-    pipeline["approved_unpaid"]["amount"]  = round(pipeline["approved_unpaid"]["amount"], 2)
-    pipeline["extracted_unpaid"]["amount"] = round(pipeline["extracted_unpaid"]["amount"], 2)
+    pipeline["approved_unpaid"]["amount"]         = round(pipeline["approved_unpaid"]["amount"], 2)
+    pipeline["approved_unpaid"]["unique_clients"] = len(pipe_clients["approved"])
+    pipeline["approved_unpaid"]["unique_cases"]   = len(pipe_cases["approved"])
+    pipeline["extracted_unpaid"]["amount"]        = round(pipeline["extracted_unpaid"]["amount"], 2)
+    pipeline["extracted_unpaid"]["unique_clients"]= len(pipe_clients["extracted"])
+    pipeline["extracted_unpaid"]["unique_cases"]  = len(pipe_cases["extracted"])
+    # Combined unique across both stages
+    pipeline["unique_clients"] = len(pipe_clients["approved"] | pipe_clients["extracted"])
+    pipeline["unique_cases"]   = len(pipe_cases["approved"]   | pipe_cases["extracted"])
 
     # ── Velocity: avg days from Approved to Paid ───────────────────
     velocities = []
@@ -565,6 +666,7 @@ def build_crm_distributions_report(token):
         "ytd": ytd,
         "monthly": monthly,
         "breakdowns": breakdowns,
+        "breakdowns_by_month": breakdowns_by_month,
         "alerts": alerts,
         "pipeline": pipeline,
         "velocity": {
