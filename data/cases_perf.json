@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-25T00:01:10.796763+00:00",
+    "last_updated": "2026-04-25T20:31:54.779592+00:00",
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -17,9 +17,9 @@
       "2026-04"
     ],
     "current_month": "2026-04",
-    "cases_analysed": 28837,
-    "notes_analysed": 190832,
-    "automated_excluded": 27975
+    "cases_analysed": 28838,
+    "notes_analysed": 190833,
+    "automated_excluded": 27976
   },
   "executive_summary": {
     "resp_median_hours": 164.1,
@@ -27,7 +27,7 @@
     "resp_sla_pct": 41.3,
     "resol_sla_pct": 33.1,
     "funding_rate_pct": 37.7,
-    "backlog_over_30d": 644,
+    "backlog_over_30d": 660,
     "resp_trend": "regressing",
     "resol_trend": "improving",
     "close_trend": "improving"
@@ -454,6 +454,14 @@
       }
     },
     "by_outcome": {
+      "No Response": {
+        "stage": "Closed - NO Response",
+        "median_days": 14.0,
+        "avg_days": 39.8,
+        "p75_days": 49.5,
+        "count": 819,
+        "colour": "#FDB913"
+      },
       "Not Funded": {
         "stage": "Closed - Not Funded",
         "median_days": 11.6,
@@ -469,14 +477,6 @@
         "p75_days": 150.5,
         "count": 988,
         "colour": "#49A942"
-      },
-      "No Response": {
-        "stage": "Closed - NO Response",
-        "median_days": 14.0,
-        "avg_days": 39.8,
-        "p75_days": 49.5,
-        "count": 819,
-        "colour": "#FDB913"
       }
     },
     "by_priority": {
@@ -653,6 +653,26 @@
       ],
       "series": [
         {
+          "stage": "Closed - NO Response",
+          "label": "No Response",
+          "colour": "#FDB913",
+          "data": [
+            16.7,
+            14.3,
+            22.5,
+            12.4,
+            12.4,
+            10.6,
+            10.1,
+            8.6,
+            10.3,
+            12.1,
+            10.2,
+            16.4,
+            17.5
+          ]
+        },
+        {
           "stage": "Closed - Not Funded",
           "label": "Not Funded",
           "colour": "#EE3526",
@@ -690,26 +710,6 @@
             72.7,
             68.5,
             44.1
-          ]
-        },
-        {
-          "stage": "Closed - NO Response",
-          "label": "No Response",
-          "colour": "#FDB913",
-          "data": [
-            16.7,
-            14.3,
-            22.5,
-            12.4,
-            12.4,
-            10.6,
-            10.1,
-            8.6,
-            10.3,
-            12.1,
-            10.2,
-            16.4,
-            17.5
           ]
         }
       ]
@@ -779,7 +779,7 @@
       },
       {
         "month": "2026-04",
-        "created": 183,
+        "created": 184,
         "closed": 187
       }
     ],
@@ -801,28 +801,28 @@
     "funding_rate_12m": 37.7
   },
   "backlog": {
-    "total_open": 825,
-    "over_30d": 644,
+    "total_open": 826,
+    "over_30d": 660,
     "by_age": [
       {
         "band": "0\u20137 days",
-        "count": 42
+        "count": 40
       },
       {
         "band": "8\u201314 days",
-        "count": 58
+        "count": 52
       },
       {
         "band": "15\u201330 days",
-        "count": 81
+        "count": 74
       },
       {
         "band": "31\u201360 days",
-        "count": 243
+        "count": 248
       },
       {
         "band": "60+ days",
-        "count": 401
+        "count": 412
       }
     ],
     "by_priority": {
@@ -830,7 +830,7 @@
       "P2": 28,
       "P3": 406,
       "P4": 89,
-      "No Priority": 287
+      "No Priority": 288
     }
   }
 }
