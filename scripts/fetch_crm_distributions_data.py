@@ -8,7 +8,6 @@ Sections of data produced:
   - meta:        FY context, last updated, available types
   - ytd:         Current FY YTD vs prior FY YTD (5 KPIs + cumulative)
   - monthly:     12-month trend by distribution type and transfer type
-  - data_quality: Approved/Extracted unpaid > 3 days (monthly buckets + detail rows)
   - breakdowns:  By Zakat Category, by Program, by State
   - alerts:      Rule-based fraud detection (7 heuristics)
 """
@@ -107,15 +106,25 @@ def build_crm_distributions_report(token):
     # Fetch full Distributions view
     all_dists = zac.fetch_view(token, zac.VIEW_DISTRIBUTIONS, label="Distributions")
 
-    # Fetch Cases (for Zakat Category at case level — distribution-level field is mostly null)
-    all_cases = zac.fetch_view(token, zac.VIEW_CASES, label="Cases")
-    case_zakat_cat = {}  # case_id (str) → list of zakat categories
-    for c in all_cases:
-        cid = (c.get("id") or "").strip()
-        zc  = (c.get("zakat_category") or "").strip()
-        if cid and zc:
-            case_zakat_cat[cid] = [v.strip() for v in zc.split(";") if v.strip()]
-    print(f"  Cases with Zakat Category: {len(case_zakat_cat):,}")
+    # Fetch Programs (id → human-readable name lookup)
+    all_programs = zac.fetch_view(token, zac.VIEW_PROGRAMS, label="Programs")
+    program_name_map = {}  # program_id → program_name
+    for p in all_programs:
+        pid  = (p.get("id") or "").strip()
+        name = (p.get("program_name") or "").strip()
+        if pid and name:
+            program_name_map[pid] = name
+    print(f"  Programs in lookup: {len(program_name_map):,}")
+
+    # Fetch Clients (for State — distribution joins via Client Name FK)
+    all_clients = zac.fetch_view(token, zac.VIEW_CLIENTS, label="Clients")
+    client_state_map = {}  # client_id → mailing state
+    for c in all_clients:
+        cid   = (c.get("id") or "").strip()
+        state = (c.get("mailing_state") or c.get("state") or "").strip()
+        if cid and state:
+            client_state_map[cid] = state
+    print(f"  Clients with state: {len(client_state_map):,}")
 
     # Fetch Purchase Items (for product-level breakdown)
     all_items = zac.fetch_view(token, zac.VIEW_PURCHASE_ITEMS, label="Purchase Items")
@@ -218,99 +227,33 @@ def build_crm_distributions_report(token):
                                for k, v in bucket["dist_type"].items()}
         monthly[m] = bucket
 
-    # ── Data Quality: stalled distributions ─────────────────────────
-    print("  Computing data quality stalls…")
-    THREE_DAYS_HOURS = 72
-    quality_by_month = {}
-    for m in trend_months:
-        approved_unpaid = []   # Approved but not Paid > 3 days
-        extracted_unpaid = []  # Extracted but not Paid > 3 days
-        for d in in_scope:
-            if to_month(effective_date(d)) != m:
-                continue
-            status_l = (d.get("status") or "").lower().strip()
-            if status_l == "paid":
-                continue
-            base = (zac.parse_dt(d.get("approved_date") or "")
-                    or zac.parse_dt(d.get("created_time") or ""))
-            if not base:
-                continue
-            hours_elapsed = (now_utc - base).total_seconds() / 3600
-            if hours_elapsed <= THREE_DAYS_HOURS:
-                continue
-            row = {
-                "dist_id":      (d.get("distribution_id") or "").strip(),
-                "record_id":    (d.get("id") or "").strip(),
-                "subject":      d.get("subject", ""),
-                "payee":        d.get("acc_name", "") or d.get("vendor_name", ""),
-                "amount":       parse_amount(d.get("grand_total")),
-                "distribution_type": (d.get("distribution_type") or "").strip(),
-                "transfer_type":(d.get("transfer_type") or "").strip(),
-                "crm_status":   (d.get("status") or "").strip(),
-                "created_time": d.get("created_time", ""),
-                "approved_date":d.get("approved_date", ""),
-                "extracted_date":d.get("extracted_date", ""),
-                "_hours":       round(hours_elapsed),
-                "_days":        round(hours_elapsed / 24, 1),
-            }
-            if status_l == "approved":
-                approved_unpaid.append(row)
-            elif status_l == "extracted":
-                extracted_unpaid.append(row)
-        quality_by_month[m] = {
-            "approved_unpaid_3d": {
-                "count": len(approved_unpaid),
-                "amount": round(sum(r["amount"] for r in approved_unpaid), 2),
-                "rows": approved_unpaid[:200],  # cap detail rows
-            },
-            "extracted_unpaid_3d": {
-                "count": len(extracted_unpaid),
-                "amount": round(sum(r["amount"] for r in extracted_unpaid), 2),
-                "rows": extracted_unpaid[:200],
-            },
-        }
-
     # ── Breakdowns by category, program, state ─────────────────────
     print("  Computing breakdowns…")
 
-    def breakdown(field_extractor, top_n=15):
-        agg = defaultdict(lambda: {"count": 0, "amount": 0.0})
-        for d in in_scope:
-            if (d.get("status") or "").strip() != "Paid":
-                continue
-            label = field_extractor(d)
-            if not label:
-                continue
-            agg[label]["count"] += 1
-            agg[label]["amount"] += parse_amount(d.get("grand_total"))
-        rows = [{"label": k, "count": v["count"], "amount": round(v["amount"], 2)}
-                for k, v in agg.items()]
-        rows.sort(key=lambda r: r["amount"], reverse=True)
-        return rows[:top_n]
-
-    # Zakat Category — sourced from the parent Case (Deal), not the Distribution.
-    # Multi-select: if a case has 2 categories (e.g. "Masakin;Fuqarah"), the distribution
-    # amount is split evenly across them — accurate, sums to 100% of total.
-    zakat_agg = defaultdict(lambda: {"count": 0, "amount": 0.0})
+    # Zakat Category — sourced from the Distribution's "Zakat Category/ies" field.
+    # Multi-select: amount split equally across the listed categories.
+    zakat_agg = defaultdict(lambda: {"count": 0.0, "amount": 0.0})
     for d in in_scope:
         if (d.get("status") or "").strip() != "Paid":
             continue
-        case_id = (d.get("case_name") or "").strip()  # FK to Cases table
-        cats    = case_zakat_cat.get(case_id, [])
+        raw = (d.get("zakat_category_ies") or "").strip()
+        if not raw:
+            continue
+        cats = [c.strip() for c in raw.split(";") if c.strip()]
         if not cats:
             continue
         amt   = parse_amount(d.get("grand_total"))
         share = amt / len(cats)
+        cnt_s = 1 / len(cats)
         for c in cats:
-            zakat_agg[c]["count"]  += 1 / len(cats)  # fractional count
+            zakat_agg[c]["count"]  += cnt_s
             zakat_agg[c]["amount"] += share
     zakat_rows = [{"label": k, "count": round(v["count"], 1), "amount": round(v["amount"], 2)}
                   for k, v in zakat_agg.items()]
     zakat_rows.sort(key=lambda r: r["amount"], reverse=True)
 
-    # Product Category — sourced from Purchase Items (line item Product Display Name)
-    # A distribution can have multiple line items (e.g. Rent + Groceries on same dist).
-    # Each line item attributes its own Amount to its own product category.
+    # Product Category — sourced from Purchase Items (line item Product Display Name).
+    # A distribution can have multiple line items, each with own Amount and product.
     product_agg = defaultdict(lambda: {"count": 0, "amount": 0.0})
     paid_dist_ids = {(d.get("id") or "").strip()
                      for d in in_scope
@@ -329,12 +272,45 @@ def build_crm_distributions_report(token):
                     for k, v in product_agg.items()]
     product_rows.sort(key=lambda r: r["amount"], reverse=True)
 
+    # Program — resolve Program ID to human-readable name via lookup map.
+    program_agg = defaultdict(lambda: {"count": 0, "amount": 0.0})
+    for d in in_scope:
+        if (d.get("status") or "").strip() != "Paid":
+            continue
+        pid = (d.get("program") or "").strip()
+        if not pid:
+            continue
+        # Resolve to name; fall back to ID if not in lookup
+        name = program_name_map.get(pid, f"Unknown ({pid[-6:]})")
+        amt  = parse_amount(d.get("grand_total"))
+        program_agg[name]["count"]  += 1
+        program_agg[name]["amount"] += amt
+    program_rows = [{"label": k, "count": v["count"], "amount": round(v["amount"], 2)}
+                    for k, v in program_agg.items()]
+    program_rows.sort(key=lambda r: r["amount"], reverse=True)
+
+    # State — sourced from the parent Client's Mailing State, joined via Client Name FK.
+    state_agg = defaultdict(lambda: {"count": 0, "amount": 0.0})
+    for d in in_scope:
+        if (d.get("status") or "").strip() != "Paid":
+            continue
+        client_id = (d.get("client_name") or "").strip()
+        state     = client_state_map.get(client_id, "")
+        norm      = normalise_state(state)
+        if norm == "Unknown":
+            continue  # skip rather than show 'Unknown' bucket dominating
+        amt = parse_amount(d.get("grand_total"))
+        state_agg[norm]["count"]  += 1
+        state_agg[norm]["amount"] += amt
+    state_rows = [{"label": k, "count": v["count"], "amount": round(v["amount"], 2)}
+                  for k, v in state_agg.items()]
+    state_rows.sort(key=lambda r: r["amount"], reverse=True)
+
     breakdowns = {
-        "zakat_category": zakat_rows[:15],
+        "zakat_category":   zakat_rows[:15],
         "product_category": product_rows[:15],
-        "program": breakdown(lambda d: (d.get("program") or "").strip() or None),
-        "state":   breakdown(lambda d: normalise_state(d.get("contact_name_state")
-                                                       or d.get("state") or "")),
+        "program":          program_rows[:15],
+        "state":            state_rows[:15],
     }
 
     # ── Fraud / anomaly alerts (rule-based) ────────────────────────
@@ -588,7 +564,6 @@ def build_crm_distributions_report(token):
         },
         "ytd": ytd,
         "monthly": monthly,
-        "data_quality": quality_by_month,
         "breakdowns": breakdowns,
         "alerts": alerts,
         "pipeline": pipeline,
