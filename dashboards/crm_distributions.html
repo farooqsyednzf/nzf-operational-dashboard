@@ -55,10 +55,11 @@
     /* ── KPI cards ─────────────────────────────────────────────── */
     .kpi-grid {
       display: grid; gap: 10px;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       margin-bottom: 16px;
     }
-    @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 1400px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 700px)  { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
     .kpi-card {
       background: var(--surface);
       border: 1px solid var(--border-subtle);
@@ -262,20 +263,25 @@
             <div class="kpi-value" id="kpi-ytd-count">—</div>
             <div class="kpi-sub" id="kpi-ytd-count-sub">—</div>
           </div>
+          <div class="kpi-card" style="--kpi-accent:#0081C6">
+            <div class="kpi-label">Clients reached YTD</div>
+            <div class="kpi-value" id="kpi-ytd-clients">—</div>
+            <div class="kpi-sub" id="kpi-ytd-clients-sub">—</div>
+          </div>
+          <div class="kpi-card" style="--kpi-accent:#7B3FA0">
+            <div class="kpi-label">Cases supported YTD</div>
+            <div class="kpi-value" id="kpi-ytd-cases">—</div>
+            <div class="kpi-sub" id="kpi-ytd-cases-sub">—</div>
+          </div>
           <div class="kpi-card accent-amber">
             <div class="kpi-label">Pipeline AUD</div>
             <div class="kpi-value" id="kpi-pipeline-amount">—</div>
             <div class="kpi-sub" id="kpi-pipeline-sub">Approved + Extracted</div>
           </div>
-          <div class="kpi-card accent-purple">
+          <div class="kpi-card accent-red">
             <div class="kpi-label">Avg velocity</div>
             <div class="kpi-value" id="kpi-velocity">—</div>
             <div class="kpi-sub" id="kpi-velocity-sub">Approved → Paid</div>
-          </div>
-          <div class="kpi-card accent-red">
-            <div class="kpi-label">Aged Outstanding</div>
-            <div class="kpi-value" id="kpi-aged">—</div>
-            <div class="kpi-sub">Over 7 days unpaid</div>
           </div>
         </div>
 
@@ -341,13 +347,16 @@
       ═════════════════════════════════════════════════════ -->
       <div class="zone">
         <div class="zone-header">
-          <h2>Distribution Breakdowns — Paid YTD</h2>
-          <span class="zone-sub">Top 15 in each dimension</span>
+          <h2>Distribution Breakdowns</h2>
+          <span class="zone-sub" id="bd-period-sub">Paid distributions · top 15 each</span>
         </div>
+        <div class="month-tabs" id="breakdown-month-tabs"
+             style="border:1px solid var(--border-subtle);border-radius:var(--radius-lg);
+                    margin-bottom:12px;background:var(--surface-2)"></div>
         <div class="breakdown-grid">
           <div class="breakdown-card">
             <div class="breakdown-title">By Zakat Category
-              <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Case</span>
+              <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Distribution</span>
             </div>
             <div id="bd-zakat"></div>
           </div>
@@ -362,7 +371,9 @@
             <div id="bd-program"></div>
           </div>
           <div class="breakdown-card">
-            <div class="breakdown-title">By State</div>
+            <div class="breakdown-title">By State
+              <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Client</span>
+            </div>
             <div id="bd-state"></div>
           </div>
         </div>
@@ -380,6 +391,7 @@
 let _data = null;
 let _selType = 'All';
 let _trendMode = 'All';   // 'All' or specific transfer type
+let _bdMonth = 'Total';   // breakdowns month tab — 'Total' or YYYY-MM
 
 // ── Helpers ───────────────────────────────────────────────────────
 const fmtAUD  = n => '$' + Math.round(n||0).toLocaleString('en-AU');
@@ -473,6 +485,7 @@ function refreshAll() {
   renderYTD();
   renderTrendChart();
   renderAlerts();
+  buildBreakdownTabs();
   renderBreakdowns();
 }
 
@@ -490,38 +503,53 @@ function renderYTD() {
   const prvAmount = prvYTD.reduce((s, r) => s + r.amount, 0);
   const curCount  = curYTD.reduce((s, r) => s + r.count, 0);
   const prvCount  = prvYTD.reduce((s, r) => s + r.count, 0);
+  // Cumulative unique counts come from the last elapsed month's running set
+  const lastCur = curYTD[curYTD.length - 1] || {};
+  const lastPrv = prvYTD[prvYTD.length - 1] || {};
+  const curClients = lastCur.cum_unique_clients || 0;
+  const prvClients = lastPrv.cum_unique_clients || 0;
+  const curCases   = lastCur.cum_unique_cases   || 0;
+  const prvCases   = lastPrv.cum_unique_cases   || 0;
 
   document.getElementById('ytd-fy-label').textContent = _data.meta.current_fy_label;
   document.getElementById('ytd-period-sub').textContent =
     `${monthsElapsed} months elapsed · vs ${_data.meta.previous_fy_label} same period`;
 
+  // Helper to format delta subtitle
+  const deltaHtml = (cur, prv, valueFmt) => {
+    const delta = prv > 0 ? ((cur - prv) / prv) * 100 : 0;
+    const cls   = delta >= 0 ? 'up'   : 'down';
+    const sign  = delta >= 0 ? '▲'    : '▼';
+    return `<span class="kpi-delta ${cls}">${sign} ${Math.abs(delta).toFixed(1)}%</span> ` +
+           `vs ${valueFmt(prv)} prior FY`;
+  };
+
   // KPI: Paid YTD
   document.getElementById('kpi-ytd-amount').textContent = fmtAUDk(curAmount);
-  const amountDelta = prvAmount > 0 ? ((curAmount - prvAmount) / prvAmount) * 100 : 0;
-  const amountDeltaClass = amountDelta >= 0 ? 'up' : 'down';
-  const amountDeltaSign  = amountDelta >= 0 ? '▲' : '▼';
-  document.getElementById('kpi-ytd-amount-sub').innerHTML =
-    `<span class="kpi-delta ${amountDeltaClass}">${amountDeltaSign} ${Math.abs(amountDelta).toFixed(1)}%</span> ` +
-    `vs ${fmtAUDk(prvAmount)} prior FY`;
+  document.getElementById('kpi-ytd-amount-sub').innerHTML = deltaHtml(curAmount, prvAmount, fmtAUDk);
 
-  // KPI: Count
+  // KPI: Distributions
   document.getElementById('kpi-ytd-count').textContent = fmtNum(curCount);
-  const countDelta = prvCount > 0 ? ((curCount - prvCount) / prvCount) * 100 : 0;
-  const countDeltaClass = countDelta >= 0 ? 'up' : 'down';
-  const countDeltaSign  = countDelta >= 0 ? '▲' : '▼';
-  document.getElementById('kpi-ytd-count-sub').innerHTML =
-    `<span class="kpi-delta ${countDeltaClass}">${countDeltaSign} ${Math.abs(countDelta).toFixed(1)}%</span> ` +
-    `vs ${fmtNum(prvCount)} prior FY`;
+  document.getElementById('kpi-ytd-count-sub').innerHTML = deltaHtml(curCount, prvCount, fmtNum);
 
-  // KPI: Pipeline (NB: not type-filtered — all-types only, displayed always)
+  // KPI: Clients reached
+  document.getElementById('kpi-ytd-clients').textContent = fmtNum(curClients);
+  document.getElementById('kpi-ytd-clients-sub').innerHTML = deltaHtml(curClients, prvClients, fmtNum);
+
+  // KPI: Cases supported
+  document.getElementById('kpi-ytd-cases').textContent = fmtNum(curCases);
+  document.getElementById('kpi-ytd-cases-sub').innerHTML = deltaHtml(curCases, prvCases, fmtNum);
+
+  // KPI: Pipeline — show client count in subtitle for context
   const pipeline = _data.pipeline || {};
-  const pipeAmount = (pipeline.approved_unpaid?.amount || 0) +
-                     (pipeline.extracted_unpaid?.amount || 0);
-  const pipeCount  = (pipeline.approved_unpaid?.count  || 0) +
-                     (pipeline.extracted_unpaid?.count  || 0);
+  const pipeAmount  = (pipeline.approved_unpaid?.amount || 0) +
+                       (pipeline.extracted_unpaid?.amount || 0);
+  const pipeCount   = (pipeline.approved_unpaid?.count  || 0) +
+                       (pipeline.extracted_unpaid?.count  || 0);
+  const pipeClients = pipeline.unique_clients || 0;
   document.getElementById('kpi-pipeline-amount').textContent = fmtAUDk(pipeAmount);
   document.getElementById('kpi-pipeline-sub').textContent =
-    `${fmtNum(pipeCount)} distributions awaiting payment`;
+    `${fmtNum(pipeCount)} dists · ${fmtNum(pipeClients)} clients waiting`;
 
   // KPI: Velocity
   const v = _data.velocity || {};
@@ -529,10 +557,6 @@ function renderYTD() {
     v.median_days != null ? `${v.median_days}d` : '—';
   document.getElementById('kpi-velocity-sub').textContent =
     `Median over ${fmtNum(v.sample_size)} paid`;
-
-  // KPI: Aged
-  const aged = (pipeline.ages?.['7_14d']||0) + (pipeline.ages?.['14d_plus']||0);
-  document.getElementById('kpi-aged').textContent = fmtNum(aged);
 
   // Cumulative chart
   renderYTDChart(cur, prv);
@@ -581,9 +605,11 @@ function renderYTDChart(curMonths, prvMonths) {
       return [x, y, pt];
     });
     const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ');
-    const dots = points.map(p =>
-      `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${color}"/>`
-    ).join('');
+    const dots = points.map(p => {
+      const pt = p[2];
+      const tooltip = `${monthFull(pt.month)} (cumulative): ${fmtAUDk(pt.cum_amount)} · ${fmtNum(pt.cum_unique_clients||0)} unique clients · ${fmtNum(pt.cum_unique_cases||0)} unique cases`;
+      return `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${color}" fill-opacity="0.001" stroke="${color}" stroke-width="0"><title>${tooltip}</title></circle><circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${color}" pointer-events="none"/>`;
+    }).join('');
     return `<path d="${path}" fill="none" stroke="${color}" stroke-width="2" ${dasharray}/>` + dots;
   };
 
@@ -612,29 +638,35 @@ function renderTrendChart() {
   // _selType filters by distribution type at the same time
   const series = months.map(m => {
     const mb = _data.monthly[m] || {};
-    let amount, count;
+    let amount, count, uClients, uCases;
 
     if (_selType !== 'All') {
       // Distribution-type-filtered: we only have aggregate by dist_type at top level,
       // not cross-tabulated with transfer. Fall back to dist_type total.
       const dt = mb.dist_type?.[_selType];
       if (_trendMode === 'All') {
-        amount = dt?.amount || 0;
-        count  = dt?.count  || 0;
+        amount   = dt?.amount || 0;
+        count    = dt?.count  || 0;
+        uClients = dt?.unique_clients || 0;
+        uCases   = dt?.unique_cases   || 0;
       } else {
         // Cross-tab (transfer × dist_type) not in the JSON — show as 'unavailable'
         amount = null;
         count  = null;
       }
     } else if (_trendMode === 'All') {
-      amount = mb.total?.amount || 0;
-      count  = mb.total?.count  || 0;
+      amount   = mb.total?.amount || 0;
+      count    = mb.total?.count  || 0;
+      uClients = mb.total?.unique_clients || 0;
+      uCases   = mb.total?.unique_cases   || 0;
     } else {
       const tt = mb.transfer?.[_trendMode];
-      amount = tt?.amount || 0;
-      count  = tt?.count  || 0;
+      amount   = tt?.amount || 0;
+      count    = tt?.count  || 0;
+      uClients = tt?.unique_clients || 0;
+      uCases   = tt?.unique_cases   || 0;
     }
-    return { month: m, amount, count };
+    return { month: m, amount, count, uClients, uCases };
   });
 
   const validValues = series.filter(s => s.amount != null).map(s => s.amount);
@@ -682,9 +714,14 @@ function renderTrendChart() {
   });
 
   const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ');
-  const dots = points.map(p =>
-    `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${color}" stroke="#fff" stroke-width="1"/>`
-  ).join('');
+  const dots = points.map(p => {
+    const pt = p[2];
+    if (pt.amount == null) return '';
+    const tip = `${monthFull(pt.month)}: ${fmtAUDk(pt.amount)} · ${fmtNum(pt.count||0)} dists · ${fmtNum(pt.uClients||0)} clients · ${fmtNum(pt.uCases||0)} cases`;
+    // Larger transparent hit-target circle for hover; visible smaller circle behind it
+    return `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${color}" stroke="#fff" stroke-width="1" pointer-events="none"/>` +
+           `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="${color}" fill-opacity="0.001"><title>${tip}</title></circle>`;
+  }).join('');
 
   // Value labels above each dot — only if amount > 0
   const valueLabels = points.map(p => {
@@ -768,8 +805,44 @@ function renderAlerts() {
 }
 
 // ── ZONE 4: Breakdowns ────────────────────────────────────────────
+function buildBreakdownTabs() {
+  const tabBar = document.getElementById('breakdown-month-tabs');
+  if (!tabBar) return;
+  const months = (_data.meta.trend_months || []).slice().sort();  // oldest → newest
+  // Reset selection if current is invalid
+  if (_bdMonth !== 'Total' && !months.includes(_bdMonth)) _bdMonth = 'Total';
+
+  const tabs = [
+    { key: 'Total', label: 'All months' },
+    ...months.slice().reverse().map(m => ({ key: m, label: monthLabel(m) }))
+  ];
+  tabBar.innerHTML = tabs.map(t =>
+    `<button class="month-tab${t.key === _bdMonth ? ' active' : ''}"
+       onclick="selectBreakdownMonth('${t.key}')">${t.label}</button>`
+  ).join('');
+}
+
+function selectBreakdownMonth(m) {
+  _bdMonth = m;
+  buildBreakdownTabs();
+  renderBreakdowns();
+}
+
 function renderBreakdowns() {
-  const bd = _data.breakdowns || {};
+  // Lookup the right slice — by_month → [_bdMonth] → [_selType]
+  // Fallback chain handles case where (month × type) has no data
+  const byMonth = _data.breakdowns_by_month || {};
+  const monthBlock = byMonth[_bdMonth] || byMonth['Total'] || {};
+  const bd = monthBlock[_selType] || monthBlock['All'] || _data.breakdowns || {};
+
+  // Update period subtitle
+  const periodEl = document.getElementById('bd-period-sub');
+  if (periodEl) {
+    const monthLbl = _bdMonth === 'Total' ? 'all months in trend window' : monthFull(_bdMonth);
+    const typeLbl  = _selType === 'All'   ? 'all types' : _selType + ' only';
+    periodEl.textContent = `Paid distributions · ${monthLbl} · ${typeLbl}`;
+  }
+
   const cards = [
     ['zakat_category',   'bd-zakat'],
     ['product_category', 'bd-product'],
@@ -780,17 +853,21 @@ function renderBreakdowns() {
     const el   = document.getElementById(elId);
     const rows = bd[key] || [];
     if (!rows.length) {
-      el.innerHTML = '<div style="padding:14px;font-family:Cambay;font-size:.78rem;color:var(--text-muted);text-align:center">No data</div>';
+      el.innerHTML = '<div style="padding:14px;font-family:Cambay;font-size:.78rem;color:var(--text-muted);text-align:center">No data for this filter</div>';
       return;
     }
     const max = Math.max(...rows.map(r => r.amount), 1);
     el.innerHTML = rows.map(r => {
       const w = (r.amount / max * 100).toFixed(1);
+      // Show unique clients · unique cases · distributions in count line
+      const uClients = r.unique_clients ?? 0;
+      const uCases   = r.unique_cases   ?? 0;
+      const subline  = `${fmtNum(uClients)} clients · ${fmtNum(uCases)} cases · ${fmtNum(r.count)} dists`;
       return `
         <div class="breakdown-row">
           <div>
             <div>${r.label}</div>
-            <div class="breakdown-count">${fmtNum(r.count)} distributions</div>
+            <div class="breakdown-count">${subline}</div>
           </div>
           <div class="breakdown-amount">${fmtAUDk(r.amount)}</div>
           <div class="breakdown-bar-wrap">
