@@ -41,6 +41,10 @@
     "purchase_items": {
       "api_name": "Purchase_Order_Line_Items",
       "analytics_view_id": "1715382000001002629"
+    },
+    "programs": {
+      "api_name": "Programs",
+      "analytics_view_id": "1715382000004837042"
     }
   },
   "client_definitions": {
