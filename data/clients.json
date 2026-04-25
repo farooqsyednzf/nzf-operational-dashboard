@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-24T21:22:47.037173+00:00",
+    "last_updated": "2026-04-24T23:59:28.455521+00:00",
     "record_count": 3144,
     "months_covered": [
       "2025-04",
@@ -1300,29 +1300,29 @@
     }
   ],
   "ai_analysis": {
-    "summary": "Clients are returning due to ongoing structural disadvantages including unstable employment, family breakdown, and health crises that create recurring cycles of financial hardship. The majority face persistent challenges rather than one-time emergencies, indicating systemic issues that require repeated intervention.",
+    "summary": "Clients are returning primarily due to ongoing structural challenges such as unemployment/underemployment, housing instability, and life crises that create recurring financial hardship. The majority face cyclical poverty where initial assistance provides temporary relief but underlying vulnerabilities persist, leading to repeated financial emergencies.",
     "themes": [
       {
         "label": "Employment Loss and Income Instability",
-        "description": "Job loss, unemployment, and irregular income creating ongoing financial vulnerability that requires multiple assistance episodes.",
-        "count_estimate": "~35% of cases"
+        "description": "Job loss, reduced work hours, or inability to find stable employment creating ongoing financial hardship. Many clients experience recurring unemployment or underemployment cycles.",
+        "count_estimate": "~40% of cases"
       },
       {
-        "label": "Family Breakdown and Domestic Violence",
-        "description": "Separation, divorce, domestic violence, and single parenthood creating new or recurring housing and financial crises.",
+        "label": "Housing Crisis and Rental Stress",
+        "description": "Rental arrears, bond payments, homelessness, or unstable housing situations requiring repeated assistance. Housing costs often exceed client capacity to maintain stable accommodation.",
         "count_estimate": "~25% of cases"
       },
       {
-        "label": "Health Crises and Medical Expenses",
-        "description": "Serious illness, surgery, chronic conditions like diabetes requiring ongoing medical costs and reducing work capacity.",
+        "label": "Family Breakdown and Domestic Violence",
+        "description": "Separation, divorce, domestic violence, or becoming single parents creating new financial pressures. These life disruptions often require multiple support interventions over time.",
         "count_estimate": "~20% of cases"
       },
       {
-        "label": "Housing Instability and Homelessness",
-        "description": "Eviction threats, homelessness, need for bonds and rent assistance indicating chronic housing insecurity.",
-        "count_estimate": "~20% of cases"
+        "label": "Health Crises and Medical Expenses",
+        "description": "Serious illness, medical procedures, or ongoing health conditions creating financial strain and inability to work. Health issues often compound existing financial vulnerabilities.",
+        "count_estimate": "~15% of cases"
       }
     ],
-    "generated_at": "2026-04-24T21:22:14.464546+00:00"
+    "generated_at": "2026-04-24T23:59:01.686295+00:00"
   }
 }
