@@ -213,70 +213,8 @@
     }
 
     /* ── Month tabs ────────────────────────────────────────────── */
-    .month-tabs {
-      display: flex; gap: 4px; flex-wrap: wrap;
-      padding: 10px 12px;
-      background: var(--surface-2);
-      border: 1px solid var(--border-subtle);
-      border-bottom: none;
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    }
-    .month-tab {
-      padding: 4px 12px;
-      font-family: 'Cambay', sans-serif;
-      font-size: .75rem; font-weight: 700;
-      border-radius: 4px;
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer; white-space: nowrap;
-      transition: all .1s;
-    }
-    .month-tab:hover { background: var(--surface); border-color: var(--border-subtle); }
-    .month-tab.active { background: #1F3864; color: #fff; }
-
-    .quality-panel {
-      border: 1px solid var(--border-subtle);
-      border-top: none;
-      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-      padding: 16px;
-    }
-
-    .quality-summary {
-      display: grid; gap: 10px;
-      grid-template-columns: 1fr 1fr;
-      margin-bottom: 16px;
-    }
-    @media (max-width: 800px) { .quality-summary { grid-template-columns: 1fr; } }
-    .quality-pill {
-      padding: 12px 14px;
-      border-radius: var(--radius-md);
-      border: 1px solid;
-    }
-    .quality-pill.amber { background: rgba(253,185,19,.05); border-color: rgba(253,185,19,.3); }
-    .quality-pill.red   { background: rgba(238,53,38,.04);  border-color: rgba(238,53,38,.25); }
-    .quality-label {
-      font-family: 'Cambay', sans-serif;
-      font-size: .68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
-      color: var(--text-muted); margin-bottom: 6px;
-    }
-    .quality-value {
-      font-family: 'Bree Serif', serif; font-size: 1.4rem;
-      color: var(--text-primary);
-    }
-    .quality-amount {
-      font-family: 'Cambay', sans-serif; font-size: .78rem;
-      color: var(--text-secondary);
-    }
 
     /* ── Status badges ─────────────────────────────────────────── */
-    .badge.s-approved   { background: rgba(0,129,198,.1);  color: #005a8e; border: 1px solid rgba(0,129,198,.25); }
-    .badge.s-extracted  { background: rgba(123,63,160,.1); color: #7B3FA0; border: 1px solid rgba(123,63,160,.3); }
-    .badge.s-paid       { background: rgba(73,169,66,.1);  color: #2d7a27; border: 1px solid rgba(73,169,66,.3); }
-
-    .row-stalled { border-left: 3px solid #FDB913; }
-    .row-overdue { border-left: 3px solid var(--color-primary); }
   </style>
 </head>
 <body>
@@ -398,57 +336,8 @@
         </div>
       </div>
 
-      <!-- ════════════════════════════════════════════════════
-           ZONE 4 — DATA QUALITY
-      ═════════════════════════════════════════════════════ -->
-      <div class="zone">
-        <div class="zone-header">
-          <h2>Data Quality — Stalled Distributions</h2>
-          <span class="zone-sub">Approved or Extracted but not Paid for &gt; 3 days</span>
-        </div>
-
-        <div class="month-tabs" id="quality-month-tabs"></div>
-        <div class="quality-panel">
-          <div class="quality-summary">
-            <div class="quality-pill amber">
-              <div class="quality-label">Approved &gt; 3 days unpaid</div>
-              <div class="quality-value" id="q-approved-count">—</div>
-              <div class="quality-amount" id="q-approved-amount">—</div>
-            </div>
-            <div class="quality-pill red">
-              <div class="quality-label">Extracted &gt; 3 days unpaid</div>
-              <div class="quality-value" id="q-extracted-count">—</div>
-              <div class="quality-amount" id="q-extracted-amount">—</div>
-            </div>
-          </div>
-
-          <div style="overflow-x:auto">
-            <table id="quality-table">
-              <thead>
-                <tr>
-                  <th>Dist. ID</th>
-                  <th>Type</th>
-                  <th>Subject / Payee</th>
-                  <th style="text-align:right">Amount</th>
-                  <th>Transfer</th>
-                  <th>Created</th>
-                  <th>Approved</th>
-                  <th style="text-align:center">Days</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="quality-tbody">
-                <tr><td colspan="9" style="padding:30px;text-align:center;font-family:Cambay;color:var(--text-muted)">
-                  <div class="spinner" style="margin:0 auto 10px"></div>Loading…
-                </td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ════════════════════════════════════════════════════
-           ZONE 5 — BREAKDOWNS
+      <!-- ═════════════════════════════════════════════════════
+           ZONE 4 — BREAKDOWNS
       ═════════════════════════════════════════════════════ -->
       <div class="zone">
         <div class="zone-header">
@@ -491,7 +380,6 @@
 let _data = null;
 let _selType = 'All';
 let _trendMode = 'All';   // 'All' or specific transfer type
-let _qualityMonth = null;
 
 // ── Helpers ───────────────────────────────────────────────────────
 const fmtAUD  = n => '$' + Math.round(n||0).toLocaleString('en-AU');
@@ -585,8 +473,6 @@ function refreshAll() {
   renderYTD();
   renderTrendChart();
   renderAlerts();
-  buildQualityTabs();
-  renderQualityPanel();
   renderBreakdowns();
 }
 
@@ -881,93 +767,7 @@ function renderAlerts() {
   }).join('');
 }
 
-// ── ZONE 4: Data Quality ──────────────────────────────────────────
-function buildQualityTabs() {
-  const tabBar = document.getElementById('quality-month-tabs');
-  const months = (_data.meta.trend_months || []).slice().sort();
-  if (!months.length) { tabBar.innerHTML = ''; return; }
-
-  if (!_qualityMonth || !months.includes(_qualityMonth)) {
-    _qualityMonth = months[months.length - 1];
-  }
-
-  tabBar.innerHTML = months.map(m =>
-    `<button class="month-tab${m===_qualityMonth?' active':''}"
-       onclick="selectQualityMonth('${m}')">${monthLabel(m)}</button>`
-  ).join('');
-}
-
-function selectQualityMonth(m) {
-  _qualityMonth = m;
-  document.querySelectorAll('.month-tab').forEach(b => {
-    b.classList.toggle('active', b.textContent === monthLabel(m));
-  });
-  renderQualityPanel();
-}
-
-function renderQualityPanel() {
-  const dq = _data.data_quality?.[_qualityMonth];
-  if (!dq) {
-    document.getElementById('quality-tbody').innerHTML =
-      '<tr><td colspan="9" style="padding:30px;text-align:center;font-family:Cambay;color:var(--text-muted)">No data for this month</td></tr>';
-    return;
-  }
-
-  // Filter by distribution type
-  const filterType = r => _selType === 'All' || r.distribution_type === _selType;
-  const approved   = (dq.approved_unpaid_3d.rows  || []).filter(filterType);
-  const extracted  = (dq.extracted_unpaid_3d.rows || []).filter(filterType);
-
-  const approvedAmount  = approved.reduce ((s,r) => s + (r.amount||0), 0);
-  const extractedAmount = extracted.reduce((s,r) => s + (r.amount||0), 0);
-
-  document.getElementById('q-approved-count').textContent  = fmtNum(approved.length);
-  document.getElementById('q-approved-amount').textContent = fmtAUDk(approvedAmount);
-  document.getElementById('q-extracted-count').textContent  = fmtNum(extracted.length);
-  document.getElementById('q-extracted-amount').textContent = fmtAUDk(extractedAmount);
-
-  const allRows = [...approved, ...extracted].sort((a,b) => b._days - a._days);
-
-  if (allRows.length === 0) {
-    document.getElementById('quality-tbody').innerHTML =
-      '<tr><td colspan="9" style="padding:30px;text-align:center;font-family:Cambay;color:#2d7a27">' +
-      '✓ No stalled distributions for this month</td></tr>';
-    return;
-  }
-
-  const crmBase = _data.meta.crm_base_url || '';
-  document.getElementById('quality-tbody').innerHTML = allRows.map(r => {
-    const link = (crmBase && r.record_id)
-      ? `<a href="${crmBase}/PurchaseOrders/${r.record_id}" target="_blank" rel="noopener"
-           style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;
-                  color:var(--color-primary);text-decoration:none">${r.dist_id} ↗</a>`
-      : `<span style="font-family:'Courier New',monospace;font-size:.8rem;font-weight:700;color:var(--color-primary)">${r.dist_id}</span>`;
-
-    const statusBadge = r.crm_status === 'Approved'
-      ? '<span class="badge s-approved" style="padding:2px 8px;border-radius:10px;font-family:Cambay;font-size:.68rem;font-weight:700">Approved</span>'
-      : '<span class="badge s-extracted" style="padding:2px 8px;border-radius:10px;font-family:Cambay;font-size:.68rem;font-weight:700">Extracted</span>';
-
-    const daysCls = r._days > 7 ? 'h-danger' : 'h-warn';
-    const daysHtml = `<span class="${daysCls}">${r._days}d</span>`;
-
-    const rowCls = r._days > 7 ? ' class="row-overdue"' : ' class="row-stalled"';
-
-    return `<tr${rowCls}>
-      <td style="white-space:nowrap">${link}</td>
-      <td style="font-size:.74rem;color:var(--text-muted)">${r.distribution_type||'—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem"
-          title="${(r.payee||r.subject||'').replace(/"/g,'')}">${r.payee||r.subject||'—'}</td>
-      <td style="text-align:right;font-family:'Courier New',monospace;font-size:.82rem;font-weight:700">${fmtAUD(r.amount)}</td>
-      <td style="font-size:.76rem;color:var(--text-secondary)">${r.transfer_type||'—'}</td>
-      <td style="font-size:.78rem;white-space:nowrap">${fmtDate(r.created_time)}</td>
-      <td style="font-size:.78rem;white-space:nowrap">${fmtDate(r.approved_date)}</td>
-      <td style="text-align:center">${daysHtml}</td>
-      <td>${statusBadge}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── ZONE 5: Breakdowns ────────────────────────────────────────────
+// ── ZONE 4: Breakdowns ────────────────────────────────────────────
 function renderBreakdowns() {
   const bd = _data.breakdowns || {};
   const cards = [
