@@ -69,8 +69,12 @@ function renderNav(pageTitle) {
   const sidebar = `
     <aside class="sidebar">
       <div class="sidebar-logo">
-        <div class="org-name">NZF</div>
-        <div class="org-sub">CRM Dashboards</div>
+        <a href="/dashboards/index.html" class="sidebar-logo-link" aria-label="NZF Dashboards home">
+          <span class="sidebar-logo-card">
+            <img src="/assets/img/nzf-logo.svg" alt="National Zakat Foundation"/>
+          </span>
+          <span class="sidebar-tagline">CRM Dashboards</span>
+        </a>
       </div>
       <nav class="sidebar-nav">
         ${navHTML}
