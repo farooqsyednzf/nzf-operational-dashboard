@@ -61,7 +61,7 @@
       <!-- ── DISTRIBUTIONS ──────────────────────────────────── -->
       <div class="section-label">Distributions</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:36px;">
-        <a href="/dashboards/distributions.html" class="dashboard-card" style="--card-color:var(--color-green);">
+        <a href="/dashboards/crm_distributions.html" class="dashboard-card" style="--card-color:var(--color-green);">
           <div class="dashboard-card-section">Distributions</div>
           <div class="dashboard-card-title">Distributions</div>
           <div class="dashboard-card-desc">Total AUD distributed — monthly trends, breakdown by type, program, state and payment category.</div>
@@ -109,7 +109,7 @@ async function loadDataStatus() {
     { label:'Cases Report',       file:'/data/cases.json',         href:'/dashboards/cases.html',        source:'Analytics'            },
     { label:'Case Priority Intel',file:'/data/cases.json',         href:'/dashboards/cases_priority.html',source:'Analytics + Live CRM' },
     { label:'Cases Performance',  file:'/data/cases_perf.json',    href:'/dashboards/cases_perf.html',   source:'Analytics'            },
-    { label:'Distributions',      file:'/data/distributions.json',    href:'/dashboards/distributions.html',       source:'Analytics' },
+    { label:'CRM Distributions',  file:'/data/crm_distributions.json',href:'/dashboards/crm_distributions.html',   source:'Analytics' },
     { label:'Reconciliation',     file:'/data/reconciliation.json',   href:'/dashboards/distributions_recon.html', source:'Analytics' },
   ];
 
