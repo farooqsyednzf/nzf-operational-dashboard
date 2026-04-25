@@ -26,10 +26,11 @@ ANALYTICS_BASE = "https://analyticsapi.zoho.com/restapi/v2"
 ACCOUNTS_URL   = os.environ.get("ZOHO_ACCOUNTS_URL", "https://accounts.zoho.com")
 
 # View IDs sourced from nzf_rules.json — change them there, not here
-VIEW_CASES         = _modules["cases"]["analytics_view_id"]
-VIEW_DISTRIBUTIONS = _modules["distributions"]["analytics_view_id"]
-VIEW_CLIENTS       = _modules["clients"]["analytics_view_id"]
-VIEW_CASE_NOTES    = _modules["notes"]["analytics_view_id"]
+VIEW_CASES          = _modules["cases"]["analytics_view_id"]
+VIEW_DISTRIBUTIONS  = _modules["distributions"]["analytics_view_id"]
+VIEW_CLIENTS        = _modules["clients"]["analytics_view_id"]
+VIEW_CASE_NOTES     = _modules["notes"]["analytics_view_id"]
+VIEW_PURCHASE_ITEMS = _modules["purchase_items"]["analytics_view_id"]
 
 # ── Auth ──────────────────────────────────────────────────────────
 def get_access_token():
