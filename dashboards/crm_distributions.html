@@ -170,14 +170,15 @@
 
     /* ── Breakdowns ───────────────────────────────────────────── */
     .breakdown-grid {
-      display: grid; gap: 12px;
+      display: grid; gap: 1px;
       grid-template-columns: repeat(2, 1fr);
+      background: var(--border-subtle);
     }
     @media (max-width: 800px) { .breakdown-grid { grid-template-columns: 1fr; } }
     .breakdown-card {
       background: var(--surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
+      border: none;
+      border-radius: 0;
       padding: 16px 18px;
     }
     .breakdown-title {
@@ -314,7 +315,7 @@
 
         <div class="chart-card" style="padding:16px 18px">
           <div class="trend-toggle-bar" id="trend-toggle-bar"></div>
-          <svg id="trend-chart" class="trend-chart" viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg"></svg>
+          <svg id="trend-chart" class="trend-chart" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
       </div>
 
@@ -350,31 +351,31 @@
           <h2>Distribution Breakdowns</h2>
           <span class="zone-sub" id="bd-period-sub">Paid distributions · top 15 each</span>
         </div>
-        <div class="month-tabs" id="breakdown-month-tabs"
-             style="border:1px solid var(--border-subtle);border-radius:var(--radius-lg);
-                    margin-bottom:12px;background:var(--surface-2)"></div>
-        <div class="breakdown-grid">
-          <div class="breakdown-card">
-            <div class="breakdown-title">By Zakat Category
-              <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Distribution</span>
+        <div class="month-tabs" id="breakdown-month-tabs"></div>
+        <div class="month-panel">
+          <div class="breakdown-grid" style="padding:14px">
+            <div class="breakdown-card">
+              <div class="breakdown-title">By Zakat Category
+                <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Distribution</span>
+              </div>
+              <div id="bd-zakat"></div>
             </div>
-            <div id="bd-zakat"></div>
-          </div>
-          <div class="breakdown-card">
-            <div class="breakdown-title">By Product Category
-              <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Purchase Items</span>
+            <div class="breakdown-card">
+              <div class="breakdown-title">By Product Category
+                <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Purchase Items</span>
+              </div>
+              <div id="bd-product"></div>
             </div>
-            <div id="bd-product"></div>
-          </div>
-          <div class="breakdown-card">
-            <div class="breakdown-title">By Program</div>
-            <div id="bd-program"></div>
-          </div>
-          <div class="breakdown-card">
-            <div class="breakdown-title">By State
-              <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Client</span>
+            <div class="breakdown-card">
+              <div class="breakdown-title">By Program</div>
+              <div id="bd-program"></div>
             </div>
-            <div id="bd-state"></div>
+            <div class="breakdown-card">
+              <div class="breakdown-title">By State
+                <span style="text-transform:none;font-weight:400;letter-spacing:0;color:var(--text-muted)">— sourced from Client</span>
+              </div>
+              <div id="bd-state"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -625,8 +626,8 @@ function renderYTDChart(curMonths, prvMonths) {
 // ── ZONE 2: Monthly trend ─────────────────────────────────────────
 function renderTrendChart() {
   const svg = document.getElementById('trend-chart');
-  const W = 800, H = 280;
-  const PAD_L = 60, PAD_R = 20, PAD_T = 24, PAD_B = 36;
+  const W = 800, H = 300;
+  const PAD_L = 60, PAD_R = 60, PAD_T = 40, PAD_B = 40;  // PAD_R wider for right-axis labels
   const W_PLOT = W - PAD_L - PAD_R;
   const H_PLOT = H - PAD_T - PAD_B;
 
@@ -634,61 +635,77 @@ function renderTrendChart() {
   if (!months.length) { svg.innerHTML = ''; return; }
 
   // Build series based on toggle
-  // _trendMode = 'All' shows total; otherwise shows just that transfer type
-  // _selType filters by distribution type at the same time
   const series = months.map(m => {
     const mb = _data.monthly[m] || {};
     let amount, count, uClients, uCases;
 
     if (_selType !== 'All') {
-      // Distribution-type-filtered: we only have aggregate by dist_type at top level,
-      // not cross-tabulated with transfer. Fall back to dist_type total.
       const dt = mb.dist_type?.[_selType];
       if (_trendMode === 'All') {
-        amount   = dt?.amount || 0;
-        count    = dt?.count  || 0;
+        amount   = dt?.amount         || 0;
+        count    = dt?.count          || 0;
         uClients = dt?.unique_clients || 0;
         uCases   = dt?.unique_cases   || 0;
       } else {
-        // Cross-tab (transfer × dist_type) not in the JSON — show as 'unavailable'
-        amount = null;
-        count  = null;
+        amount = null; count = null; uClients = null; uCases = null;
       }
     } else if (_trendMode === 'All') {
-      amount   = mb.total?.amount || 0;
-      count    = mb.total?.count  || 0;
+      amount   = mb.total?.amount         || 0;
+      count    = mb.total?.count          || 0;
       uClients = mb.total?.unique_clients || 0;
       uCases   = mb.total?.unique_cases   || 0;
     } else {
       const tt = mb.transfer?.[_trendMode];
-      amount   = tt?.amount || 0;
-      count    = tt?.count  || 0;
+      amount   = tt?.amount         || 0;
+      count    = tt?.count          || 0;
       uClients = tt?.unique_clients || 0;
       uCases   = tt?.unique_cases   || 0;
     }
     return { month: m, amount, count, uClients, uCases };
   });
 
-  const validValues = series.filter(s => s.amount != null).map(s => s.amount);
-  const maxY = Math.max(...validValues, 1);
-
-  if (!validValues.length || (_selType !== 'All' && _trendMode !== 'All')) {
+  if (!series.some(s => s.amount != null) || (_selType !== 'All' && _trendMode !== 'All')) {
     svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle"
       font-family="Cambay" font-size="13" fill="#9F9393">
       Cross-filter (Distribution Type × Transfer Type) not available — pick "All" for one dimension</text>`;
     return;
   }
 
-  // Y-axis ticks
+  // Two Y scales:
+  //   left  axis = amount ($)
+  //   right axis = count (max of clients & cases)
+  const maxAmount = Math.max(...series.map(s => s.amount   || 0), 1);
+  const maxCount  = Math.max(...series.map(s => Math.max(s.uClients || 0, s.uCases || 0)), 1);
+  // Round count axis up to a nice number for cleaner ticks
+  const niceCeil = (n) => {
+    const mag = Math.pow(10, Math.floor(Math.log10(n)));
+    return Math.ceil(n / mag) * mag;
+  };
+  const maxCountNice = niceCeil(maxCount * 1.1);
+
+  // Brand-locked colors matching the KPI accents above
+  const COLOR_AMOUNT  = '#EE3524'; // brand red    — Paid YTD context
+  const COLOR_CLIENTS = '#0081C6'; // brand blue   — Clients reached
+  const COLOR_CASES   = '#7B3FA0'; // brand purple — Cases supported
+
+  // Y-axis ticks (4 segments, drawn from the AMOUNT scale on the left)
   const ticks = 4;
-  let yLines = '', yLabels = '';
+  let yLines = '', yLabelsL = '', yLabelsR = '';
   for (let i = 0; i <= ticks; i++) {
     const y = PAD_T + (H_PLOT * (1 - i / ticks));
-    const v = maxY * i / ticks;
-    yLines  += `<line x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" stroke="#E5E0E0" stroke-width="1"/>`;
-    yLabels += `<text x="${PAD_L - 8}" y="${y + 4}" text-anchor="end"
-                  font-family="Cambay" font-size="10" fill="#9F9393">${fmtAUDk(v)}</text>`;
+    yLines   += `<line x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" stroke="#E5E0E0" stroke-width="1"/>`;
+    yLabelsL += `<text x="${PAD_L - 8}" y="${y + 4}" text-anchor="end"
+                   font-family="Cambay" font-size="10" fill="#9F9393">${fmtAUDk(maxAmount * i / ticks)}</text>`;
+    yLabelsR += `<text x="${W - PAD_R + 8}" y="${y + 4}" text-anchor="start"
+                   font-family="Cambay" font-size="10" fill="#9F9393">${fmtNum(Math.round(maxCountNice * i / ticks))}</text>`;
   }
+
+  // Axis title labels
+  const axisTitles =
+    `<text x="${PAD_L - 48}" y="${PAD_T - 8}" font-family="Cambay" font-size="9"
+           font-weight="700" fill="#9F9393" text-transform="uppercase">AUD</text>` +
+    `<text x="${W - PAD_R + 8}" y="${PAD_T - 8}" font-family="Cambay" font-size="9"
+           font-weight="700" fill="#9F9393" text-transform="uppercase">COUNT</text>`;
 
   // X-axis labels
   let xLabels = '';
@@ -698,51 +715,67 @@ function renderTrendChart() {
                   font-family="Cambay" font-size="10" fill="#9F9393">${monthLabel(pt.month)}</text>`;
   });
 
-  // Color based on toggle
-  const color = _trendMode === 'All' ? '#1F3864'
-              : _trendMode === 'Bank Transfer' ? '#0081C6'
-              : _trendMode === 'Cash' ? '#49A942'
-              : _trendMode === 'Credit Card' ? '#7B3FA0'
-              : _trendMode === 'BPAY' ? '#FDB913'
-              : '#EE3526';
+  // Helper to build a line + dots for one series
+  const buildLine = (key, color, scaleMax, useRightAxis) => {
+    const points = series.map((pt, i) => {
+      const x = PAD_L + (W_PLOT * i / (series.length - 1 || 1));
+      const v = pt[key];
+      const y = PAD_T + (H_PLOT * (1 - (v == null ? 0 : v) / scaleMax));
+      return [x, y, pt, v];
+    });
+    const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ');
+    const dots = points.map(p => {
+      const pt = p[2];
+      if (p[3] == null) return '';
+      const tip = `${monthFull(pt.month)}: ${fmtAUDk(pt.amount)} · ${fmtNum(pt.count||0)} dists · ${fmtNum(pt.uClients||0)} clients · ${fmtNum(pt.uCases||0)} cases`;
+      return `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${color}" stroke="#fff" stroke-width="1" pointer-events="none"/>` +
+             `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="${color}" fill-opacity="0.001"><title>${tip}</title></circle>`;
+    }).join('');
+    return { path, dots, points };
+  };
 
-  // Build path + value labels
-  const points = series.map((pt, i) => {
-    const x = PAD_L + (W_PLOT * i / (series.length - 1 || 1));
-    const y = PAD_T + (H_PLOT * (1 - (pt.amount || 0) / maxY));
-    return [x, y, pt];
-  });
+  const amtLine     = buildLine('amount',   COLOR_AMOUNT,   maxAmount,     false);
+  const clientsLine = buildLine('uClients', COLOR_CLIENTS,  maxCountNice,  true);
+  const casesLine   = buildLine('uCases',   COLOR_CASES,    maxCountNice,  true);
 
-  const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ');
-  const dots = points.map(p => {
-    const pt = p[2];
-    if (pt.amount == null) return '';
-    const tip = `${monthFull(pt.month)}: ${fmtAUDk(pt.amount)} · ${fmtNum(pt.count||0)} dists · ${fmtNum(pt.uClients||0)} clients · ${fmtNum(pt.uCases||0)} cases`;
-    // Larger transparent hit-target circle for hover; visible smaller circle behind it
-    return `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${color}" stroke="#fff" stroke-width="1" pointer-events="none"/>` +
-           `<circle cx="${p[0]}" cy="${p[1]}" r="9" fill="${color}" fill-opacity="0.001"><title>${tip}</title></circle>`;
-  }).join('');
-
-  // Value labels above each dot — only if amount > 0
-  const valueLabels = points.map(p => {
-    if (!p[2].amount || p[2].amount === 0) return '';
+  // Value labels above amount line only — counts go in tooltips to keep chart clean
+  const valueLabels = amtLine.points.map(p => {
+    if (!p[3] || p[3] === 0) return '';
     return `<text x="${p[0]}" y="${p[1] - 10}" text-anchor="middle"
-              font-family="Cambay" font-size="10" font-weight="700" fill="${color}">${fmtAUDk(p[2].amount)}</text>`;
+              font-family="Cambay" font-size="10" font-weight="700" fill="${COLOR_AMOUNT}">${fmtAUDk(p[3])}</text>`;
   }).join('');
 
-  // Title
+  // Title (toggle + filter context)
   const title = _trendMode === 'All'
     ? `All transfer types${_selType !== 'All' ? ' · ' + _selType : ''}`
     : `${_trendMode}${_selType !== 'All' ? ' · ' + _selType : ''}`;
 
+  // Inline legend (top-left, below title)
+  const legend =
+    `<g font-family="Cambay" font-size="10" font-weight="700">
+       <rect x="${PAD_L + 110}"  y="6"  width="10" height="3" fill="${COLOR_AMOUNT}"/>
+       <text x="${PAD_L + 124}"  y="11" fill="#231F1F">Amount AUD</text>
+       <rect x="${PAD_L + 215}"  y="6"  width="10" height="3" fill="${COLOR_CLIENTS}"/>
+       <text x="${PAD_L + 229}"  y="11" fill="#231F1F">Unique clients</text>
+       <rect x="${PAD_L + 320}"  y="6"  width="10" height="3" fill="${COLOR_CASES}"/>
+       <text x="${PAD_L + 334}"  y="11" fill="#231F1F">Unique cases</text>
+     </g>`;
+
   svg.innerHTML = `
-    <text x="${PAD_L}" y="14" font-family="Cambay" font-size="11"
+    <text x="${PAD_L}" y="11" font-family="Cambay" font-size="11"
           font-weight="700" fill="#4C6060">${title}</text>
+    ${legend}
     ${yLines}
-    ${yLabels}
+    ${yLabelsL}
+    ${yLabelsR}
+    ${axisTitles}
     ${xLabels}
-    <path d="${path}" fill="none" stroke="${color}" stroke-width="2.5"/>
-    ${dots}
+    <path d="${clientsLine.path}" fill="none" stroke="${COLOR_CLIENTS}" stroke-width="1.5" stroke-dasharray="4 3"/>
+    ${clientsLine.dots}
+    <path d="${casesLine.path}"   fill="none" stroke="${COLOR_CASES}"   stroke-width="1.5" stroke-dasharray="4 3"/>
+    ${casesLine.dots}
+    <path d="${amtLine.path}"     fill="none" stroke="${COLOR_AMOUNT}"  stroke-width="2.5"/>
+    ${amtLine.dots}
     ${valueLabels}
   `;
 }
