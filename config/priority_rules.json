@@ -1,0 +1,118 @@
+{
+  "_description": "Configuration for AI-driven case priority assessment. Edit this file to refine how the agent classifies cases. Each change should bump 'version' so dashboards and audit logs can trace which rules version produced an assessment.",
+  "version": "1.0.0",
+  "last_updated": "2026-04-26",
+  "changelog": [
+    {"version": "1.0.0", "date": "2026-04-26", "change": "Initial rules — extracted from inline Python prompt into modular config. Added few-shot examples, tiebreaker rules, and temperature=0 for deterministic output."}
+  ],
+  "model": {
+    "id": "claude-sonnet-4-20250514",
+    "temperature": 0,
+    "max_tokens": 8000
+  },
+  "priority_framework": {
+    "P1": "24-hour turnaround. Critical Risk — Life-Threatening Needs: homelessness or immediate risk of rough sleeping, urgent food assistance, emergency medication needs, funeral/burial costs, other urgent emergencies impacting survival or safety. Domestic violence is P1 ONLY when the client is currently experiencing active abuse, is in immediate danger, or faces imminent homelessness as a direct result — historical DV without current danger should follow normal priority rules.",
+    "P2": "2-7 day turnaround. High Risk of Harm Within Days: imminent eviction (within days), emergency or essential utility disconnection (gas, electricity), basic necessities at crisis level (baby formula, heating, hygiene), single parent with children in acute financial crisis, rent arrears with landlord threatening immediate action.",
+    "P3": "2-week turnaround. Moderate Risk — Stable to Short Term: no immediate impact in next 14 days, financial support or bills that are manageable temporarily, general financial hardship, food insecurity not immediately acute, employment loss, general rental stress.",
+    "P4": "1-month turnaround. Low Risk — Long-Term/Deferred Needs: long-term debt repayment, non-essential bills or expenses not affecting client in the next month, general assistance planning, documentation support, non-urgent enquiries."
+  },
+  "tiebreaker_rules": [
+    "When evidence is mixed between two priorities (e.g. could be P1 or P2), choose the higher (more urgent) priority. Better to over-prioritise than miss a critical case.",
+    "When the description is vague or generic (e.g. 'I need help', 'financial assistance please'), default to P3. Do not infer urgency that is not explicitly described.",
+    "Time-bounded language is decisive: 'today/tonight/this week' moves a case up; 'eventually/planning/in future' moves it down.",
+    "Domestic violence keywords without a stated current safety threat (e.g. 'I left my abusive partner two years ago') do NOT automatically warrant P1 — apply normal priority rules to the actual current need.",
+    "Funeral and burial costs are P1 by default unless the description indicates the funeral has already taken place and the request is for reimbursement support.",
+    "Eviction language requires careful attention to timeframe: 'will be evicted' = P2, 'evicted next week' = P2, 'served notice today' = P2, 'risk of eviction in coming months' = P3.",
+    "Children mentioned in crisis context (no food, no formula, no heating) elevates priority by one level above what the same situation would warrant for a single adult."
+  ],
+  "few_shot_examples": [
+    {
+      "_note": "Clear P1 — life-threatening immediate need",
+      "description": "I am sleeping in my car with my two children since yesterday. We have no food and nowhere to go.",
+      "stage": "Pending Triage",
+      "interaction": "NO",
+      "expected_priority": "P1",
+      "rationale": "Active homelessness with children, immediate survival need."
+    },
+    {
+      "_note": "Clear P2 — high risk within days, not yet critical",
+      "description": "My landlord has given me a final notice and says he will change the locks next week if I don't pay the rent arrears.",
+      "stage": "Pending Triage",
+      "interaction": "NO",
+      "expected_priority": "P2",
+      "rationale": "Imminent eviction within days with concrete landlord threat — high risk but not yet on the street."
+    },
+    {
+      "_note": "Borderline P2/P3 — eviction language but distant timeline; tiebreaker says P3",
+      "description": "I am worried about being evicted in a few months if I cannot find work soon. Currently behind on rent but landlord is being patient for now.",
+      "stage": "Pending Triage",
+      "interaction": "NO",
+      "expected_priority": "P3",
+      "rationale": "Eviction risk exists but timeline is months not days; landlord cooperative. Normal hardship — P3."
+    },
+    {
+      "_note": "Clear P3 — financial hardship, no acute crisis",
+      "description": "I lost my job last month and I'm struggling to pay bills. I need help with groceries and rent for this month.",
+      "stage": "Pending Triage",
+      "interaction": "NO",
+      "expected_priority": "P3",
+      "rationale": "General financial hardship, no immediate threat in next 14 days."
+    },
+    {
+      "_note": "Vague description — apply default P3 per tiebreaker",
+      "description": "Asking for assistance please. May Allah reward you.",
+      "stage": "Pending Triage",
+      "interaction": "NO",
+      "expected_priority": "P3",
+      "rationale": "Vague — default P3 per tiebreaker rule. Do not infer urgency that is not described."
+    },
+    {
+      "_note": "DV language but historical, not current danger — apply rule for current need",
+      "description": "I left my abusive ex-husband two years ago and have been raising my children alone. Now I am behind on the gas bill and they will disconnect next Friday.",
+      "stage": "Pending Triage",
+      "interaction": "NO",
+      "expected_priority": "P2",
+      "rationale": "DV is historical, not current safety threat. Actual current need is utility disconnection within days = P2 per framework."
+    },
+    {
+      "_note": "Funeral cost — P1 by default",
+      "description": "My father passed away yesterday. We need help with the burial costs as soon as possible.",
+      "stage": "Pending Triage",
+      "interaction": "NO",
+      "expected_priority": "P1",
+      "rationale": "Funeral/burial cost is P1 per framework — time-critical religious and emotional obligation."
+    },
+    {
+      "_note": "Long-term debt — P4",
+      "description": "I have credit card debt of $8,000 from past medical bills. I would like assistance with a payment plan to clear this over time.",
+      "stage": "Pending Triage",
+      "interaction": "NO",
+      "expected_priority": "P4",
+      "rationale": "Long-term debt repayment with no immediate impact = P4 per framework."
+    }
+  ],
+  "system_prompt": "You are a quality assurance analyst and caseworker assistant for NZF (National Zakat Foundation Australia). Your role is to (a) recommend the correct priority for each case based on the framework, and (b) flag significant misclassifications for caseworker review. You must apply the priority framework consistently — same description should always produce the same priority recommendation. When in doubt, follow the tiebreaker rules.",
+  "output_schema": {
+    "_description": "Strict JSON shape the model must return. Used at parse time and for documentation.",
+    "quality_score": "Good|Fair|Poor",
+    "quality_summary": "string (2-3 sentences)",
+    "total_reviewed": "integer",
+    "flags": [
+      {
+        "case_id": "string",
+        "assigned_priority": "P1|P2|P3|P4|P5|No Priority",
+        "suggested_priority": "P1|P2|P3|P4|P5",
+        "severity": "High|Medium|Low",
+        "reason": "string (one sentence, no personal names)"
+      }
+    ],
+    "patterns": ["string"],
+    "per_case": {
+      "<case_id>": {
+        "recommended_priority": "P1|P2|P3|P4|P5",
+        "summary": "string (2-3 sentences, no personal names)",
+        "rationale": "string (one short sentence stating which framework rule applied)"
+      }
+    }
+  }
+}
