@@ -257,7 +257,7 @@ function fmtAge(hours) {
   }
 
   renderBanner(pi);
-  renderAIAnalysis(pi.ai_analysis, pi.combined_cases);
+  renderAIAnalysis(pi.ai_analysis, pi.combined_cases, pi);
   renderAttentionTable(pi.combined_cases || []);
 })();
 
@@ -298,7 +298,7 @@ function renderBanner(pi) {
 
 
 // ── AI Analysis card ──────────────────────────────────────────────
-function renderAIAnalysis(analysis, combinedCases) {
+function renderAIAnalysis(analysis, combinedCases, pi = {}) {
   const el    = document.getElementById('ai-priority-analysis');
   const badge = document.getElementById('ai-quality-badge');
 
@@ -346,6 +346,7 @@ function renderAIAnalysis(analysis, combinedCases) {
         ? new Date(analysis.generated_at).toLocaleString('en-AU',
             {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
         : 'unknown'}
+      ${pi.rules_version ? ` &mdash; Rules v${pi.rules_version}${pi.temperature !== undefined ? ` &middot; temp=${pi.temperature}` : ''}` : ''}
     </div>`;
 }
 
