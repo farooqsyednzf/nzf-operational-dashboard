@@ -31,6 +31,18 @@ _pri_rules     = RULES["case_priorities"]
 _periods       = RULES["reporting_periods"]
 _meta          = RULES["_meta"]
 
+# Load dedicated priority classification rules (modular, versioned)
+_PRI_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config", "priority_rules.json")
+try:
+    with open(_PRI_CONFIG_PATH) as _f:
+        PRIORITY_CONFIG = json.load(_f)
+    print(f"  Loaded priority rules v{PRIORITY_CONFIG.get('version','?')} from {_PRI_CONFIG_PATH}")
+except Exception as _e:
+    print(f"  WARNING: Could not load {_PRI_CONFIG_PATH}: {_e} — using defaults from nzf_rules.json")
+    PRIORITY_CONFIG = {}
+
+PRIORITY_RULES_VERSION = PRIORITY_CONFIG.get("version", "0.0.0-fallback")
+
 PRIORITY_MAP         = [(e["prefix"].upper(), e["label"]) for e in _pri_rules["prefix_map"]]
 NO_PRIORITY          = _pri_rules["no_priority_label"]
 PRIORITY_ORDER       = _pri_rules["order"]
@@ -40,7 +52,11 @@ TREND_MONTHS         = _periods["trend_display_months"]
 UNPRIORITIZED_HOURS  = _pri_rules.get("unprioritized_alert_hours", 24)
 CLASSIFICATION_GUIDE = _pri_rules.get("classification_guide", {})
 CRM_BASE_URL         = _meta.get("zoho_crm_base_url", "")
-AI_MODEL             = RULES.get("ai", {}).get("model", "claude-sonnet-4-20250514")
+# Model settings prefer priority_rules.json (v1.0+); fall back to nzf_rules.json
+_model_cfg     = PRIORITY_CONFIG.get("model", {})
+AI_MODEL       = _model_cfg.get("id") or RULES.get("ai", {}).get("model", "claude-sonnet-4-20250514")
+AI_TEMPERATURE = _model_cfg.get("temperature", 0)   # Deterministic by default — same input → same output
+AI_MAX_TOKENS  = _model_cfg.get("max_tokens", 8000)
 
 # SLA targets from rules — response and resolution hours per priority
 _sla_resp = RULES["case_performance"]["sla_response"]
@@ -92,11 +108,23 @@ def last_n_months(n):
     return result[-n:]
 
 # ── Anthropic API helper ──────────────────────────────────────────
-def call_claude(prompt, max_tokens=1500):
-    """Single Claude API call. Returns parsed JSON dict or None on failure."""
+def call_claude(prompt, max_tokens=1500, system=None):
+    """Single Claude API call. Returns parsed JSON dict or None on failure.
+
+    Uses temperature from PRIORITY_CONFIG (default 0 = deterministic).
+    Same input + same model + temperature 0 = identical output every run.
+    """
     if not ANTHROPIC_API_KEY:
         return None
     try:
+        payload = {
+            "model":       AI_MODEL,
+            "max_tokens":  max_tokens,
+            "temperature": AI_TEMPERATURE,
+            "messages":    [{"role": "user", "content": prompt}],
+        }
+        if system:
+            payload["system"] = system
         res = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
@@ -104,11 +132,7 @@ def call_claude(prompt, max_tokens=1500):
                 "anthropic-version": "2023-06-01",
                 "content-type":      "application/json",
             },
-            json={
-                "model":      AI_MODEL,
-                "max_tokens": max_tokens,
-                "messages":   [{"role": "user", "content": prompt}],
-            },
+            json=payload,
             timeout=90,
         )
         res.raise_for_status()
@@ -194,10 +218,22 @@ def run_combined_analysis(recent_cases):
         print(f"  INFO: Only {len(cases_with_desc)} cases with descriptions — skipping")
         return None
 
-    guide_text = "\n".join(
-        f"  {p}: {desc}"
-        for p, desc in CLASSIFICATION_GUIDE.items()
-        if not p.startswith("_")
+    # Build framework text — prefer priority_rules.json; fall back to nzf_rules.json
+    framework = PRIORITY_CONFIG.get("priority_framework") or {
+        k: v for k, v in CLASSIFICATION_GUIDE.items() if not k.startswith("_")
+    }
+    framework_text = "\n".join(f"  {p}: {desc}" for p, desc in framework.items())
+
+    # Tiebreaker rules — applied when evidence is mixed or vague
+    tiebreakers     = PRIORITY_CONFIG.get("tiebreaker_rules", [])
+    tiebreaker_text = "\n".join(f"  {i+1}. {rule}" for i, rule in enumerate(tiebreakers))
+
+    # Few-shot examples — anchor the model against real precedent
+    examples     = PRIORITY_CONFIG.get("few_shot_examples", [])
+    examples_text = "\n".join(
+        f"  Example {i+1}: \"{ex.get('description','')}\"\n"
+        f"    → {ex.get('expected_priority','')}: {ex.get('rationale','')}"
+        for i, ex in enumerate(examples)
     )
 
     case_lines = "\n".join(
@@ -213,10 +249,17 @@ def run_combined_analysis(recent_cases):
         for c in cases_with_desc
     )
 
-    prompt = f"""You are a quality assurance analyst and caseworker assistant for NZF (National Zakat Foundation Australia).
+    system_prompt = PRIORITY_CONFIG.get("system_prompt",
+        "You are a quality assurance analyst and caseworker assistant for NZF.")
 
-PRIORITY FRAMEWORK:
-{guide_text}
+    prompt = f"""PRIORITY FRAMEWORK:
+{framework_text}
+
+TIEBREAKER RULES (apply when evidence is mixed or vague):
+{tiebreaker_text}
+
+REFERENCE EXAMPLES:
+{examples_text}
 
 Review these {len(cases_with_desc)} cases. Each case may include:
 - ASSIGNED: current priority, STAGE: workflow stage
@@ -227,8 +270,9 @@ Review these {len(cases_with_desc)} cases. Each case may include:
 - NOT FUNDED: reason if closed not funded
 
 For EACH case provide:
-1. recommended_priority: Correct priority P1-P5 based on description. Default P3 if vague.
-2. summary: 2-3 sentences covering ALL that apply:
+1. recommended_priority: Correct priority P1-P5 based on framework + tiebreakers + reference examples.
+2. rationale: One short sentence stating which framework rule or tiebreaker applied.
+3. summary: 2-3 sentences covering ALL that apply:
    - What the client needs and urgency level
    - Current status (based on stage, latest note, CW recommendation)
    - If INTERACTION is NO: state "No caseworker interaction recorded"
@@ -237,6 +281,8 @@ For EACH case provide:
    No personal names, locations, or identifying details. Third person, professional.
 
 Also assess overall priority assignment quality and flag significant misclassifications.
+
+CRITICAL: Apply rules consistently — the same description must always produce the same recommended_priority. Do not let surrounding cases influence your judgment of any individual case.
 
 Respond ONLY with valid JSON (no markdown):
 {{
@@ -254,8 +300,8 @@ Respond ONLY with valid JSON (no markdown):
   ],
   "patterns": ["pattern 1"],
   "per_case": {{
-    "201730421": {{"recommended_priority": "P3", "summary": "Client requires rent assistance; caseworker has made contact and assessment is in progress."}},
-    "201730432": {{"recommended_priority": "P1", "summary": "Family violence situation with housing crisis; no caseworker interaction recorded."}}
+    "201730421": {{"recommended_priority": "P3", "rationale": "General financial hardship, no acute crisis = P3 per framework.", "summary": "Client requires rent assistance; caseworker has made contact and assessment is in progress."}},
+    "201730432": {{"recommended_priority": "P1", "rationale": "Active homelessness with children = P1 per framework.", "summary": "Family violence situation with housing crisis; no caseworker interaction recorded."}}
   }}
 }}
 
@@ -267,8 +313,8 @@ Rules:
 Cases:
 {case_lines}"""
 
-    print(f"  Calling Claude for {len(cases_with_desc)} cases...")
-    result = call_claude(prompt, max_tokens=8000)
+    print(f"  Calling Claude (rules v{PRIORITY_RULES_VERSION}, temp={AI_TEMPERATURE}) for {len(cases_with_desc)} cases...")
+    result = call_claude(prompt, max_tokens=AI_MAX_TOKENS, system=system_prompt)
     if result:
         n_flags    = len(result.get("flags", []))
         n_per_case = len(result.get("per_case", {}))
@@ -588,6 +634,10 @@ def build_cases_report(token):
         },
         "priority_trend": priority_trend,
         "priority_intelligence": {
+            "rules_version":        PRIORITY_RULES_VERSION,
+            "rules_updated":        PRIORITY_CONFIG.get("last_updated", ""),
+            "model":                AI_MODEL,
+            "temperature":          AI_TEMPERATURE,
             "no_interaction_count": n_no_int,
             "misclassified_count":  n_misc,
             "unassigned_count":     n_unasn,
