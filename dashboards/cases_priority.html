@@ -482,21 +482,26 @@ function priPill(p, opts = {}) {
 function priCell(assigned, suggested) {
   // Normalise inputs — treat empty string and legacy "Assign Priority" placeholder as missing
   const a = (assigned && assigned !== 'Assign Priority' && assigned !== 'No Priority') ? assigned : '';
-  const s = (suggested && suggested !== 'Assign Priority') ? suggested : '';
+  const s = (suggested && suggested !== 'Assign Priority' && suggested !== 'No Priority') ? suggested : '';
 
-  // No assigned priority and no AI recommendation — single grey dash with tooltip
+  // Display matrix:
+  //   no assigned + no rec     → single grey dash with tooltip
+  //   no assigned + has rec    → "No Priority" pill → recommendation pill (highlights that AI is suggesting on an unassigned case)
+  //   has assigned + no rec    → single assigned pill (clean — don't show '→ —' which looks like a missing value)
+  //   has assigned, AI agrees  → single assigned pill
+  //   has assigned, AI differs → "current → recommended"
+
   if (!a && !s) {
     return priPill('', {tooltip: 'No priority assigned and AI did not return a recommendation'});
   }
-  // Assigned but no AI recommendation — show "P3 → —" with tooltip
-  if (a && !s) {
-    return `<div class="pri-cell">${priPill(a)}<span class="pri-arrow">&#8594;</span>${priPill('', {tooltip: 'AI did not return a recommendation for this case'})}</div>`;
-  }
-  // No assigned but AI has recommendation — single recommendation pill
   if (!a && s) {
-    return priPill(s);
+    // Explicit "No Priority" left pill so officer sees this is unassigned
+    return `<div class="pri-cell">${priPill('No Priority')}<span class="pri-arrow">&#8594;</span>${priPill(s)}</div>`;
   }
-  // Both present — agreement shows single pill, disagreement shows "current → recommended"
+  if (a && !s) {
+    // No AI recommendation — just show the assigned priority cleanly
+    return priPill(a);
+  }
   if (a === s) return priPill(a);
   return `<div class="pri-cell">${priPill(a)}<span class="pri-arrow">&#8594;</span>${priPill(s)}</div>`;
 }
