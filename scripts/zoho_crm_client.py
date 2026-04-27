@@ -71,15 +71,21 @@ def _normalise_crm_record(rec):
     }
 
 
-def fetch_recent_cases(token, days=30, max_pages=5):
+def fetch_recent_cases(token, days=30, max_pages=50):
     """
     Fetch cases created in the last `days` days directly from Zoho CRM.
 
     Returns a list of normalised case dicts in the same shape as
     Analytics-sourced records, ready to drop into priority intelligence code.
 
-    Paginates up to max_pages * 200 = up to 1000 cases.
-    For 30-day windows, NZF typically has ~250-300 cases, so 2 pages max.
+    Pagination: stops naturally when more_records=false; max_pages=50 is a
+    defensive ceiling (= 10,000 cases) to prevent runaway pagination if the
+    cutoff filter ever malfunctions. NZF typically generates 2,000-3,500
+    cases in a 30-day window, so 10-18 pages.
+
+    Previous default (max_pages=5) capped the fetch at 1,000 cases — about
+    33% of the actual 30-day population — which silently dropped older cases
+    from the attention table.
     """
     cutoff     = datetime.now(timezone.utc) - timedelta(days=days)
     cutoff_str = cutoff.strftime("%Y-%m-%dT%H:%M:%S+00:00")
@@ -255,11 +261,19 @@ def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages_per_chunk=2
           f"({len(chunks)} chunks, last {days} days)...")
 
     total_fetched = 0
+    chunks_with_data    = 0
+    chunks_empty        = 0
+    chunks_http_error   = 0
+    chunks_exception    = 0
+    first_query_logged  = False
+
     for chunk_idx, chunk in enumerate(chunks, 1):
         ids_clause = ",".join(f"'{i}'" for i in chunk)
         page = 0
         offset = 0
         per_page = 200
+        chunk_records = 0
+        chunk_failed = False
 
         while page < max_pages_per_chunk:
             page += 1
@@ -271,6 +285,11 @@ def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages_per_chunk=2
                 "ORDER BY Created_Time DESC "
                 f"LIMIT {offset}, {per_page}"
             )
+            # Log the FIRST query verbatim so we can see exactly what's being sent
+            if not first_query_logged:
+                print(f"  [CRM Live] First COQL query (truncated to 500 chars): {query[:500]}")
+                first_query_logged = True
+
             try:
                 res = requests.post(
                     f"{CRM_API_BASE}/coql",
@@ -279,19 +298,65 @@ def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages_per_chunk=2
                     timeout=30,
                 )
             except requests.exceptions.RequestException as e:
-                print(f"  [CRM Live] WARNING: COQL notes failed (chunk {chunk_idx}, page {page}): {e}")
+                chunks_exception += 1
+                chunk_failed = True
+                print(f"  [CRM Live] EXCEPTION on chunk {chunk_idx}/{len(chunks)} page {page}: "
+                      f"{type(e).__name__}: {e}")
                 break
 
+            # 204 = no content (Zoho's "empty" response for some endpoints)
             if res.status_code == 204:
-                break  # no records
+                if page == 1:
+                    chunks_empty += 1
+                    print(f"  [CRM Live] Chunk {chunk_idx}/{len(chunks)}: HTTP 204 (no records)")
+                break
+            # OAuth scope mismatch — fail fast, no point retrying remaining chunks
+            if res.status_code == 401 and "OAUTH_SCOPE_MISMATCH" in res.text:
+                print("")
+                print("  ╔══════════════════════════════════════════════════════════════════════╗")
+                print("  ║  CRITICAL: COQL endpoint requires ZohoCRM.coql.READ scope            ║")
+                print("  ║  The current refresh token does not have this scope.                 ║")
+                print("  ║                                                                      ║")
+                print("  ║  Notes cannot be fetched — every case will appear interaction-less.  ║")
+                print("  ║                                                                      ║")
+                print("  ║  TO FIX: Regenerate refresh token at https://api-console.zoho.com    ║")
+                print("  ║  with scopes:                                                        ║")
+                print("  ║    ZohoCRM.modules.ALL                                               ║")
+                print("  ║    ZohoCRM.coql.READ                                                 ║")
+                print("  ║    ZohoCRM.settings.ALL                                              ║")
+                print("  ║    ZohoAnalytics.metadata.READ                                       ║")
+                print("  ║    ZohoAnalytics.data.READ                                           ║")
+                print("  ║  Then update ZOHO_REFRESH_TOKEN GitHub secret.                       ║")
+                print("  ╚══════════════════════════════════════════════════════════════════════╝")
+                print("")
+                # Mark all remaining chunks as failed without making more API calls
+                chunks_http_error += (len(chunks) - chunk_idx + 1)
+                return {
+                    "_error": "OAUTH_SCOPE_MISMATCH",
+                    "_error_message": "COQL endpoint requires ZohoCRM.coql.READ scope. Notes fetch disabled until token is regenerated.",
+                }
+            # Any non-2xx is a real error — log status, body, and url
             if not res.ok:
-                print(f"  [CRM Live] WARNING: COQL notes HTTP {res.status_code} "
-                      f"(chunk {chunk_idx}, page {page}): {res.text[:200]}")
+                chunks_http_error += 1
+                chunk_failed = True
+                print(f"  [CRM Live] HTTP {res.status_code} on chunk {chunk_idx}/{len(chunks)} "
+                      f"page {page}: body={res.text[:400]}")
                 break
 
-            data    = res.json()
+            # Try to parse JSON — log the raw body if parse fails
+            try:
+                data = res.json()
+            except ValueError as e:
+                chunks_http_error += 1
+                chunk_failed = True
+                print(f"  [CRM Live] JSON parse error on chunk {chunk_idx}/{len(chunks)} "
+                      f"page {page}: {e}; body[:300]={res.text[:300]}")
+                break
+
             records = data.get("data", [])
             if not records:
+                if page == 1:
+                    chunks_empty += 1
                 break
 
             for n in records:
@@ -305,11 +370,19 @@ def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages_per_chunk=2
                     "created": n.get("Created_Time", ""),
                 })
 
+            chunk_records += len(records)
             total_fetched += len(records)
             if not data.get("info", {}).get("more_records", False):
                 break
             offset += per_page
 
-    print(f"  [CRM Live] {total_fetched} notes fetched, "
-          f"indexed for {len(indexed)} of {len(zoho_record_ids)} cases")
+        if chunk_records > 0:
+            chunks_with_data += 1
+        if chunk_failed:
+            print(f"  [CRM Live] Chunk {chunk_idx} failed mid-fetch — partial data may be missing")
+
+    print(f"  [CRM Live] Notes fetch complete: {total_fetched} notes, "
+          f"{len(indexed)} of {len(zoho_record_ids)} cases have notes. "
+          f"Chunks: {chunks_with_data} with data, {chunks_empty} empty, "
+          f"{chunks_http_error} HTTP errors, {chunks_exception} exceptions.")
     return indexed
