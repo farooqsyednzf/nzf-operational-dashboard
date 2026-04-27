@@ -236,6 +236,14 @@ def run_combined_analysis(recent_cases):
         for i, ex in enumerate(examples)
     )
 
+    # Closure codes — caseworker shorthand titles indicating case state changes.
+    # AI should highlight these in summaries when they appear in the latest note.
+    closure_codes = {k: v for k, v in
+                     RULES.get("case_performance", {}).get("closure_codes", {}).items()
+                     if not k.startswith("_")}
+    closure_text  = "\n".join(f"  {k} = {v}" for k, v in closure_codes.items()) \
+                    if closure_codes else "  (none configured)"
+
     case_lines = "\n".join(
         (
             f'ID:{c["case_id"]} ASSIGNED:{c.get("priority","No Priority")} '
@@ -261,6 +269,9 @@ TIEBREAKER RULES (apply when evidence is mixed or vague):
 REFERENCE EXAMPLES:
 {examples_text}
 
+CLOSURE CODES (caseworker shorthand note titles — highlight in summary if present in LATEST NOTE):
+{closure_text}
+
 Review these {len(cases_with_desc)} cases. Each case may include:
 - ASSIGNED: current priority, STAGE: workflow stage
 - INTERACTION: whether a caseworker has interacted (YES/NO)
@@ -276,6 +287,8 @@ For EACH case provide:
    - What the client needs and urgency level
    - Current status (based on stage, latest note, CW recommendation)
    - If INTERACTION is NO: state "No caseworker interaction recorded"
+   - If LATEST NOTE title is a closure code (CCNR, CCUFR, CCF, RFA): explicitly state it
+     in the summary, e.g. "Caseworker marked CCNR (no response after follow-up)"
    - If closed not funded: include the reason
    - If closed funded: state the outcome
    No personal names, locations, or identifying details. Third person, professional.
@@ -392,7 +405,12 @@ def build_cases_report(token):
     # No interaction = zero genuine caseworker notes on a last-30-day case.
     print("\n  Building priority intelligence (live CRM data)...")
 
-    SKIP_STAGES = {"Closed - Funded", "Funding", "Ongoing Funding"}
+    # Skip stages — read from config so closed cases are properly excluded.
+    # Previously hardcoded {"Closed - Funded", "Funding", "Ongoing Funding"} which
+    # missed "Closed - Not Funded" and "Closed - NO Response" → those flooded the
+    # attention table even though the cases were closed.
+    _cs = RULES.get("case_stages", {})
+    SKIP_STAGES = set(_cs.get("closed_stages", [])) | set(_cs.get("skip_for_attention", []))
 
     # 1. All cases from the last 30 days, excluding funded/funding
     crm_recent = [
@@ -403,7 +421,7 @@ def build_cases_report(token):
     # 2. Notes for those cases — scoped to Potentials module so pages aren't
     #    wasted on notes from Contacts, Leads, etc.
     case_zoho_ids = [c.get("id","") for c in crm_recent if c.get("id")]
-    notes_index   = zcrm.fetch_notes_for_cases(token, case_zoho_ids, days=30, max_pages=5)
+    notes_index   = zcrm.fetch_notes_for_cases(token, case_zoho_ids, days=30)
 
     # 3. Determine genuine caseworker interaction per case
     AUTO_TITLES   = {t.lower() for t in RULES["case_performance"]["automated_note_titles"]["exact_match"]}
