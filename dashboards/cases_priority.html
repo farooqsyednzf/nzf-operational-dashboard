@@ -76,6 +76,22 @@
     @keyframes pulse-red {
       0%,100%{opacity:1;} 50%{opacity:0.2;}
     }
+    /* Priority mismatch — AI disagrees with assigned priority */
+    .priority-mismatch-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(253,185,19,0.15); border:1px solid rgba(253,185,19,0.45);
+      color:#7a5c00; font-family:'Cambay',sans-serif;
+      font-size:0.7rem; font-weight:700; padding:2px 9px;
+      border-radius:12px; white-space:nowrap;
+    }
+    /* Unassigned — no priority set */
+    .unassigned-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(159,147,147,0.15); border:1px solid rgba(159,147,147,0.45);
+      color:#555; font-family:'Cambay',sans-serif;
+      font-size:0.7rem; font-weight:700; padding:2px 9px;
+      border-radius:12px; white-space:nowrap;
+    }
 
     /* Data source badge */
     .live-badge {
@@ -184,8 +200,9 @@
         <div>
           <h2>Cases Requiring Attention</h2>
           <p>
-            Potential P1 and P2 cases from the last 30 days — misclassified cases and unassigned cases.
-            Sorted by flag severity, then newest first within each group.
+            Cases from the last 30 days where AI disagrees with the assigned priority,
+            cases with no caseworker interaction breaching SLA, or cases without a priority assigned.
+            Sorted by classification first, then SLA urgency.
           </p>
         </div>
       </div>
@@ -264,12 +281,12 @@ function fmtAge(hours) {
 // ── Banner ────────────────────────────────────────────────────────
 function renderBanner(pi) {
   const el            = document.getElementById('unprioritized-banner');
-  const noInteraction = pi.no_interaction_count ?? 0;
-  const misclassified = pi.misclassified_count  ?? 0;
-  const unassigned    = pi.unassigned_count      ?? 0;
-  const total         = (pi.combined_cases || []).length;
+  const noInteraction   = pi.no_interaction_count    ?? 0;
+  const priorityMismatch = pi.priority_mismatch_count ?? 0;
+  const unassigned      = pi.unassigned_count        ?? 0;
+  const total           = (pi.combined_cases || []).length;
 
-  if (noInteraction === 0 && misclassified === 0 && unassigned === 0) {
+  if (noInteraction === 0 && priorityMismatch === 0 && unassigned === 0) {
     el.innerHTML = `
       <div class="alert-banner ok">
         <span class="alert-icon">&#10003;</span>
@@ -279,14 +296,14 @@ function renderBanner(pi) {
   }
 
   const parts = [];
+  if (priorityMismatch > 0)
+    parts.push(`<strong>${priorityMismatch} priority mismatch${priorityMismatch!==1?'es':''}</strong> (AI disagrees with assigned priority)`);
   if (noInteraction > 0)
-    parts.push(`<strong>${noInteraction} case${noInteraction!==1?'s':''} with no caseworker interaction</strong>`);
-  if (misclassified > 0)
-    parts.push(`<strong>${misclassified} potentially misclassified</strong> (AI suggests P1 or P2)`);
+    parts.push(`<strong>${noInteraction} no caseworker interaction</strong> (SLA breach)`);
   if (unassigned > 0)
     parts.push(`<strong>${unassigned} unassigned</strong>`);
 
-  const cls = noInteraction > 0 ? 'alert' : 'warn';
+  const cls = (priorityMismatch > 0 || noInteraction > 0) ? 'alert' : 'warn';
   el.innerHTML = `
     <div class="alert-banner ${cls}">
       <span class="alert-icon">&#9888;</span>
@@ -320,7 +337,7 @@ function renderAIAnalysis(analysis, combinedCases, pi = {}) {
   const b = badgeMap[score] || badgeMap.fair;
   badge.innerHTML = `<span class="quality-badge ${b.cls}">${b.icon} ${b.label}</span>`;
 
-  const flagged  = (combinedCases||[]).filter(c => c.flag_type === 'misclassified').length;
+  const flagged  = (combinedCases||[]).filter(c => c.flag_type === 'priority_mismatch').length;
   const patterns = analysis.patterns || [];
 
   const flagNote = flagged > 0
@@ -376,23 +393,47 @@ function slaDisplay(status, remainingHours) {
   return `<span class="sla-ok">&#10003; ${str} left</span>`;
 }
 
-function priPill(p) {
+function priPill(p, opts = {}) {
+  const isUnknown = !p || p === '' || p === 'Assign Priority';
+  const label = isUnknown ? '—' : p;
   const col = PRI_COLS[p] || '#9F9393';
-  return `<span style="display:inline-block;padding:2px 9px;border-radius:12px;
+  const tooltip = opts.tooltip ? ` title="${opts.tooltip}"` : '';
+  return `<span${tooltip} style="display:inline-block;padding:2px 9px;border-radius:12px;
     background:${col}20;border:1px solid ${col}60;
     font-family:'Cambay';font-size:0.72rem;font-weight:700;
-    color:${col};white-space:nowrap">${p || '—'}</span>`;
+    color:${col};white-space:nowrap">${label}</span>`;
 }
 
 function priCell(assigned, suggested) {
-  // If same, just show one pill. If different, show current → recommended.
-  if (!assigned || assigned === suggested) return priPill(suggested || assigned || '—');
-  return `<div class="pri-cell">${priPill(assigned)}<span class="pri-arrow">&#8594;</span>${priPill(suggested)}</div>`;
+  // Normalise inputs — treat empty string and legacy "Assign Priority" placeholder as missing
+  const a = (assigned && assigned !== 'Assign Priority' && assigned !== 'No Priority') ? assigned : '';
+  const s = (suggested && suggested !== 'Assign Priority') ? suggested : '';
+
+  // No assigned priority and no AI recommendation — single grey dash with tooltip
+  if (!a && !s) {
+    return priPill('', {tooltip: 'No priority assigned and AI did not return a recommendation'});
+  }
+  // Assigned but no AI recommendation — show "P3 → —" with tooltip
+  if (a && !s) {
+    return `<div class="pri-cell">${priPill(a)}<span class="pri-arrow">&#8594;</span>${priPill('', {tooltip: 'AI did not return a recommendation for this case'})}</div>`;
+  }
+  // No assigned but AI has recommendation — single recommendation pill
+  if (!a && s) {
+    return priPill(s);
+  }
+  // Both present — agreement shows single pill, disagreement shows "current → recommended"
+  if (a === s) return priPill(a);
+  return `<div class="pri-cell">${priPill(a)}<span class="pri-arrow">&#8594;</span>${priPill(s)}</div>`;
 }
 
 function flagBadge(c) {
+  if (c.flag_type === 'priority_mismatch')
+    return `<span class="priority-mismatch-badge">Priority Mismatch</span>`;
   if (c.flag_type === 'no_interaction')
     return `<span class="no-interaction-badge">No Interaction</span>`;
+  if (c.flag_type === 'unassigned')
+    return `<span class="unassigned-badge">Unassigned</span>`;
+  // Fallback severity pill (shouldn't normally show, kept for safety)
   const sev = (c.flag_severity || 'low').toLowerCase();
   const col = sev==='high'?'#c0392b':sev==='medium'?'#7a5c00':'#555';
   const bg  = sev==='high'?'rgba(238,53,38,0.1)':sev==='medium'?'rgba(253,185,19,0.12)':'rgba(159,147,147,0.1)';
@@ -446,10 +487,10 @@ function renderAttentionTable(cases) {
 
   const stages   = [...new Set(cases.map(c => c.stage || '').filter(Boolean))].sort();
   const recPris  = [...new Set(cases.map(c => c.suggested_priority || '').filter(Boolean))].sort();
-  const flagOpts = ['No Interaction','High','Medium','Low'];
-  const nNoInt   = cases.filter(c => c.flag_type === 'no_interaction').length;
-  const nMisc    = cases.filter(c => c.flag_type === 'misclassified').length;
-  const nUnasn   = cases.filter(c => c.flag_type === 'unassigned').length;
+  const flagOpts = ['Priority Mismatch','No Interaction','Unassigned','High','Medium','Low'];
+  const nMismatch = cases.filter(c => c.flag_type === 'priority_mismatch').length;
+  const nNoInt    = cases.filter(c => c.flag_type === 'no_interaction').length;
+  const nUnasn    = cases.filter(c => c.flag_type === 'unassigned').length;
 
   function sel(id, opts, w='120px') {
     return `<select id="${id}" onchange="applyFilters()"
@@ -468,7 +509,7 @@ function renderAttentionTable(cases) {
           <div class="chart-card-title">Cases Requiring Attention</div>
           <div class="chart-card-subtitle" id="table-subtitle">
             ${cases.length} cases &mdash;
-            ${nNoInt > 0 ? `<strong>${nNoInt} no interaction</strong>, ` : ''}${nMisc} misclassified, ${nUnasn} unassigned &mdash; last 30 days
+            ${nMismatch > 0 ? `<strong>${nMismatch} priority mismatch</strong>, ` : ''}${nNoInt > 0 ? `<strong>${nNoInt} no interaction</strong>, ` : ''}${nUnasn} unassigned &mdash; last 30 days
           </div>
         </div>
         <button onclick="clearFilters()" style="font-family:'Cambay';font-size:0.72rem;font-weight:700;
@@ -538,10 +579,17 @@ function applyFilters() {
   const recPri = document.getElementById('filter-rec-pri')?.value || '';
   const stage  = document.getElementById('filter-stage')?.value   || '';
 
+  // Map filter options to either flag_type matches or flag_severity matches
+  const flagTypeMatch = {
+    'Priority Mismatch': 'priority_mismatch',
+    'No Interaction':    'no_interaction',
+    'Unassigned':        'unassigned',
+  };
+
   const filtered = _allCases.filter(c => {
     const flagMatch = !flag
-      || (flag === 'No Interaction' && c.flag_type === 'no_interaction')
-      || (flag !== 'No Interaction' && (c.flag_severity || '') === flag);
+      || (flagTypeMatch[flag] && c.flag_type === flagTypeMatch[flag])
+      || (!flagTypeMatch[flag] && (c.flag_severity || '') === flag);
     return flagMatch
       && (!recPri || (c.suggested_priority || '') === recPri)
       && (!stage  || (c.stage || '') === stage);
