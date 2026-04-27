@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-27T00:02:32.576060+00:00",
+    "last_updated": "2026-04-27T01:20:11.518549+00:00",
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -454,13 +454,13 @@
       }
     },
     "by_outcome": {
-      "No Response": {
-        "stage": "Closed - NO Response",
-        "median_days": 14.0,
-        "avg_days": 39.8,
-        "p75_days": 49.5,
-        "count": 819,
-        "colour": "#FDB913"
+      "Not Funded": {
+        "stage": "Closed - Not Funded",
+        "median_days": 11.6,
+        "avg_days": 62.8,
+        "p75_days": 89.6,
+        "count": 745,
+        "colour": "#EE3526"
       },
       "Funded": {
         "stage": "Closed - Funded",
@@ -470,13 +470,13 @@
         "count": 988,
         "colour": "#49A942"
       },
-      "Not Funded": {
-        "stage": "Closed - Not Funded",
-        "median_days": 11.6,
-        "avg_days": 62.8,
-        "p75_days": 89.6,
-        "count": 745,
-        "colour": "#EE3526"
+      "No Response": {
+        "stage": "Closed - NO Response",
+        "median_days": 14.0,
+        "avg_days": 39.8,
+        "p75_days": 49.5,
+        "count": 819,
+        "colour": "#FDB913"
       }
     },
     "by_priority": {
@@ -653,23 +653,23 @@
       ],
       "series": [
         {
-          "stage": "Closed - NO Response",
-          "label": "No Response",
-          "colour": "#FDB913",
+          "stage": "Closed - Not Funded",
+          "label": "Not Funded",
+          "colour": "#EE3526",
           "data": [
-            16.7,
-            14.3,
-            22.5,
-            12.4,
-            12.4,
-            10.6,
-            10.1,
-            8.6,
-            10.3,
-            12.1,
-            10.2,
-            16.4,
-            17.5
+            35.5,
+            65.9,
+            20.5,
+            20.5,
+            33.5,
+            31.2,
+            5.7,
+            8.4,
+            9.1,
+            4.7,
+            4.4,
+            8.5,
+            10.5
           ]
         },
         {
@@ -693,23 +693,23 @@
           ]
         },
         {
-          "stage": "Closed - Not Funded",
-          "label": "Not Funded",
-          "colour": "#EE3526",
+          "stage": "Closed - NO Response",
+          "label": "No Response",
+          "colour": "#FDB913",
           "data": [
-            35.5,
-            65.9,
-            20.5,
-            20.5,
-            33.5,
-            31.2,
-            5.7,
-            8.4,
-            9.1,
-            4.7,
-            4.4,
-            8.5,
-            10.5
+            16.7,
+            14.3,
+            22.5,
+            12.4,
+            12.4,
+            10.6,
+            10.1,
+            8.6,
+            10.3,
+            12.1,
+            10.2,
+            16.4,
+            17.5
           ]
         }
       ]
