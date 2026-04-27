@@ -43,6 +43,10 @@ except Exception as _e:
 
 PRIORITY_RULES_VERSION = PRIORITY_CONFIG.get("version", "0.0.0-fallback")
 
+# Pipeline version — bump when the script's data-shaping logic changes meaningfully.
+# Lets the dashboard prove which version of the code generated the JSON it's rendering.
+PIPELINE_VERSION = "2.1.0-coql-notes-diagnostics"
+
 PRIORITY_MAP         = [(e["prefix"].upper(), e["label"]) for e in _pri_rules["prefix_map"]]
 NO_PRIORITY          = _pri_rules["no_priority_label"]
 PRIORITY_ORDER       = _pri_rules["order"]
@@ -418,10 +422,23 @@ def build_cases_report(token):
         if c.get("stage","").strip() not in SKIP_STAGES
     ]
 
-    # 2. Notes for those cases — scoped to Potentials module so pages aren't
-    #    wasted on notes from Contacts, Leads, etc.
+    # 2. Notes for those cases — COQL with WHERE Parent_Id IN (...) so we get
+    #    server-side filtering with no cross-module pagination cap.
     case_zoho_ids = [c.get("id","") for c in crm_recent if c.get("id")]
     notes_index   = zcrm.fetch_notes_for_cases(token, case_zoho_ids, days=30)
+
+    # Diagnostic stats — surfaced on cases.json so the dashboard can verify
+    # which code path ran. If notes_total is 0 or notes_indexed_for is 0 across
+    # 30+ in-window cases, something is wrong with the fetch (auth, scope, etc).
+    NOTES_DIAG = {
+        "fetch_method":       "coql",
+        "fetch_window_days":  30,
+        "cases_in_window":    len(crm_recent),
+        "cases_queried":      len(case_zoho_ids),
+        "notes_total":        sum(len(v) for v in notes_index.values()),
+        "cases_with_notes":   len(notes_index),
+    }
+    print(f"  Notes diagnostic: {NOTES_DIAG}")
 
     # 3. Determine genuine caseworker interaction per case
     AUTO_TITLES   = {t.lower() for t in RULES["case_performance"]["automated_note_titles"]["exact_match"]}
@@ -453,6 +470,40 @@ def build_cases_report(token):
             "latest_note_title": latest_note["title"] if latest_note else "",
             "latest_note":       (latest_note["content"] or "")[:200] if latest_note else "",
         })
+
+    # ── Diagnostic probe ──────────────────────────────────────────
+    # For a fixed set of test cases, dump the full pipeline state.
+    # This is the smoking gun — if a case has notes in CRM but appears
+    # interaction-less here, this probe tells us EXACTLY which step failed:
+    #   - in_crm_recent: was the case fetched at all?
+    #   - notes_in_index: how many notes did the COQL fetch return?
+    #   - cw_notes_after_filter: how many survived the auto-title filter?
+    #   - has_cw_notes: final flag value used by the dashboard
+    PROBE_CASE_IDS = ["201730297", "201730385", "201730438"]
+    case_probes = {}
+    crm_by_case_id = {c.get("case_id",""): c for c in crm_recent}
+    sample_by_case_id = {s["case_id"]: s for s in recent_sample}
+    for pid in PROBE_CASE_IDS:
+        crm_c = crm_by_case_id.get(pid)
+        smp   = sample_by_case_id.get(pid)
+        zid   = crm_c.get("id","") if crm_c else None
+        raw_notes      = notes_index.get(zid, []) if zid else []
+        filtered_notes = get_caseworker_notes(zid) if zid else []
+        case_probes[pid] = {
+            "in_crm_recent":          bool(crm_c),
+            "stage":                  crm_c.get("stage","") if crm_c else None,
+            "zoho_record_id":         zid,
+            "has_description":        bool(crm_c and crm_c.get("description","").strip()) if crm_c else False,
+            "in_recent_sample":       bool(smp),
+            "notes_in_index":         len(raw_notes),
+            "raw_note_titles":        [n["title"] for n in raw_notes],
+            "cw_notes_after_filter":  len(filtered_notes),
+            "filtered_note_titles":   [n["title"] for n in filtered_notes],
+            "has_cw_notes_final":     smp.get("has_cw_notes", False) if smp else False,
+        }
+        print(f"  Probe {pid}: in_crm={bool(crm_c)}, "
+              f"notes_idx={len(raw_notes)}, after_filter={len(filtered_notes)}, "
+              f"has_cw_notes={case_probes[pid]['has_cw_notes_final']}")
 
     case_id_lookup = {s["case_id"]: s["zoho_record_id"] for s in recent_sample if s["case_id"]}
 
@@ -664,10 +715,13 @@ def build_cases_report(token):
         },
         "priority_trend": priority_trend,
         "priority_intelligence": {
+            "pipeline_version":        PIPELINE_VERSION,
             "rules_version":           PRIORITY_RULES_VERSION,
             "rules_updated":           PRIORITY_CONFIG.get("last_updated", ""),
             "model":                   AI_MODEL,
             "temperature":             AI_TEMPERATURE,
+            "notes_diagnostic":        NOTES_DIAG,
+            "case_probes":             case_probes,
             "priority_mismatch_count": n_mismatch,
             "no_interaction_count":    n_no_int,
             "unassigned_count":        n_unasn,
