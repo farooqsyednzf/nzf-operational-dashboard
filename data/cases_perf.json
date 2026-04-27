@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-27T09:23:22.051148+00:00",
+    "last_updated": "2026-04-27T09:34:52.925232+00:00",
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -27,7 +27,7 @@
     "resp_sla_pct": 42.6,
     "resol_sla_pct": 33.1,
     "funding_rate_pct": 37.7,
-    "backlog_over_30d": 670,
+    "backlog_over_30d": 672,
     "resp_trend": "regressing",
     "resol_trend": "improving",
     "close_trend": "improving"
@@ -802,7 +802,7 @@
   },
   "backlog": {
     "total_open": 829,
-    "over_30d": 670,
+    "over_30d": 672,
     "by_age": [
       {
         "band": "0\u20137 days",
@@ -814,11 +814,11 @@
       },
       {
         "band": "15\u201330 days",
-        "count": 70
+        "count": 68
       },
       {
         "band": "31\u201360 days",
-        "count": 228
+        "count": 230
       },
       {
         "band": "60+ days",
