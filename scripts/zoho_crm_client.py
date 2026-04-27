@@ -71,63 +71,78 @@ def _normalise_crm_record(rec):
     }
 
 
-def fetch_recent_cases(token, days=30, max_pages=50):
+def fetch_recent_cases(token, days=30, max_pages=20):
     """
-    Fetch cases created in the last `days` days directly from Zoho CRM.
+    Fetch cases created in the last `days` days directly from Zoho CRM via COQL.
+
+    Why COQL instead of GET /Potentials with criteria:
+      The GET /{module} endpoint silently ignores the `criteria` parameter —
+      it only sorts by created_time DESC and returns whatever fits in
+      max_pages * per_page records. With max_pages=5 the pipeline fetched
+      the most recent 1,000 cases regardless of age. With max_pages=50,
+      it fetched 10,000 cases going back many months.
+
+      COQL applies the WHERE clause server-side, so age filtering actually
+      works. Cases older than `days` are guaranteed not to leak in.
 
     Returns a list of normalised case dicts in the same shape as
     Analytics-sourced records, ready to drop into priority intelligence code.
-
-    Pagination: stops naturally when more_records=false; max_pages=50 is a
-    defensive ceiling (= 10,000 cases) to prevent runaway pagination if the
-    cutoff filter ever malfunctions. NZF typically generates 2,000-3,500
-    cases in a 30-day window, so 10-18 pages.
-
-    Previous default (max_pages=5) capped the fetch at 1,000 cases — about
-    33% of the actual 30-day population — which silently dropped older cases
-    from the attention table.
     """
     cutoff     = datetime.now(timezone.utc) - timedelta(days=days)
     cutoff_str = cutoff.strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
-    headers    = {"Authorization": f"Zoho-oauthtoken {token}"}
-    all_cases  = []
+    headers = {
+        "Authorization": f"Zoho-oauthtoken {token}",
+        "Content-Type":  "application/json",
+    }
+    all_cases = []
 
-    print(f"  [CRM Live] Fetching cases created after {cutoff.strftime('%Y-%m-%d %H:%M UTC')}...")
+    print(f"  [CRM Live] Fetching cases via COQL "
+          f"(Created_Time > {cutoff.strftime('%Y-%m-%d %H:%M UTC')})...")
 
+    # COQL field list — same fields as before but quoted as a SELECT clause.
+    # Note: COQL flattens lookup fields; for Contact_Name we use 'Contact_Name.id'
+    # and 'Contact_Name.name' to mirror the previous record shape.
+    coql_fields = (
+        "id, CASE_ID, Stage, Priority, Description, Created_Time, "
+        "Contact_Name, CW_Recommendation, Reason_for_Not_Funding"
+    )
+
+    offset = 0
+    per_page = 200
     for page in range(1, max_pages + 1):
-        params = {
-            "fields":    CRM_FIELDS,
-            "criteria":  f"(Created_Time:greater_than:{cutoff_str})",
-            "sort_by":   "Created_Time",
-            "sort_order":"desc",
-            "per_page":  200,
-            "page":      page,
-        }
-
+        query = (
+            f"SELECT {coql_fields} "
+            "FROM Deals "
+            f"WHERE Created_Time > '{cutoff_str}' "
+            "ORDER BY Created_Time DESC "
+            f"LIMIT {offset}, {per_page}"
+        )
         try:
-            res = requests.get(
-                f"{CRM_API_BASE}/Potentials",
+            res = requests.post(
+                f"{CRM_API_BASE}/coql",
                 headers=headers,
-                params=params,
+                json={"select_query": query},
                 timeout=30,
             )
         except requests.exceptions.RequestException as e:
-            print(f"  [CRM Live] WARNING: Request failed on page {page}: {e}")
+            print(f"  [CRM Live] WARNING: Cases COQL request failed on page {page}: {e}")
             break
 
         if res.status_code == 204:
-            # No content — no more records
-            break
+            break  # no more records
 
         if res.status_code == 401:
             print("  [CRM Live] ERROR: 401 Unauthorised — refresh token may lack "
-                  "ZohoCRM.modules.READ scope. Re-run the Setup workflow with the "
-                  "combined scope: ZohoAnalytics.fullaccess.all,ZohoCRM.modules.READ")
+                  "ZohoCRM.coql.READ scope. Re-generate refresh token with full "
+                  "scope set: ZohoCRM.modules.ALL,ZohoCRM.coql.READ,"
+                  "ZohoCRM.settings.ALL,ZohoAnalytics.metadata.READ,"
+                  "ZohoAnalytics.data.READ")
             return []
 
         if not res.ok:
-            print(f"  [CRM Live] WARNING: HTTP {res.status_code} on page {page} — stopping")
+            print(f"  [CRM Live] WARNING: Cases COQL HTTP {res.status_code} on "
+                  f"page {page}: {res.text[:200]}")
             break
 
         data    = res.json()
@@ -144,8 +159,9 @@ def fetch_recent_cases(token, days=30, max_pages=50):
 
         if not more:
             break
+        offset += per_page
 
-    print(f"  [CRM Live] Done — {len(all_cases)} cases fetched from live CRM")
+    print(f"  [CRM Live] Done — {len(all_cases)} cases fetched (last {days} days)")
     return all_cases
 
 
