@@ -485,7 +485,7 @@ def build_cases_report(token):
             "age_hours":           age_h,
             "stage":               crm_c.get("stage",""),
             "assigned_priority":   assigned_pri,
-            "suggested_priority":  suggested_pri,
+            "suggested_priority":  suggested_pri,  # may be None when AI returned no data
             "flag_type":           flag_type,
             "flag_severity":       flag_severity,
             "response_sla_status":    resp_status,
@@ -495,117 +495,129 @@ def build_cases_report(token):
             "ai_summary":          summary,
         }
 
-    # A. No interaction — cases with zero caseworker notes
-    for c in sorted(crm_recent, key=lambda x: zac.parse_dt(x.get("created_time","")) or now, reverse=True):
-        cid = c.get("case_id","")
-        if not cid or cid in seen_ids: continue
-        smp = sample_idx.get(cid, {})
-        if smp.get("has_cw_notes", True): continue   # has notes — skip
-        enr = per_case.get(cid, {})
-        pri = normalise_priority(c.get("case_urgency",""))
-        combined.append(build_row(cid, c, "no_interaction", "High",
-                                  pri or NO_PRIORITY,
-                                  enr.get("recommended_priority","Assign Priority"), enr))
-        seen_ids.add(cid)
+    # ── Build attention table with three independent inclusion rules ──
+    # Each case is evaluated against three rules. If ANY rule matches, the
+    # case is included. flag_type is set to the FIRST matching rule, in this
+    # priority order:
+    #   1. priority_mismatch — assigned ≠ AI recommendation (classification issue)
+    #   2. no_interaction    — no caseworker notes AND breaching at least one SLA
+    #   3. unassigned        — no priority assigned at all
+    #
+    # Notes:
+    # - When AI returns no per_case data, suggested_priority is None (not the
+    #   placeholder string "Assign Priority"). The dashboard renders this as "—".
+    # - "no_interaction" is only flagged when SLA is breached (per spec — keeps
+    #   the table actionable, otherwise list grows too long).
+    HIGH_PRI = {"P1", "P2"}
 
-    # B. AI-flagged misclassifications suggesting P1 or P2
-    for f in sorted([f for f in flags if f.get("suggested_priority","") in HIGH_PRI],
-                    key=lambda x: SEV_ORDER.get(x.get("severity","Low"), 2)):
-        cid   = f.get("case_id","")
-        if not cid or cid in seen_ids: continue
-        crm_c = crm_index.get(cid, {})
-        combined.append(build_row(cid, crm_c, "misclassified", f.get("severity","Medium"),
-                                  f.get("assigned_priority",""), f.get("suggested_priority",""),
-                                  per_case.get(cid,{})))
-        seen_ids.add(cid)
+    def is_breaching_sla(crm_c, has_notes, suggested_pri, assigned_pri):
+        """Returns True if the case is breaching response or resolution SLA."""
+        crdt = zac.parse_dt(crm_c.get("created_time",""))
+        if not crdt:
+            return False
+        age_h = (now - crdt).total_seconds() / 3600
+        # Use recommended priority for SLA if available, else assigned
+        pri = suggested_pri if suggested_pri in RESPONSE_SLA_HOURS else \
+              (assigned_pri if assigned_pri in RESPONSE_SLA_HOURS else None)
+        if not pri:
+            return False
+        # Response SLA: only counts as breach if no caseworker notes yet
+        if not has_notes:
+            resp_sla = RESPONSE_SLA_HOURS.get(pri)
+            if resp_sla is not None and age_h > resp_sla:
+                return True
+        # Resolution SLA breach is always relevant
+        resol_sla = RESOLUTION_SLA_HOURS.get(pri)
+        if resol_sla is not None and age_h > resol_sla:
+            return True
+        return False
 
-    # C. Unassigned — last 30 days, no priority set
     for c in crm_recent:
         cid = c.get("case_id","")
-        if not cid or cid in seen_ids: continue
-        if normalise_priority(c.get("case_urgency","")) != NO_PRIORITY: continue
-        crdt  = zac.parse_dt(c.get("created_time",""))
-        age_h = round((now - crdt).total_seconds() / 3600, 1) if crdt else None
-        sev   = "High" if (age_h or 0) > 48 else "Medium" if (age_h or 0) > 24 else "Low"
-        enr   = per_case.get(cid, {})
-        combined.append(build_row(cid, c, "unassigned", sev,
-                                  NO_PRIORITY, enr.get("recommended_priority","Assign Priority"), enr))
+        if not cid or cid in seen_ids:
+            continue
+
+        assigned_pri = normalise_priority(c.get("case_urgency",""))
+        enr          = per_case.get(cid, {})
+        # AI recommendation is None if the model did not return per_case data
+        # for this case. Do NOT substitute the placeholder "Assign Priority"
+        # string — the dashboard handles None explicitly.
+        ai_recommended = enr.get("recommended_priority")
+        if ai_recommended in ("", "Assign Priority"):
+            ai_recommended = None
+
+        smp       = sample_idx.get(cid, {})
+        has_notes = smp.get("has_cw_notes", False)
+
+        # Rule 1: Priority mismatch — assigned exists, AI disagrees
+        # Only flag when AI has a confident recommendation that differs
+        is_mismatch = (
+            assigned_pri != NO_PRIORITY
+            and ai_recommended in PRIORITY_ORDER
+            and ai_recommended != assigned_pri
+        )
+        # Rule 2: No interaction + SLA breach
+        is_no_interaction = (
+            not has_notes
+            and is_breaching_sla(c, has_notes, ai_recommended, assigned_pri)
+        )
+        # Rule 3: Unassigned — no priority set at all
+        is_unassigned = (assigned_pri == NO_PRIORITY)
+
+        if not (is_mismatch or is_no_interaction or is_unassigned):
+            continue
+
+        # Pick primary flag_type (one row per case)
+        if is_mismatch:
+            flag_type = "priority_mismatch"
+            # Severity: P1/P2 mismatches are High, others Medium
+            severity = "High" if ai_recommended in HIGH_PRI else "Medium"
+            display_suggested = ai_recommended
+        elif is_no_interaction:
+            flag_type = "no_interaction"
+            severity  = "High"
+            display_suggested = ai_recommended  # may be None
+        else:  # is_unassigned
+            flag_type = "unassigned"
+            crdt  = zac.parse_dt(c.get("created_time",""))
+            age_h = (now - crdt).total_seconds() / 3600 if crdt else 0
+            severity = "High" if age_h > 48 else ("Medium" if age_h > 24 else "Low")
+            display_suggested = ai_recommended  # may be None
+
+        combined.append(build_row(
+            cid, c, flag_type, severity,
+            assigned_pri, display_suggested, enr
+        ))
         seen_ids.add(cid)
 
-    # Sort: P1 with overdue response SLA first (on fire), then created date desc, then priority
-    PRI_ORDER = {"P1":0,"P2":1,"P3":2,"P4":3}
+    # Sort: priority_mismatch first (classification issue), then no_interaction
+    # (operational urgency), then unassigned. Within each, P1/P2-overdue first,
+    # then severity, then newest.
+    FLAG_ORDER = {"priority_mismatch": 0, "no_interaction": 1, "unassigned": 2}
+    PRI_ORDER  = {"P1": 0, "P2": 1, "P3": 2, "P4": 3}
     def sort_key(x):
+        flag_rank   = FLAG_ORDER.get(x.get("flag_type",""), 9)
         is_p1_overdue = (
             x.get("suggested_priority") == "P1"
             and x.get("response_sla_status") == "overdue"
         )
         return (
-            0 if is_p1_overdue else 1,                          # P1 overdue first
-            -x.get("created_ts", 0),                            # newest first
-            PRI_ORDER.get(x.get("suggested_priority",""), 9)    # priority tiebreak
+            flag_rank,
+            0 if is_p1_overdue else 1,
+            SEV_ORDER.get(x.get("flag_severity","Low"), 2),
+            -x.get("created_ts", 0),
+            PRI_ORDER.get(x.get("suggested_priority","") or "", 9),
         )
     combined.sort(key=sort_key)
     for row in combined:
         row.pop("created_ts", None)
 
-    n_no_int = sum(1 for r in combined if r["flag_type"] == "no_interaction")
-    n_misc   = sum(1 for r in combined if r["flag_type"] == "misclassified")
-    n_unasn  = sum(1 for r in combined if r["flag_type"] == "unassigned")
-    print(f"  Table: {len(combined)} rows — {n_no_int} no interaction, "
-          f"{n_misc} misclassified, {n_unasn} unassigned")
-
-    # B. AI-flagged misclassifications suggesting P1 or P2
-    p1p2_flags = [f for f in flags if f.get("suggested_priority","") in HIGH_PRI]
-    for f in sorted(p1p2_flags, key=lambda x: (
-        SEV_ORDER.get(x.get("severity","Low"), 2),
-        -(zac.parse_dt(crm_index.get(x.get("case_id",""),{}).get("created_time","")) or now).timestamp()
-    )):
-        cid = f.get("case_id","")
-        if not cid or cid in seen_ids: continue
-        crm_c = crm_index.get(cid, {})
-        row   = build_row(cid, crm_c, "misclassified",
-                          f.get("severity","Medium"),
-                          f.get("assigned_priority",""),
-                          f.get("suggested_priority",""),
-                          per_case.get(cid,{}),
-                          f.get("reason",""))
-        combined.append(row)
-        seen_ids.add(cid)
-
-    # C. Last-30-day unassigned cases
-    unassigned_30d = [
-        c for c in crm_recent
-        if normalise_priority(c.get("case_urgency","")) == NO_PRIORITY
-        and c.get("case_id","") not in seen_ids
-    ]
-    for c in unassigned_30d:
-        cid  = c.get("case_id","")
-        if not cid or cid in seen_ids: continue
-        crdt = zac.parse_dt(c.get("created_time",""))
-        age_h= round((now-crdt).total_seconds()/3600,1) if crdt else None
-        sev  = "High" if (age_h or 0)>48 else "Medium" if (age_h or 0)>24 else "Low"
-        enr  = per_case.get(cid,{})
-        row  = build_row(cid, c, "unassigned", sev,
-                         NO_PRIORITY,
-                         enr.get("recommended_priority","Assign Priority"),
-                         enr)
-        combined.append(row)
-        seen_ids.add(cid)
-
-    # Sort: no_interaction first, then by severity, then newest
-    combined.sort(key=lambda x: (
-        0 if x["flag_type"]=="no_interaction" else SEV_ORDER.get(x["flag_severity"],"Low")+1,
-        -x.get("created_ts", 0)
-    ))
-    for row in combined:
-        row.pop("created_ts", None)
-
-    n_no_interaction = len([r for r in combined if r["flag_type"]=="no_interaction"])
-    n_misclassified  = len([r for r in combined if r["flag_type"]=="misclassified"])
-    n_unassigned     = len([r for r in combined if r["flag_type"]=="unassigned"])
-    print(f"  Combined table: {len(combined)} rows — "
-          f"{n_no_interaction} no interaction, {n_misclassified} misclassified, "
-          f"{n_unassigned} unassigned")
+    n_mismatch = sum(1 for r in combined if r["flag_type"] == "priority_mismatch")
+    n_no_int   = sum(1 for r in combined if r["flag_type"] == "no_interaction")
+    n_unasn    = sum(1 for r in combined if r["flag_type"] == "unassigned")
+    print(f"  Attention table: {len(combined)} rows — "
+          f"{n_mismatch} priority mismatch, {n_no_int} no interaction (SLA breach), "
+          f"{n_unasn} unassigned")
 
     return {
         "meta": {
@@ -634,15 +646,15 @@ def build_cases_report(token):
         },
         "priority_trend": priority_trend,
         "priority_intelligence": {
-            "rules_version":        PRIORITY_RULES_VERSION,
-            "rules_updated":        PRIORITY_CONFIG.get("last_updated", ""),
-            "model":                AI_MODEL,
-            "temperature":          AI_TEMPERATURE,
-            "no_interaction_count": n_no_int,
-            "misclassified_count":  n_misc,
-            "unassigned_count":     n_unasn,
-            "combined_cases":       combined,
-            "ai_analysis":          ai_analysis,
+            "rules_version":           PRIORITY_RULES_VERSION,
+            "rules_updated":           PRIORITY_CONFIG.get("last_updated", ""),
+            "model":                   AI_MODEL,
+            "temperature":             AI_TEMPERATURE,
+            "priority_mismatch_count": n_mismatch,
+            "no_interaction_count":    n_no_int,
+            "unassigned_count":        n_unasn,
+            "combined_cases":          combined,
+            "ai_analysis":             ai_analysis,
         },
     }
 # ── Main ──────────────────────────────────────────────────────────
@@ -668,7 +680,7 @@ def main():
     print(f"  Current month:       {s['current_month']}")
     print(f"  12-month total:      {s['total_12m']:,}")
     print(f"  No interaction:      {pi['no_interaction_count']}")
-    print(f"  Misclassified P1/P2: {pi['misclassified_count']}")
+    print(f"  Priority mismatches:  {pi['priority_mismatch_count']}")
     print(f"  Unassigned 30d:      {pi['unassigned_count']}")
     print(f"  Combined table rows: {len(pi['combined_cases'])}")
     if ai:
