@@ -225,11 +225,7 @@
         "Case Allocation Notes",
         "Online Application",
         "Application:",
-        "Application",
-        "CCNR",
-        "CCUFR",
-        "CCF",
-        "RFA"
+        "Application"
       ],
       "prefix_match": [
         "Application:"
@@ -251,7 +247,14 @@
       "Closed - NO Response": "No Response"
     },
     "trend_comparison_months": 3,
-    "_trend_note": "Number of months used for trend comparison (last N vs prior N months)"
+    "_trend_note": "Number of months used for trend comparison (last N vs prior N months)",
+    "closure_codes": {
+      "_description": "Caseworker shorthand titles indicating case state changes. These count as legitimate caseworker interactions and should be highlighted in the AI-generated case summary when present.",
+      "CCNR": "Case Closed - No Response from client after follow-up",
+      "CCUFR": "Case Closed - Unfunded (case rejected)",
+      "CCF": "Case Closed - Funded (case approved and paid)",
+      "RFA": "Ready for Allocation"
+    }
   },
   "case_priorities": {
     "_description": "Normalisation rules for the Case Urgency field. Raw values in Zoho CRM are inconsistent \u2014 these prefix matches normalise them to clean labels for reporting.",
@@ -350,7 +353,11 @@
         "Closed - Not Funded",
         "Closed - NO Response"
       ]
-    }
+    },
+    "skip_for_attention": [
+      "Funding",
+      "Ongoing Funding"
+    ]
   },
   "reporting_periods": {
     "_description": "Standard time windows used across all reports",
