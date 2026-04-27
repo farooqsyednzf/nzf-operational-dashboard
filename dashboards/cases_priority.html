@@ -76,7 +76,52 @@
     @keyframes pulse-red {
       0%,100%{opacity:1;} 50%{opacity:0.2;}
     }
-    /* Priority mismatch — AI disagrees with assigned priority */
+    /* Priority tabs + KPI strip ─────────────────────────────────── */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 0 0 14px;
+    }
+    @media (max-width: 700px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+    .kpi-tile {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--kpi-tile-accent, #1F3864);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+    }
+    .kpi-tile-label {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.62rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--text-muted);
+    }
+    .kpi-tile-value {
+      font-family: 'Bree Serif', serif;
+      font-size: 1.4rem; line-height: 1.05;
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+    .kpi-tile-sub {
+      font-family: 'Cambay', sans-serif;
+      font-size: 0.7rem; color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .kpi-tile.accent-red    { --kpi-tile-accent: #EE3524; }
+    .kpi-tile.accent-amber  { --kpi-tile-accent: #FDB913; }
+    .kpi-tile.accent-blue   { --kpi-tile-accent: #0081C6; }
+    .kpi-tile.accent-purple { --kpi-tile-accent: #7B3FA0; }
+    .kpi-tile.accent-grey   { --kpi-tile-accent: #9F9393; }
+    /* Tab count pill */
+    .month-tab .tab-count {
+      display: inline-block;
+      margin-left: 6px;
+      font-size: 0.66rem;
+      opacity: 0.75;
+      font-weight: 700;
+    }
+    .month-tab.active .tab-count { opacity: 0.9; }
     .priority-mismatch-badge {
       display:inline-flex; align-items:center; gap:5px;
       background:rgba(253,185,19,0.15); border:1px solid rgba(253,185,19,0.45);
@@ -207,8 +252,16 @@
         </div>
       </div>
 
+      <div id="attention-tabs" class="month-tabs" style="margin-top:6px"></div>
+      <div id="attention-kpis" class="kpi-strip"></div>
+      <div id="attention-chart-host"></div>
       <div id="attention-table-wrap">
         <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+      <div id="attention-tab-caption" style="font-family:'Cambay';font-size:0.7rem;
+           color:var(--text-muted);margin-top:8px;display:none">
+        A case may appear under multiple priorities when AI disagrees with assigned priority.
+        Tab counts therefore may not sum to the total.
       </div>
 
     </div><!-- /page-content -->
@@ -370,6 +423,28 @@ function renderAIAnalysis(analysis, combinedCases, pi = {}) {
 // ── Cases Requiring Attention table ──────────────────────────────
 // ── Priority Intelligence Table ───────────────────────────────
 let _allCases = [];
+let _priTab   = 'All';   // 'All' | 'P1' | 'P2' | 'P3' | 'P4' | 'Unassigned'
+
+// ── Effective priority logic ─────────────────────────────────────
+// A case has multiple effective priorities when AI disagrees with assigned.
+// Used for "either matches" tab filtering — a P2-assigned case where AI says
+// P1 will appear under both the P1 and P2 tabs (and 'All').
+function effectivePriorities(c) {
+  const out = new Set();
+  const assigned  = (c.assigned_priority  || '').trim();
+  const suggested = (c.suggested_priority || '').trim();
+  if (assigned && assigned !== 'No Priority' && assigned !== 'Assign Priority')
+    out.add(assigned);
+  if (suggested && suggested !== 'Assign Priority' && suggested !== 'No Priority')
+    out.add(suggested);
+  if (out.size === 0) out.add('Unassigned');
+  return out;
+}
+
+function casesForTab(tab) {
+  if (tab === 'All') return _allCases;
+  return _allCases.filter(c => effectivePriorities(c).has(tab));
+}
 
 const PRI_COLS = {
   P1:'#EE3526', P2:'#E8732A', P3:'#FDB913', P4:'#49A942',
@@ -477,20 +552,31 @@ function clientLink(c) {
 
 // ── Main render ───────────────────────────────────────────────
 function renderAttentionTable(cases) {
+  _allCases = cases || [];
+
+  // Render tabs and KPIs first — these read from _allCases / _priTab
+  renderPriTabs();
+  renderKpis();
+
+  // Show explanatory caption only if any case has multiple effective priorities
+  const hasMulti = _allCases.some(c => effectivePriorities(c).size > 1);
+  document.getElementById('attention-tab-caption').style.display = hasMulti ? 'block' : 'none';
+
   const wrap = document.getElementById('attention-table-wrap');
-  if (!cases || cases.length === 0) {
+  if (!_allCases.length) {
     wrap.innerHTML = `<div class="chart-card" style="padding:24px;font-family:'Cambay';color:var(--text-muted)">
       No cases requiring attention at this time.</div>`;
     return;
   }
-  _allCases = cases;
 
-  const stages   = [...new Set(cases.map(c => c.stage || '').filter(Boolean))].sort();
-  const recPris  = [...new Set(cases.map(c => c.suggested_priority || '').filter(Boolean))].sort();
+  const tabCases = casesForTab(_priTab);
+
+  const stages   = [...new Set(tabCases.map(c => c.stage || '').filter(Boolean))].sort();
+  const recPris  = [...new Set(tabCases.map(c => c.suggested_priority || '').filter(Boolean))].sort();
   const flagOpts = ['Priority Mismatch','No Interaction','Unassigned','High','Medium','Low'];
-  const nMismatch = cases.filter(c => c.flag_type === 'priority_mismatch').length;
-  const nNoInt    = cases.filter(c => c.flag_type === 'no_interaction').length;
-  const nUnasn    = cases.filter(c => c.flag_type === 'unassigned').length;
+  const nMismatch = tabCases.filter(c => c.flag_type === 'priority_mismatch').length;
+  const nNoInt    = tabCases.filter(c => c.flag_type === 'no_interaction').length;
+  const nUnasn    = tabCases.filter(c => c.flag_type === 'unassigned').length;
 
   function sel(id, opts, w='120px') {
     return `<select id="${id}" onchange="applyFilters()"
@@ -502,13 +588,14 @@ function renderAttentionTable(cases) {
     </select>`;
   }
 
+  const tabLabel = _priTab === 'All' ? 'all priorities' : _priTab;
   wrap.innerHTML = `
     <div class="chart-card">
       <div class="chart-card-header">
         <div>
-          <div class="chart-card-title">Cases Requiring Attention</div>
+          <div class="chart-card-title">Cases Requiring Attention &mdash; ${tabLabel}</div>
           <div class="chart-card-subtitle" id="table-subtitle">
-            ${cases.length} cases &mdash;
+            ${tabCases.length} cases &mdash;
             ${nMismatch > 0 ? `<strong>${nMismatch} priority mismatch</strong>, ` : ''}${nNoInt > 0 ? `<strong>${nNoInt} no interaction</strong>, ` : ''}${nUnasn} unassigned &mdash; last 30 days
           </div>
         </div>
@@ -541,7 +628,96 @@ function renderAttentionTable(cases) {
            color:var(--text-muted);text-align:center">No cases match the selected filters.</div>
     </div>`;
 
-  renderTableRows(_allCases);
+  renderTableRows(tabCases);
+}
+
+// ── Priority tabs ────────────────────────────────────────────────
+function renderPriTabs() {
+  const el = document.getElementById('attention-tabs');
+  if (!el) return;
+  const tabs = [
+    { key: 'All',        label: 'All' },
+    { key: 'P1',         label: 'P1' },
+    { key: 'P2',         label: 'P2' },
+    { key: 'P3',         label: 'P3' },
+    { key: 'P4',         label: 'P4' },
+    { key: 'Unassigned', label: 'Unassigned' },
+  ];
+  el.innerHTML = tabs.map(t => {
+    const n = casesForTab(t.key).length;
+    const active = (t.key === _priTab) ? ' active' : '';
+    return `<button class="month-tab${active}" onclick="selectPriTab('${t.key}')">${t.label}<span class="tab-count">${n}</span></button>`;
+  }).join('');
+}
+
+function selectPriTab(tab) {
+  _priTab = tab;
+  // Reset secondary filters when switching tabs (clean slate per priority)
+  ['filter-flag','filter-rec-pri','filter-stage'].forEach(id => {
+    const e = document.getElementById(id); if (e) e.value = '';
+  });
+  renderAttentionTable(_allCases);
+}
+
+// ── KPI tiles for the selected tab ───────────────────────────────
+function renderKpis() {
+  const el = document.getElementById('attention-kpis');
+  if (!el) return;
+  const tabCases = casesForTab(_priTab);
+
+  const total      = tabCases.length;
+  const breaching  = tabCases.filter(c =>
+    c.response_sla_status   === 'overdue' ||
+    c.resolution_sla_status === 'overdue'
+  ).length;
+  const ages       = tabCases.map(c => c.age_hours || 0).filter(h => h > 0);
+  const oldestHours = ages.length ? Math.max(...ages) : 0;
+  const oldestCase  = tabCases.find(c => c.age_hours === oldestHours);
+
+  // AI agreement KPI — only meaningful when filtered to a specific priority
+  let agreementHtml = '';
+  if (_priTab !== 'All' && _priTab !== 'Unassigned' && total > 0) {
+    const withRec = tabCases.filter(c => c.suggested_priority && c.suggested_priority !== 'Assign Priority');
+    const agree   = withRec.filter(c => c.assigned_priority === c.suggested_priority).length;
+    agreementHtml = `
+      <div class="kpi-tile accent-purple">
+        <div class="kpi-tile-label">AI Agreement</div>
+        <div class="kpi-tile-value">${agree}<span style="font-size:0.85rem;color:var(--text-muted);font-family:'Cambay'"> / ${withRec.length}</span></div>
+        <div class="kpi-tile-sub">Assigned matches AI rec.</div>
+      </div>`;
+  }
+
+  const oldestSub = oldestCase
+    ? `Case ${oldestCase.case_id || ''}`
+    : '—';
+  const oldestVal = oldestHours
+    ? (oldestHours >= 24 ? `${(oldestHours/24).toFixed(1)}d` : `${oldestHours.toFixed(1)}h`)
+    : '—';
+
+  // Default 4 tiles. When P1-P4 active, replace one with AI agreement.
+  const baseTiles = `
+    <div class="kpi-tile accent-blue">
+      <div class="kpi-tile-label">Total Cases</div>
+      <div class="kpi-tile-value">${total}</div>
+      <div class="kpi-tile-sub">${_priTab === 'All' ? 'All priorities' : _priTab}</div>
+    </div>
+    <div class="kpi-tile accent-red">
+      <div class="kpi-tile-label">Breaching SLA</div>
+      <div class="kpi-tile-value">${breaching}<span style="font-size:0.85rem;color:var(--text-muted);font-family:'Cambay'"> / ${total}</span></div>
+      <div class="kpi-tile-sub">${total ? Math.round(breaching/total*100) : 0}% of cases</div>
+    </div>
+    <div class="kpi-tile accent-amber">
+      <div class="kpi-tile-label">Oldest Case</div>
+      <div class="kpi-tile-value">${oldestVal}</div>
+      <div class="kpi-tile-sub">${oldestSub}</div>
+    </div>`;
+
+  el.innerHTML = baseTiles + (agreementHtml || `
+    <div class="kpi-tile accent-grey">
+      <div class="kpi-tile-label">Avg Age</div>
+      <div class="kpi-tile-value">${ages.length ? (ages.reduce((s,h)=>s+h,0)/ages.length/24).toFixed(1) + 'd' : '—'}</div>
+      <div class="kpi-tile-sub">Mean across ${total} cases</div>
+    </div>`);
 }
 
 function renderTableRows(cases) {
@@ -586,7 +762,9 @@ function applyFilters() {
     'Unassigned':        'unassigned',
   };
 
-  const filtered = _allCases.filter(c => {
+  // Start from the priority-tab subset, then apply dropdown filters
+  const tabCases = casesForTab(_priTab);
+  const filtered = tabCases.filter(c => {
     const flagMatch = !flag
       || (flagTypeMatch[flag] && c.flag_type === flagTypeMatch[flag])
       || (!flagTypeMatch[flag] && (c.flag_severity || '') === flag);
@@ -600,9 +778,10 @@ function applyFilters() {
   const sub = document.getElementById('table-subtitle');
   if (sub) {
     const active = [flag, recPri, stage].filter(Boolean).length;
+    const tabLabel = _priTab === 'All' ? '' : ` (${_priTab})`;
     sub.innerHTML = active
-      ? `${filtered.length} of ${_allCases.length} cases shown (${active} filter${active!==1?'s':''} active)`
-      : `${_allCases.length} cases — last 30 days`;
+      ? `${filtered.length} of ${tabCases.length} cases shown${tabLabel} (${active} filter${active!==1?'s':''} active)`
+      : `${tabCases.length} cases${tabLabel} — last 30 days`;
   }
   document.getElementById('no-results').style.display      = filtered.length === 0 ? 'block' : 'none';
   document.getElementById('attention-table').style.display = filtered.length === 0 ? 'none'  : '';
