@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2026-04-27T02:59:07.231936+00:00",
+    "last_updated": "2026-04-27T09:06:39.677884+00:00",
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -27,7 +27,7 @@
     "resp_sla_pct": 42.6,
     "resol_sla_pct": 33.1,
     "funding_rate_pct": 37.7,
-    "backlog_over_30d": 665,
+    "backlog_over_30d": 670,
     "resp_trend": "regressing",
     "resol_trend": "improving",
     "close_trend": "improving"
@@ -454,6 +454,14 @@
       }
     },
     "by_outcome": {
+      "Not Funded": {
+        "stage": "Closed - Not Funded",
+        "median_days": 11.6,
+        "avg_days": 62.8,
+        "p75_days": 89.6,
+        "count": 745,
+        "colour": "#EE3526"
+      },
       "No Response": {
         "stage": "Closed - NO Response",
         "median_days": 14.0,
@@ -469,14 +477,6 @@
         "p75_days": 150.5,
         "count": 988,
         "colour": "#49A942"
-      },
-      "Not Funded": {
-        "stage": "Closed - Not Funded",
-        "median_days": 11.6,
-        "avg_days": 62.8,
-        "p75_days": 89.6,
-        "count": 745,
-        "colour": "#EE3526"
       }
     },
     "by_priority": {
@@ -653,6 +653,26 @@
       ],
       "series": [
         {
+          "stage": "Closed - Not Funded",
+          "label": "Not Funded",
+          "colour": "#EE3526",
+          "data": [
+            35.5,
+            65.9,
+            20.5,
+            20.5,
+            33.5,
+            31.2,
+            5.7,
+            8.4,
+            9.1,
+            4.7,
+            4.4,
+            8.5,
+            10.5
+          ]
+        },
+        {
           "stage": "Closed - NO Response",
           "label": "No Response",
           "colour": "#FDB913",
@@ -690,26 +710,6 @@
             72.7,
             68.5,
             44.1
-          ]
-        },
-        {
-          "stage": "Closed - Not Funded",
-          "label": "Not Funded",
-          "colour": "#EE3526",
-          "data": [
-            35.5,
-            65.9,
-            20.5,
-            20.5,
-            33.5,
-            31.2,
-            5.7,
-            8.4,
-            9.1,
-            4.7,
-            4.4,
-            8.5,
-            10.5
           ]
         }
       ]
@@ -802,7 +802,7 @@
   },
   "backlog": {
     "total_open": 829,
-    "over_30d": 665,
+    "over_30d": 670,
     "by_age": [
       {
         "band": "0\u20137 days",
@@ -814,15 +814,15 @@
       },
       {
         "band": "15\u201330 days",
-        "count": 75
+        "count": 70
       },
       {
         "band": "31\u201360 days",
-        "count": 227
+        "count": 229
       },
       {
         "band": "60+ days",
-        "count": 438
+        "count": 441
       }
     ],
     "by_priority": {
