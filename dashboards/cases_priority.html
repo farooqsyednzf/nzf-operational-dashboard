@@ -339,8 +339,28 @@ function renderBanner(pi) {
   const unassigned      = pi.unassigned_count        ?? 0;
   const total           = (pi.combined_cases || []).length;
 
+  // Critical: notes fetch failed (OAuth scope, network, etc).
+  // When this happens, "no_interaction" flags can't be trusted — show a
+  // dedicated red banner so officers don't act on bad data.
+  const fetchErr = pi.notes_diagnostic && pi.notes_diagnostic.fetch_error;
+  let errorBannerHtml = '';
+  if (fetchErr) {
+    const isScope = fetchErr.code === 'OAUTH_SCOPE_MISMATCH';
+    errorBannerHtml = `
+      <div class="alert-banner alert" style="margin-bottom:10px">
+        <span class="alert-icon">&#9888;</span>
+        <div class="alert-text">
+          <strong>Notes fetch failed${isScope ? ' (OAuth scope mismatch)' : ''}.</strong>
+          Caseworker interaction data is unavailable until this is resolved &mdash;
+          "No Interaction" flags below should be treated as <em>unknown</em>, not confirmed.
+          ${isScope ? 'Refresh token needs <code>ZohoCRM.coql.READ</code> scope. ' : ''}
+          ${fetchErr.message || ''}
+        </div>
+      </div>`;
+  }
+
   if (noInteraction === 0 && priorityMismatch === 0 && unassigned === 0) {
-    el.innerHTML = `
+    el.innerHTML = errorBannerHtml + `
       <div class="alert-banner ok">
         <span class="alert-icon">&#10003;</span>
         <span class="alert-text">No cases requiring attention in the last 30 days.</span>
@@ -352,12 +372,12 @@ function renderBanner(pi) {
   if (priorityMismatch > 0)
     parts.push(`<strong>${priorityMismatch} priority mismatch${priorityMismatch!==1?'es':''}</strong> (AI disagrees with assigned priority)`);
   if (noInteraction > 0)
-    parts.push(`<strong>${noInteraction} no caseworker interaction</strong> (SLA breach)`);
+    parts.push(`<strong>${noInteraction} no caseworker interaction</strong>${fetchErr ? ' <em>(unverified — see banner above)</em>' : ' (SLA breach)'}`);
   if (unassigned > 0)
     parts.push(`<strong>${unassigned} unassigned</strong>`);
 
   const cls = (priorityMismatch > 0 || noInteraction > 0) ? 'alert' : 'warn';
-  el.innerHTML = `
+  el.innerHTML = errorBannerHtml + `
     <div class="alert-banner ${cls}">
       <span class="alert-icon">&#9888;</span>
       <div class="alert-text">
