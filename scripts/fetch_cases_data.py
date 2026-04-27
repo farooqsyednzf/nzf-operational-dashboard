@@ -45,7 +45,7 @@ PRIORITY_RULES_VERSION = PRIORITY_CONFIG.get("version", "0.0.0-fallback")
 
 # Pipeline version — bump when the script's data-shaping logic changes meaningfully.
 # Lets the dashboard prove which version of the code generated the JSON it's rendering.
-PIPELINE_VERSION = "2.2.0-full-pagination-oauth-detection"
+PIPELINE_VERSION = "2.3.0-coql-cases-server-side-filter"
 
 PRIORITY_MAP         = [(e["prefix"].upper(), e["label"]) for e in _pri_rules["prefix_map"]]
 NO_PRIORITY          = _pri_rules["no_priority_label"]
