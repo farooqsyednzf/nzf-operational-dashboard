@@ -220,11 +220,18 @@ def fetch_all_open_cases_no_priority(token, threshold_hours=24, max_pages=5):
     return all_cases
 
 
-def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages=5):
+def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages_per_chunk=20):
     """
-    Fetch notes for a specific set of Potentials (case) record IDs.
-    Scoped to the Potentials module so we don't waste pages on notes
-    from Contacts, Leads, or other modules.
+    Fetch notes for a specific set of Potentials (case) record IDs using COQL.
+
+    Why COQL instead of /Notes search:
+      The /Notes search endpoint returned cross-module results from the entire org
+      and capped at ~1,000 records. With ~2,400 notes/30d across all modules,
+      anything older than ~14 days never reached the indexer — cases >2 weeks old
+      appeared interaction-less even when they had notes.
+
+      COQL with WHERE Parent_Id IN (...) filters server-side, so we only retrieve
+      notes for our cases. No cross-module contamination, no pagination cap.
 
     Returns dict: zoho_record_id -> list of note dicts, newest first.
     """
@@ -233,62 +240,76 @@ def fetch_notes_for_cases(token, zoho_record_ids, days=30, max_pages=5):
 
     cutoff     = datetime.now(timezone.utc) - timedelta(days=days)
     cutoff_str = cutoff.strftime("%Y-%m-%dT%H:%M:%S+00:00")
-    headers    = {"Authorization": f"Zoho-oauthtoken {token}"}
-    all_notes  = []
-
-    print(f"  [CRM Live] Fetching notes for {len(zoho_record_ids)} cases (last {days} days)...")
-
-    for page in range(1, max_pages + 1):
-        params = {
-            "fields":     "id,Note_Title,Note_Content,Created_Time,Created_By,Parent_Id",
-            "criteria":   f"(Created_Time:greater_than:{cutoff_str})",
-            "se_module":  "Potentials",   # ← scope to cases only
-            "sort_by":    "Created_Time",
-            "sort_order": "desc",
-            "per_page":   200,
-            "page":       page,
-        }
-        try:
-            res = requests.get(
-                f"{CRM_API_BASE}/Notes",
-                headers=headers,
-                params=params,
-                timeout=30,
-            )
-        except requests.exceptions.RequestException as e:
-            print(f"  [CRM Live] WARNING: Notes request failed on page {page}: {e}")
-            break
-
-        if res.status_code == 204:
-            break
-        if not res.ok:
-            print(f"  [CRM Live] WARNING: Notes HTTP {res.status_code} on page {page}")
-            break
-
-        data    = res.json()
-        records = data.get("data", [])
-        if not records:
-            break
-
-        all_notes.extend(records)
-
-        if not data.get("info", {}).get("more_records", False):
-            break
-
-    # Index by parent record ID, keeping only our case IDs
-    id_set  = set(zoho_record_ids)
+    headers    = {
+        "Authorization": f"Zoho-oauthtoken {token}",
+        "Content-Type":  "application/json",
+    }
     indexed = {}
-    for n in all_notes:
-        pid_raw = n.get("Parent_Id")
-        parent  = pid_raw.get("id", "") if isinstance(pid_raw, dict) else str(pid_raw or "")
-        if not parent or parent not in id_set:
-            continue
-        indexed.setdefault(parent, []).append({
-            "title":   (n.get("Note_Title")   or "").strip(),
-            "content": (n.get("Note_Content") or "").strip(),
-            "created": n.get("Created_Time", ""),
-        })
 
-    print(f"  [CRM Live] {len(all_notes)} Potential notes fetched, "
+    # COQL has a practical limit on the IN-clause size; chunk into safe batches.
+    CHUNK_SIZE = 50
+    chunks = [zoho_record_ids[i:i+CHUNK_SIZE]
+              for i in range(0, len(zoho_record_ids), CHUNK_SIZE)]
+
+    print(f"  [CRM Live] Fetching notes via COQL for {len(zoho_record_ids)} cases "
+          f"({len(chunks)} chunks, last {days} days)...")
+
+    total_fetched = 0
+    for chunk_idx, chunk in enumerate(chunks, 1):
+        ids_clause = ",".join(f"'{i}'" for i in chunk)
+        page = 0
+        offset = 0
+        per_page = 200
+
+        while page < max_pages_per_chunk:
+            page += 1
+            query = (
+                "SELECT id, Note_Title, Note_Content, Created_Time, Parent_Id "
+                "FROM Notes "
+                f"WHERE Parent_Id in ({ids_clause}) "
+                f"AND Created_Time > '{cutoff_str}' "
+                "ORDER BY Created_Time DESC "
+                f"LIMIT {offset}, {per_page}"
+            )
+            try:
+                res = requests.post(
+                    f"{CRM_API_BASE}/coql",
+                    headers=headers,
+                    json={"select_query": query},
+                    timeout=30,
+                )
+            except requests.exceptions.RequestException as e:
+                print(f"  [CRM Live] WARNING: COQL notes failed (chunk {chunk_idx}, page {page}): {e}")
+                break
+
+            if res.status_code == 204:
+                break  # no records
+            if not res.ok:
+                print(f"  [CRM Live] WARNING: COQL notes HTTP {res.status_code} "
+                      f"(chunk {chunk_idx}, page {page}): {res.text[:200]}")
+                break
+
+            data    = res.json()
+            records = data.get("data", [])
+            if not records:
+                break
+
+            for n in records:
+                pid_raw = n.get("Parent_Id")
+                parent  = pid_raw.get("id", "") if isinstance(pid_raw, dict) else str(pid_raw or "")
+                if not parent:
+                    continue
+                indexed.setdefault(parent, []).append({
+                    "title":   (n.get("Note_Title")   or "").strip(),
+                    "content": (n.get("Note_Content") or "").strip(),
+                    "created": n.get("Created_Time", ""),
+                })
+
+            total_fetched += len(records)
+            if not data.get("info", {}).get("more_records", False):
+                break
+            offset += per_page
+
+    print(f"  [CRM Live] {total_fetched} notes fetched, "
           f"indexed for {len(indexed)} of {len(zoho_record_ids)} cases")
     return indexed
