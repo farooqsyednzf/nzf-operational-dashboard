@@ -45,7 +45,7 @@ PRIORITY_RULES_VERSION = PRIORITY_CONFIG.get("version", "0.0.0-fallback")
 
 # Pipeline version — bump when the script's data-shaping logic changes meaningfully.
 # Lets the dashboard prove which version of the code generated the JSON it's rendering.
-PIPELINE_VERSION = "2.1.0-coql-notes-diagnostics"
+PIPELINE_VERSION = "2.2.0-full-pagination-oauth-detection"
 
 PRIORITY_MAP         = [(e["prefix"].upper(), e["label"]) for e in _pri_rules["prefix_map"]]
 NO_PRIORITY          = _pri_rules["no_priority_label"]
@@ -418,7 +418,7 @@ def build_cases_report(token):
 
     # 1. All cases from the last 30 days, excluding funded/funding
     crm_recent = [
-        c for c in zcrm.fetch_recent_cases(token, days=30, max_pages=5)
+        c for c in zcrm.fetch_recent_cases(token, days=30)
         if c.get("stage","").strip() not in SKIP_STAGES
     ]
 
@@ -426,6 +426,17 @@ def build_cases_report(token):
     #    server-side filtering with no cross-module pagination cap.
     case_zoho_ids = [c.get("id","") for c in crm_recent if c.get("id")]
     notes_index   = zcrm.fetch_notes_for_cases(token, case_zoho_ids, days=30)
+
+    # Detect catastrophic failure (e.g., OAuth scope mismatch). When notes
+    # can't be fetched, treat all has_cw_notes flags as unknown rather than
+    # silently labelling every case "no_interaction".
+    notes_fetch_error = None
+    if isinstance(notes_index, dict) and notes_index.get("_error"):
+        notes_fetch_error = {
+            "code":    notes_index.get("_error"),
+            "message": notes_index.get("_error_message", ""),
+        }
+        notes_index = {}  # reset to empty so downstream code still works
 
     # Diagnostic stats — surfaced on cases.json so the dashboard can verify
     # which code path ran. If notes_total is 0 or notes_indexed_for is 0 across
@@ -437,6 +448,7 @@ def build_cases_report(token):
         "cases_queried":      len(case_zoho_ids),
         "notes_total":        sum(len(v) for v in notes_index.values()),
         "cases_with_notes":   len(notes_index),
+        "fetch_error":        notes_fetch_error,
     }
     print(f"  Notes diagnostic: {NOTES_DIAG}")
 
