@@ -416,7 +416,7 @@ function renderAIAnalysis(analysis, combinedCases, pi = {}) {
         ? new Date(analysis.generated_at).toLocaleString('en-AU',
             {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
         : 'unknown'}
-      ${pi.rules_version ? ` &mdash; Rules v${pi.rules_version}${pi.temperature !== undefined ? ` &middot; temp=${pi.temperature}` : ''}` : ''}
+      ${pi.rules_version ? ` &mdash; Rules v${pi.rules_version}${pi.pipeline_version ? ` &middot; Pipeline v${pi.pipeline_version}` : ''}${pi.temperature !== undefined ? ` &middot; temp=${pi.temperature}` : ''}${pi.notes_diagnostic ? ` &middot; ${pi.notes_diagnostic.notes_total||0} notes / ${pi.notes_diagnostic.cases_with_notes||0} cases` : ''}` : ''}
     </div>`;
 }
 
