@@ -1,7 +1,7 @@
 {
   "meta": {
-    "last_updated": "2026-04-27T12:10:03.116230+00:00",
-    "record_count": 3148,
+    "last_updated": "2026-04-27T16:17:28.985057+00:00",
+    "record_count": 3152,
     "months_covered": [
       "2025-04",
       "2025-05",
@@ -22,11 +22,11 @@
     "crm_base_url": "https://crm.zoho.com/crm/org30478025/tab"
   },
   "summary": {
-    "current_month": 187,
+    "current_month": 191,
     "previous_month": 421,
-    "pct_change": -55.6,
-    "total_12m": 2806,
-    "monthly_avg": 215.8
+    "pct_change": -54.6,
+    "total_12m": 2810,
+    "monthly_avg": 216.2
   },
   "trend": [
     {
@@ -79,7 +79,7 @@
     },
     {
       "month": "2026-04",
-      "count": 187
+      "count": 191
     }
   ],
   "priority": {
@@ -102,7 +102,7 @@
       "P2": 2,
       "P3": 81,
       "P4": 8,
-      "No Priority": 93
+      "No Priority": 97
     },
     "previous_month": {
       "P1": 5,
@@ -116,14 +116,14 @@
       "P2": 117,
       "P3": 1173,
       "P4": 328,
-      "No Priority": 1125
+      "No Priority": 1129
     },
     "monthly_avg": {
       "P1": 4.8,
       "P2": 9.0,
       "P3": 90.2,
       "P4": 25.2,
-      "No Priority": 86.5
+      "No Priority": 86.8
     }
   },
   "priority_trend": {
@@ -235,7 +235,7 @@
           77,
           47,
           134,
-          93
+          97
         ]
       }
     ]
@@ -249,10 +249,10 @@
     "notes_diagnostic": {
       "fetch_method": "coql",
       "fetch_window_days": 30,
-      "cases_in_window": 146,
-      "cases_queried": 146,
-      "notes_total": 512,
-      "cases_with_notes": 146,
+      "cases_in_window": 147,
+      "cases_queried": 147,
+      "notes_total": 513,
+      "cases_with_notes": 147,
       "fetch_error": null
     },
     "case_probes": {
@@ -318,15 +318,15 @@
       }
     },
     "priority_mismatch_count": 2,
-    "no_interaction_count": 26,
-    "unassigned_count": 59,
+    "no_interaction_count": 24,
+    "unassigned_count": 62,
     "combined_cases": [
       {
         "zoho_record_id": "981539000277830010",
         "case_id": "201730421",
         "client_id": "981539000277918093",
         "created": "2026-04-21T16:10:32+10:00",
-        "age_hours": 150.0,
+        "age_hours": 154.1,
         "stage": "NM Approval",
         "assigned_priority": "P3",
         "suggested_priority": "P2",
@@ -335,82 +335,65 @@
         "response_sla_status": "responded",
         "response_sla_remaining": null,
         "resolution_sla_status": "at_risk",
-        "resolution_sla_remaining": 18.0,
-        "ai_summary": "Single mother with two children served eviction notice due to late rent requiring urgent support. Imminent eviction threat with children involved. Caseworker has made contact and recommended approval for imminent eviction assistance."
+        "resolution_sla_remaining": 13.9,
+        "ai_summary": "Single mother of two children served eviction notice due to late rent, seeking help with rent and bills in desperate need. Imminent eviction with children elevates to P2 priority. Caseworker has made contact and case is at NM Approval stage."
       },
       {
         "zoho_record_id": "981539000278129465",
         "case_id": "201730429",
         "client_id": "981539000161547001",
         "created": "2026-04-23T10:14:26+10:00",
-        "age_hours": 107.9,
+        "age_hours": 112.1,
         "stage": "Intake",
         "assigned_priority": "P2",
-        "suggested_priority": "P3",
+        "suggested_priority": "P4",
         "flag_type": "priority_mismatch",
         "flag_severity": "Medium",
         "response_sla_status": "responded",
         "response_sla_remaining": null,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 228.1,
-        "ai_summary": "Client seeking assistance to settle late husband's outstanding debt. Debt settlement request without immediate crisis timeframes. Caseworker has made contact and assessment is in progress."
+        "resolution_sla_remaining": 607.9,
+        "ai_summary": "Client seeking assistance to settle outstanding debt of late husband. Long-term debt settlement matter not requiring immediate intervention. Caseworker has made contact and assessment is in progress."
       },
       {
-        "zoho_record_id": "981539000278029016",
-        "case_id": "201730432",
-        "client_id": "981539000165224002",
-        "created": "2026-04-23T15:12:39+10:00",
-        "age_hours": 103.0,
+        "zoho_record_id": "981539000278323001",
+        "case_id": "201730455",
+        "client_id": "981539000278260005",
+        "created": "2026-04-27T20:42:00+10:00",
+        "age_hours": 5.6,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P1",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -99.0,
+        "response_sla_remaining": -1.6,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 18.4,
+        "ai_summary": "Client in crisis accommodation due to domestic violence with ongoing health issues requiring surgery and housing assistance. Discharged from hospital and needs accommodation to recover. No caseworker interaction recorded."
+      },
+      {
+        "zoho_record_id": "981539000278029016",
+        "case_id": "201730432",
+        "client_id": "981539000165224002",
+        "created": "2026-04-23T15:12:39+10:00",
+        "age_hours": 107.1,
+        "stage": "Intake",
+        "assigned_priority": "No Priority",
+        "suggested_priority": "P1",
+        "flag_type": "no_interaction",
+        "flag_severity": "High",
+        "response_sla_status": "overdue",
+        "response_sla_remaining": -103.1,
         "resolution_sla_status": "overdue",
-        "resolution_sla_remaining": -79.0,
-        "ai_summary": "Family violence survivor who has been moving house to house, now facing immediate homelessness after uncle left property over a month ago. Active housing crisis requiring urgent intervention. No caseworker interaction recorded."
+        "resolution_sla_remaining": -83.1,
+        "ai_summary": "Client experienced family violence and has been moving house to house, currently at property where uncle left over a month ago without awareness. Housing crisis following family violence requires immediate intervention. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278088038",
         "case_id": "201730447",
         "client_id": "981539000278037117",
         "created": "2026-04-24T20:01:54+10:00",
-        "age_hours": 74.1,
-        "stage": "Intake",
-        "assigned_priority": "No Priority",
-        "suggested_priority": "P3",
-        "flag_type": "no_interaction",
-        "flag_severity": "High",
-        "response_sla_status": "overdue",
-        "response_sla_remaining": -2.1,
-        "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 261.9,
-        "ai_summary": "Client abandoned by husband following family violence with daughter. Historical DV situation without current immediate danger specified. No caseworker interaction recorded."
-      },
-      {
-        "zoho_record_id": "981539000278039188",
-        "case_id": "201730445",
-        "client_id": "981539000278038052",
-        "created": "2026-04-24T15:58:35+10:00",
-        "age_hours": 78.2,
-        "stage": "Intake",
-        "assigned_priority": "No Priority",
-        "suggested_priority": "P2",
-        "flag_type": "no_interaction",
-        "flag_severity": "High",
-        "response_sla_status": "overdue",
-        "response_sla_remaining": -54.2,
-        "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 89.8,
-        "ai_summary": "Single parent with 9-month-old son facing rent arrears and close to eviction, unable to afford food and basic necessities. Imminent housing threat with child in crisis. No caseworker interaction recorded."
-      },
-      {
-        "zoho_record_id": "981539000278073081",
-        "case_id": "201730444",
-        "client_id": "981539000278125045",
-        "created": "2026-04-24T15:52:59+10:00",
         "age_hours": 78.3,
         "stage": "Intake",
         "assigned_priority": "No Priority",
@@ -421,380 +404,363 @@
         "response_sla_remaining": -6.3,
         "resolution_sla_status": "ok",
         "resolution_sla_remaining": 257.7,
-        "ai_summary": "Client with mental health issues unable to find employment to support family financially. General hardship situation without immediate crisis timeframes. No caseworker interaction recorded."
+        "ai_summary": "Single mother abandoned by husband following family violence incident. Historical DV without current safety threat, general single parent hardship. No caseworker interaction recorded."
+      },
+      {
+        "zoho_record_id": "981539000278039188",
+        "case_id": "201730445",
+        "client_id": "981539000278038052",
+        "created": "2026-04-24T15:58:35+10:00",
+        "age_hours": 82.3,
+        "stage": "Intake",
+        "assigned_priority": "No Priority",
+        "suggested_priority": "P2",
+        "flag_type": "no_interaction",
+        "flag_severity": "High",
+        "response_sla_status": "overdue",
+        "response_sla_remaining": -58.3,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 85.7,
+        "ai_summary": "Single mother with 9-month-old son in rent arrears close to eviction, unable to afford food, petrol, and bills. Imminent housing loss with infant elevates to P2. No caseworker interaction recorded."
+      },
+      {
+        "zoho_record_id": "981539000278073081",
+        "case_id": "201730444",
+        "client_id": "981539000278125045",
+        "created": "2026-04-24T15:52:59+10:00",
+        "age_hours": 82.4,
+        "stage": "Intake",
+        "assigned_priority": "No Priority",
+        "suggested_priority": "P3",
+        "flag_type": "no_interaction",
+        "flag_severity": "High",
+        "response_sla_status": "overdue",
+        "response_sla_remaining": -10.4,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 253.6,
+        "ai_summary": "Client with mental health issues unable to find employment to support family financially, seeking assistance for basic needs. General hardship without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278115068",
         "case_id": "201730443",
         "client_id": "981539000278043065",
         "created": "2026-04-24T15:44:28+10:00",
-        "age_hours": 78.4,
+        "age_hours": 82.6,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -6.4,
+        "response_sla_remaining": -10.6,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 257.6,
-        "ai_summary": "Client requesting zakat assistance for rental arrears clearance. No immediate eviction threat or timeline specified. No caseworker interaction recorded."
+        "resolution_sla_remaining": 253.4,
+        "ai_summary": "Client requesting zakat assistance to clear rental arrears. Standard rent assistance request without immediate eviction threat or timeline specified. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278060094",
         "case_id": "201730442",
         "client_id": "981539000278113062",
         "created": "2026-04-24T15:41:43+10:00",
-        "age_hours": 78.5,
+        "age_hours": 82.6,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -6.5,
+        "response_sla_remaining": -10.6,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 257.5,
-        "ai_summary": "Client with outstanding health issues struggling with daily living costs including medication and bills. General hardship without immediate threats. No caseworker interaction recorded."
+        "resolution_sla_remaining": 253.4,
+        "ai_summary": "Client with outstanding health issues struggling to pay for medication, rent, energy bills, transport, and food. General hardship with health complications but no immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278052041",
         "case_id": "201730441",
         "client_id": "981539000278103043",
         "created": "2026-04-24T15:32:45+10:00",
-        "age_hours": 78.6,
+        "age_hours": 82.7,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -6.6,
+        "response_sla_remaining": -10.7,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 257.4,
-        "ai_summary": "Client with health issues on Centrelink struggling with rent and living expenses including medical costs. General financial hardship situation. No caseworker interaction recorded."
-      },
-      {
-        "zoho_record_id": "981539000278113023",
-        "case_id": "201730440",
-        "client_id": "981539000278111049",
-        "created": "2026-04-24T13:01:39+10:00",
-        "age_hours": 81.1,
-        "stage": "Intake",
-        "assigned_priority": "No Priority",
-        "suggested_priority": "P3",
-        "flag_type": "no_interaction",
-        "flag_severity": "High",
-        "response_sla_status": "overdue",
-        "response_sla_remaining": -9.1,
-        "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 254.9,
-        "ai_summary": "Client requesting to participate in programs for financial support with basic needs including food and bills. General assistance request. No caseworker interaction recorded."
-      },
-      {
-        "zoho_record_id": "981539000278080067",
-        "case_id": "201730439",
-        "client_id": "981539000278071026",
-        "created": "2026-04-24T12:58:12+10:00",
-        "age_hours": 81.2,
-        "stage": "Intake",
-        "assigned_priority": "No Priority",
-        "suggested_priority": "P3",
-        "flag_type": "no_interaction",
-        "flag_severity": "High",
-        "response_sla_status": "overdue",
-        "response_sla_remaining": -9.2,
-        "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 254.8,
-        "ai_summary": "Client wanting to participate in foundation programs for financial support with basic needs and expensive daily living costs. General hardship. No caseworker interaction recorded."
+        "resolution_sla_remaining": 253.3,
+        "ai_summary": "Client with health issues on Centrelink income struggling with rent, energy bills, medication, and transport costs. General hardship without immediate crisis indicators. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278085030",
         "case_id": "201730438",
         "client_id": "981539000278039089",
         "created": "2026-04-24T12:11:43+10:00",
-        "age_hours": 82.0,
-        "stage": "Intake",
-        "assigned_priority": "No Priority",
-        "suggested_priority": "P2",
-        "flag_type": "no_interaction",
-        "flag_severity": "High",
-        "response_sla_status": "overdue",
-        "response_sla_remaining": -58.0,
-        "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 86.0,
-        "ai_summary": "Client requiring medical support for chronic anemia unable to wait for public health system. Urgent medical need requiring immediate attention. No caseworker interaction recorded."
-      },
-      {
-        "zoho_record_id": "981539000278060048",
-        "case_id": "201730437",
-        "client_id": "981539000277993053",
-        "created": "2026-04-24T11:21:30+10:00",
-        "age_hours": 82.8,
+        "age_hours": 86.1,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -10.8,
+        "response_sla_remaining": -14.1,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 253.2,
-        "ai_summary": "Client on Centrelink income unable to meet basic needs requesting financial support through foundation programs. General financial hardship situation. No caseworker interaction recorded."
+        "resolution_sla_remaining": 249.9,
+        "ai_summary": "Client seeking medical support for chronic anaemia, unable to wait for public health system. Medical need but not emergency level requiring immediate intervention. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278114070",
         "case_id": "201730436",
         "client_id": "981539000278037053",
         "created": "2026-04-24T10:17:57+10:00",
-        "age_hours": 83.9,
+        "age_hours": 88.0,
         "stage": "Intake",
         "assigned_priority": "No Priority",
-        "suggested_priority": "P2",
+        "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -59.9,
+        "response_sla_remaining": -16.0,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 84.1,
-        "ai_summary": "Single mother and domestic violence survivor caring for four young children including toddler under extremely difficult circumstances. Children in crisis situation elevates priority. No caseworker interaction recorded."
+        "resolution_sla_remaining": 248.0,
+        "ai_summary": "Single mother and refugee surviving domestic violence caring for four young children including toddler under extremely difficult circumstances. Complex family situation requiring support but no immediate crisis specified. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278044062",
         "case_id": "201730435",
         "client_id": "981539000278068014",
         "created": "2026-04-23T23:59:47+10:00",
-        "age_hours": 94.2,
+        "age_hours": 98.3,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -22.2,
+        "response_sla_remaining": -26.3,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 241.8,
-        "ai_summary": "Nursing student with husband's reduced work hours affecting financial situation. General hardship without immediate crisis timeframes specified. No caseworker interaction recorded."
+        "resolution_sla_remaining": 237.7,
+        "ai_summary": "Nursing student whose husband's work hours have been significantly reduced affecting their financial situation. General financial hardship without immediate crisis indicators. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278087009",
         "case_id": "201730431",
         "client_id": "981539000227257105",
         "created": "2026-04-23T13:22:17+10:00",
-        "age_hours": 104.8,
+        "age_hours": 108.9,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -32.8,
+        "response_sla_remaining": -36.9,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 231.2,
-        "ai_summary": "Client lost job in February 2026 with existing lending obligations seeking employment assistance. General hardship situation without immediate threats. No caseworker interaction recorded."
+        "resolution_sla_remaining": 227.1,
+        "ai_summary": "Client lost job in February 2026 with existing lending obligations, unable to find new employment. General financial hardship following job loss without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278080013",
         "case_id": "201730430",
         "client_id": "981539000247470013",
         "created": "2026-04-23T11:13:00+10:00",
-        "age_hours": 107.0,
+        "age_hours": 111.1,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -35.0,
+        "response_sla_remaining": -39.1,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 229.0,
-        "ai_summary": "Client arrived in 2023, married and applied for spouse visa, currently in fourth year experiencing general hardship. No immediate crisis specified. No caseworker interaction recorded."
+        "resolution_sla_remaining": 224.9,
+        "ai_summary": "Client arrived in 2023, married and applied for spouse visa, currently in fourth year in Australia seeking assistance. General support need for recent arrival without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277993003",
         "case_id": "201730427",
         "client_id": "981539000278077020",
         "created": "2026-04-22T15:45:02+10:00",
-        "age_hours": 126.4,
+        "age_hours": 130.5,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -54.4,
+        "response_sla_remaining": -58.5,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 209.6,
-        "ai_summary": "Client with heart problems and spinal issues unable to work, struggling with daily living costs including medical expenses. General hardship due to health conditions. No caseworker interaction recorded."
+        "resolution_sla_remaining": 205.5,
+        "ai_summary": "Client with heart problems and spinal/neck disc issues preventing work, struggling with daily living expenses including specialists and medication. Health-related hardship without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278111002",
         "case_id": "201730426",
         "client_id": "981539000278021054",
         "created": "2026-04-22T13:37:31+10:00",
-        "age_hours": 128.5,
+        "age_hours": 132.7,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -56.5,
+        "response_sla_remaining": -60.7,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 207.5,
-        "ai_summary": "Domestic violence victim referred by psychologist seeking financial support and counseling. Historical DV without current immediate danger specified. No caseworker interaction recorded."
+        "resolution_sla_remaining": 203.3,
+        "ai_summary": "Domestic violence victim seeking financial support and counseling, referred by psychologist. Historical DV without current safety threat, general support need. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278115003",
         "case_id": "201730425",
         "client_id": "981539000278021003",
         "created": "2026-04-22T13:32:08+10:00",
-        "age_hours": 128.6,
+        "age_hours": 132.8,
         "stage": "Intake",
         "assigned_priority": "No Priority",
-        "suggested_priority": "P2",
+        "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -104.6,
+        "response_sla_remaining": -60.8,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 39.4,
-        "ai_summary": "Married couple on student visa with 6-month-old baby with Triple X syndrome facing financial hardship following unplanned birth. Children with special needs in crisis elevates priority. No caseworker interaction recorded."
+        "resolution_sla_remaining": 203.2,
+        "ai_summary": "Married couple on student visa with 6-month-old baby with Triple X syndrome, experiencing financial hardship following unplanned birth. General hardship without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277920044",
         "case_id": "201730422",
         "client_id": "981539000249256004",
         "created": "2026-04-21T23:21:15+10:00",
-        "age_hours": 142.8,
+        "age_hours": 146.9,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -70.8,
+        "response_sla_remaining": -74.9,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 193.2,
-        "ai_summary": "Client lost warehouse job with family on protection visa 866, Centrelink not providing support but new job starting next week. Temporary hardship with resolution in sight. No caseworker interaction recorded."
+        "resolution_sla_remaining": 189.1,
+        "ai_summary": "Client was working in warehouse but was terminated, has family and is on protection visa 866, Centrelink will not provide payments, starting new job next week but has current difficulties. General hardship with near-term employment solution. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277846007",
         "case_id": "201730420",
         "client_id": "981539000277819033",
         "created": "2026-04-21T14:40:45+10:00",
-        "age_hours": 151.5,
+        "age_hours": 155.6,
         "stage": "Intake",
         "assigned_priority": "No Priority",
-        "suggested_priority": "P2",
+        "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -127.5,
-        "resolution_sla_status": "at_risk",
-        "resolution_sla_remaining": 16.5,
-        "ai_summary": "Client left job two months ago due to son's ongoing health conditions requiring frequent hospitalization, now unable to work and facing immediate financial crisis. Child's medical crisis affecting family stability. No caseworker interaction recorded."
+        "response_sla_remaining": -83.6,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 180.4,
+        "ai_summary": "Parent had to leave job two months ago due to son's ongoing health conditions requiring frequent hospitalization, unable to work and not receiving income support. General hardship following employment loss for family care. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277920007",
         "case_id": "201730419",
         "client_id": "981539000270466049",
         "created": "2026-04-21T14:27:23+10:00",
-        "age_hours": 151.7,
+        "age_hours": 155.8,
         "stage": "Intake",
         "assigned_priority": "No Priority",
-        "suggested_priority": "P2",
+        "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -127.7,
-        "resolution_sla_status": "at_risk",
-        "resolution_sla_remaining": 16.3,
-        "ai_summary": "Client previously homeless with son now needing 2 weeks advance rent and appliances. Recent homelessness history with immediate housing needs indicates instability. No caseworker interaction recorded."
+        "response_sla_remaining": -83.8,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 180.2,
+        "ai_summary": "Client needs two weeks advance rent and washing machine/dryer, previously homeless with son but now housed. Standard housing support needs without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277908005",
         "case_id": "201730417",
         "client_id": "981539000277910002",
         "created": "2026-04-21T13:48:30+10:00",
-        "age_hours": 152.4,
+        "age_hours": 156.5,
         "stage": "Intake",
         "assigned_priority": "No Priority",
-        "suggested_priority": "P2",
+        "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -128.4,
-        "resolution_sla_status": "at_risk",
-        "resolution_sla_remaining": 15.6,
-        "ai_summary": "Third party application for recently arrived refugee single mother with four children requiring emergency relief while adjusting to life in Australia. Multiple children in crisis situation. No caseworker interaction recorded."
+        "response_sla_remaining": -84.5,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 179.5,
+        "ai_summary": "Third party application for emergency relief for recently arrived refugee single mother with four children adjusting to life in Australia. General support for new arrival family without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277918001",
         "case_id": "201730416",
         "client_id": "981539000277907004",
         "created": "2026-04-21T12:15:53+10:00",
-        "age_hours": 153.9,
+        "age_hours": 158.0,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -81.9,
+        "response_sla_remaining": -86.0,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 182.1,
-        "ai_summary": "Family with six children where only husband works facing serious financial hardship with high expenses. General hardship without immediate crisis timeframes. No caseworker interaction recorded."
+        "resolution_sla_remaining": 178.0,
+        "ai_summary": "Family with six children facing serious financial hardship with only husband working and very high expenses. General family hardship without immediate crisis indicators. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277839001",
         "case_id": "201730415",
         "client_id": "981539000277824018",
         "created": "2026-04-21T10:04:44+10:00",
-        "age_hours": 156.1,
+        "age_hours": 160.2,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -84.1,
+        "response_sla_remaining": -88.2,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 179.9,
-        "ai_summary": "Client requesting food voucher and fuel voucher assistance. Basic needs request without immediate crisis indicators. No caseworker interaction recorded."
+        "resolution_sla_remaining": 175.8,
+        "ai_summary": "Client requesting food voucher and fuel voucher assistance. Basic needs support request without immediate crisis indicators. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277736003",
         "case_id": "201730413",
         "client_id": "981539000277726006",
         "created": "2026-04-20T14:43:21+10:00",
-        "age_hours": 175.4,
+        "age_hours": 179.6,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -103.4,
+        "response_sla_remaining": -107.6,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 160.6,
-        "ai_summary": "Case manager assisting single mother with three adult children caring for elderly mother seeking general support. Family support situation without immediate crisis. No caseworker interaction recorded."
+        "resolution_sla_remaining": 156.4,
+        "ai_summary": "Case manager assisting single mother with three children (ages 25-21-16) who is also caring for elderly mother. Complex family support situation without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000277316001",
         "case_id": "201730401",
         "client_id": "981539000006789001",
         "created": "2026-04-17T02:57:40+10:00",
-        "age_hours": 259.2,
+        "age_hours": 263.3,
         "stage": "Intake",
         "assigned_priority": "P3",
         "suggested_priority": null,
         "flag_type": "no_interaction",
         "flag_severity": "High",
         "response_sla_status": "overdue",
-        "response_sla_remaining": -187.2,
+        "response_sla_remaining": -191.3,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 76.8,
+        "resolution_sla_remaining": 72.7,
         "ai_summary": "I am a single mother. I do not have any money until I get my government support next week and need some help with food and petrol. | No caseworker interaction recorded."
       },
       {
@@ -802,41 +768,92 @@
         "case_id": "201730448",
         "client_id": "981539000278234001",
         "created": "2026-04-25T06:33:15+10:00",
-        "age_hours": 63.6,
+        "age_hours": 67.7,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "unassigned",
         "flag_severity": "High",
         "response_sla_status": "at_risk",
-        "response_sla_remaining": 8.4,
+        "response_sla_remaining": 4.3,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 272.4,
-        "ai_summary": "16-year-old revert struggling to find employment and gain financial independence. General hardship situation without immediate crisis. No caseworker interaction recorded."
+        "resolution_sla_remaining": 268.3,
+        "ai_summary": "16-year-old revert struggling to find employment and gain financial independence to reduce burden on mother. General support need without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278114109",
         "case_id": "201730446",
         "client_id": "981539000278055036",
         "created": "2026-04-24T16:12:03+10:00",
-        "age_hours": 78.0,
+        "age_hours": 82.1,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P4",
         "flag_type": "unassigned",
         "flag_severity": "High",
         "response_sla_status": "ok",
-        "response_sla_remaining": 90.0,
+        "response_sla_remaining": 85.9,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 642.0,
-        "ai_summary": "Client requesting to participate in programs. Non-urgent enquiry about services without immediate needs. No caseworker interaction recorded."
+        "resolution_sla_remaining": 637.9,
+        "ai_summary": "Client requesting to participate in foundation programs. General program inquiry without specific urgent needs described. No caseworker interaction recorded."
+      },
+      {
+        "zoho_record_id": "981539000278113023",
+        "case_id": "201730440",
+        "client_id": "981539000278111049",
+        "created": "2026-04-24T13:01:39+10:00",
+        "age_hours": 85.3,
+        "stage": "Intake",
+        "assigned_priority": "No Priority",
+        "suggested_priority": "P4",
+        "flag_type": "unassigned",
+        "flag_severity": "High",
+        "response_sla_status": "ok",
+        "response_sla_remaining": 82.7,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 634.7,
+        "ai_summary": "Client requesting to participate in foundation programs for financial support with basic needs. General program inquiry without specific urgent needs. No caseworker interaction recorded."
+      },
+      {
+        "zoho_record_id": "981539000278080067",
+        "case_id": "201730439",
+        "client_id": "981539000278071026",
+        "created": "2026-04-24T12:58:12+10:00",
+        "age_hours": 85.3,
+        "stage": "Intake",
+        "assigned_priority": "No Priority",
+        "suggested_priority": "P4",
+        "flag_type": "unassigned",
+        "flag_severity": "High",
+        "response_sla_status": "ok",
+        "response_sla_remaining": 82.7,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 634.7,
+        "ai_summary": "Client requesting to participate in foundation programs for financial support with basic needs and expensive living costs. General program inquiry without urgency. No caseworker interaction recorded."
+      },
+      {
+        "zoho_record_id": "981539000278060048",
+        "case_id": "201730437",
+        "client_id": "981539000277993053",
+        "created": "2026-04-24T11:21:30+10:00",
+        "age_hours": 86.9,
+        "stage": "Intake",
+        "assigned_priority": "No Priority",
+        "suggested_priority": "P4",
+        "flag_type": "unassigned",
+        "flag_severity": "High",
+        "response_sla_status": "ok",
+        "response_sla_remaining": 81.1,
+        "resolution_sla_status": "ok",
+        "resolution_sla_remaining": 633.1,
+        "ai_summary": "Client on Centrelink income requesting to participate in foundation programs for financial support with basic needs. General program inquiry without specific urgency. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278028001",
         "case_id": "201730423",
         "client_id": "981539000200727034",
         "created": "2026-04-22T10:44:37+10:00",
-        "age_hours": 131.4,
+        "age_hours": 135.5,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
@@ -845,32 +862,32 @@
         "response_sla_status": "responded",
         "response_sla_remaining": null,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 204.6,
-        "ai_summary": "Client requesting help with rental bond payment of $2360. Bond assistance without immediate homelessness threat. Caseworker has made contact and client has provided additional information."
+        "resolution_sla_remaining": 200.5,
+        "ai_summary": "Client needs help paying rental bond of $2360. Standard housing support request without immediate crisis indicators. Caseworker has made contact and assessment is in progress."
       },
       {
         "zoho_record_id": "981539000277641017",
         "case_id": "201730412",
         "client_id": "981539000277676008",
         "created": "2026-04-20T12:38:06+10:00",
-        "age_hours": 177.5,
+        "age_hours": 181.7,
         "stage": "Follow Up",
         "assigned_priority": "No Priority",
-        "suggested_priority": "P3",
+        "suggested_priority": null,
         "flag_type": "unassigned",
         "flag_severity": "High",
         "response_sla_status": "responded",
         "response_sla_remaining": null,
-        "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 158.5,
-        "ai_summary": "Client Basira authorized representative due to language barriers, reported struggling financially and referred by reliable source. Caseworker has approved fridge funding after review and assessment."
+        "resolution_sla_status": null,
+        "resolution_sla_remaining": null,
+        "ai_summary": "I formally authorise Ms Rasa Aziz to act on my behalf and represent me in all matters relating to this application, as I am unable to communicate..."
       },
       {
         "zoho_record_id": "981539000277741001",
         "case_id": "201730410",
         "client_id": "981539000277596014",
         "created": "2026-04-20T11:48:03+10:00",
-        "age_hours": 178.4,
+        "age_hours": 182.5,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -887,7 +904,7 @@
         "case_id": "201730409",
         "client_id": "981539000021510001",
         "created": "2026-04-20T10:41:25+10:00",
-        "age_hours": 179.5,
+        "age_hours": 183.6,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -904,7 +921,7 @@
         "case_id": "201730408",
         "client_id": "981539000277604002",
         "created": "2026-04-18T18:29:47+10:00",
-        "age_hours": 219.7,
+        "age_hours": 223.8,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -921,7 +938,7 @@
         "case_id": "201730407",
         "client_id": "981539000277541003",
         "created": "2026-04-18T14:37:50+10:00",
-        "age_hours": 223.5,
+        "age_hours": 227.7,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -938,7 +955,7 @@
         "case_id": "201730405",
         "client_id": "981539000277464008",
         "created": "2026-04-18T11:00:55+10:00",
-        "age_hours": 227.2,
+        "age_hours": 231.3,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -955,7 +972,7 @@
         "case_id": "201730404",
         "client_id": "981539000226298040",
         "created": "2026-04-18T10:18:05+10:00",
-        "age_hours": 227.9,
+        "age_hours": 232.0,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -972,7 +989,7 @@
         "case_id": "201730403",
         "client_id": "981539000277528001",
         "created": "2026-04-17T18:32:14+10:00",
-        "age_hours": 243.6,
+        "age_hours": 247.8,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -989,7 +1006,7 @@
         "case_id": "201730402",
         "client_id": "981539000277362004",
         "created": "2026-04-17T13:31:28+10:00",
-        "age_hours": 248.6,
+        "age_hours": 252.8,
         "stage": "NM Approval",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1006,7 +1023,7 @@
         "case_id": "201730400",
         "client_id": "981539000277274007",
         "created": "2026-04-16T23:04:05+10:00",
-        "age_hours": 263.1,
+        "age_hours": 267.2,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1023,7 +1040,7 @@
         "case_id": "201730399",
         "client_id": "981539000001762051",
         "created": "2026-04-16T20:09:12+10:00",
-        "age_hours": 266.0,
+        "age_hours": 270.1,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1040,7 +1057,7 @@
         "case_id": "201730398",
         "client_id": "981539000049294014",
         "created": "2026-04-16T16:40:49+10:00",
-        "age_hours": 269.5,
+        "age_hours": 273.6,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1057,7 +1074,7 @@
         "case_id": "201730397",
         "client_id": "981539000276990142",
         "created": "2026-04-16T13:28:29+10:00",
-        "age_hours": 272.7,
+        "age_hours": 276.8,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1074,7 +1091,7 @@
         "case_id": "201730395",
         "client_id": "981539000277073232",
         "created": "2026-04-16T12:54:13+10:00",
-        "age_hours": 273.3,
+        "age_hours": 277.4,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1091,7 +1108,7 @@
         "case_id": "201730392",
         "client_id": "981539000277038111",
         "created": "2026-04-16T10:13:45+10:00",
-        "age_hours": 275.9,
+        "age_hours": 280.1,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1108,7 +1125,7 @@
         "case_id": "201730391",
         "client_id": "981539000277039118",
         "created": "2026-04-15T21:15:05+10:00",
-        "age_hours": 288.9,
+        "age_hours": 293.0,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1125,7 +1142,7 @@
         "case_id": "201730389",
         "client_id": "981539000277045078",
         "created": "2026-04-15T15:37:05+10:00",
-        "age_hours": 294.5,
+        "age_hours": 298.7,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1142,7 +1159,7 @@
         "case_id": "201730388",
         "client_id": "981539000015412209",
         "created": "2026-04-15T15:21:36+10:00",
-        "age_hours": 294.8,
+        "age_hours": 298.9,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1159,7 +1176,7 @@
         "case_id": "201730387",
         "client_id": "981539000277078063",
         "created": "2026-04-15T14:25:23+10:00",
-        "age_hours": 295.7,
+        "age_hours": 299.9,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1176,7 +1193,7 @@
         "case_id": "201730386",
         "client_id": "981539000224377057",
         "created": "2026-04-15T14:00:41+10:00",
-        "age_hours": 296.2,
+        "age_hours": 300.3,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1193,7 +1210,7 @@
         "case_id": "201730384",
         "client_id": "981539000277023014",
         "created": "2026-04-15T12:13:51+10:00",
-        "age_hours": 297.9,
+        "age_hours": 302.1,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1210,7 +1227,7 @@
         "case_id": "201730382",
         "client_id": "981539000077061030",
         "created": "2026-04-15T07:06:01+10:00",
-        "age_hours": 303.1,
+        "age_hours": 307.2,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1227,7 +1244,7 @@
         "case_id": "201730381",
         "client_id": "981539000277071116",
         "created": "2026-04-15T06:53:54+10:00",
-        "age_hours": 303.3,
+        "age_hours": 307.4,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1244,7 +1261,7 @@
         "case_id": "201730380",
         "client_id": "981539000110331007",
         "created": "2026-04-14T20:26:23+10:00",
-        "age_hours": 313.7,
+        "age_hours": 317.9,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1261,7 +1278,7 @@
         "case_id": "201730378",
         "client_id": "981539000080962005",
         "created": "2026-04-14T17:54:38+10:00",
-        "age_hours": 316.3,
+        "age_hours": 320.4,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1278,7 +1295,7 @@
         "case_id": "201730377",
         "client_id": "981539000256968004",
         "created": "2026-04-14T17:52:32+10:00",
-        "age_hours": 316.3,
+        "age_hours": 320.4,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1295,7 +1312,7 @@
         "case_id": "201730374",
         "client_id": "981539000277062028",
         "created": "2026-04-14T15:29:47+10:00",
-        "age_hours": 318.7,
+        "age_hours": 322.8,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1312,7 +1329,7 @@
         "case_id": "201730372",
         "client_id": "981539000276997051",
         "created": "2026-04-14T14:57:49+10:00",
-        "age_hours": 319.2,
+        "age_hours": 323.3,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1329,7 +1346,7 @@
         "case_id": "201730369",
         "client_id": "981539000216724009",
         "created": "2026-04-14T13:47:32+10:00",
-        "age_hours": 320.4,
+        "age_hours": 324.5,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1346,7 +1363,7 @@
         "case_id": "201730363",
         "client_id": "981539000015810055",
         "created": "2026-04-13T22:36:50+10:00",
-        "age_hours": 335.6,
+        "age_hours": 339.7,
         "stage": "NM Approval",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1363,7 +1380,7 @@
         "case_id": "201730361",
         "client_id": "981539000277034067",
         "created": "2026-04-13T21:24:23+10:00",
-        "age_hours": 336.8,
+        "age_hours": 340.9,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1380,7 +1397,7 @@
         "case_id": "201730359",
         "client_id": "981539000231160013",
         "created": "2026-04-13T14:40:20+10:00",
-        "age_hours": 343.5,
+        "age_hours": 347.6,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1397,7 +1414,7 @@
         "case_id": "201730350",
         "client_id": "981539000027857001",
         "created": "2026-04-12T00:55:52+10:00",
-        "age_hours": 381.2,
+        "age_hours": 385.4,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1414,7 +1431,7 @@
         "case_id": "201730343",
         "client_id": "981539000276869003",
         "created": "2026-04-11T02:48:12+10:00",
-        "age_hours": 403.4,
+        "age_hours": 407.5,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1431,7 +1448,7 @@
         "case_id": "201730331",
         "client_id": "981539000237703027",
         "created": "2026-04-10T10:26:57+10:00",
-        "age_hours": 419.7,
+        "age_hours": 423.8,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1448,7 +1465,7 @@
         "case_id": "201730318",
         "client_id": "981539000257956001",
         "created": "2026-04-08T21:07:58+10:00",
-        "age_hours": 457.0,
+        "age_hours": 461.2,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1465,7 +1482,7 @@
         "case_id": "201730317",
         "client_id": "981539000276105040",
         "created": "2026-04-08T20:33:27+10:00",
-        "age_hours": 457.6,
+        "age_hours": 461.7,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1482,7 +1499,7 @@
         "case_id": "201730296",
         "client_id": "981539000260037007",
         "created": "2026-04-07T13:06:21+10:00",
-        "age_hours": 489.1,
+        "age_hours": 493.2,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1499,7 +1516,7 @@
         "case_id": "201730294",
         "client_id": "981539000275819001",
         "created": "2026-04-07T09:30:11+10:00",
-        "age_hours": 492.7,
+        "age_hours": 496.8,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1516,7 +1533,7 @@
         "case_id": "201730292",
         "client_id": "981539000275731002",
         "created": "2026-04-06T18:56:57+10:00",
-        "age_hours": 507.2,
+        "age_hours": 511.3,
         "stage": "NM Approval",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1533,7 +1550,7 @@
         "case_id": "201730290",
         "client_id": "981539000078298007",
         "created": "2026-04-06T02:41:56+10:00",
-        "age_hours": 523.5,
+        "age_hours": 527.6,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1550,7 +1567,7 @@
         "case_id": "201730285",
         "client_id": "981539000217571079",
         "created": "2026-04-03T17:04:49+11:00",
-        "age_hours": 582.1,
+        "age_hours": 586.2,
         "stage": "Waiting On Client",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1567,7 +1584,7 @@
         "case_id": "201730271",
         "client_id": "981539000275365051",
         "created": "2026-04-01T14:00:58+11:00",
-        "age_hours": 633.2,
+        "age_hours": 637.3,
         "stage": "NM Approval",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1584,7 +1601,7 @@
         "case_id": "201730262",
         "client_id": "981539000275134004",
         "created": "2026-03-31T20:43:27+11:00",
-        "age_hours": 650.4,
+        "age_hours": 654.6,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1601,7 +1618,7 @@
         "case_id": "201730256",
         "client_id": "981539000274949013",
         "created": "2026-03-31T12:18:06+11:00",
-        "age_hours": 658.9,
+        "age_hours": 663.0,
         "stage": "Follow Up",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1618,7 +1635,7 @@
         "case_id": "201730249",
         "client_id": "981539000080725236",
         "created": "2026-03-30T18:14:57+11:00",
-        "age_hours": 676.9,
+        "age_hours": 681.0,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1635,7 +1652,7 @@
         "case_id": "201730248",
         "client_id": "981539000274891006",
         "created": "2026-03-30T16:18:44+11:00",
-        "age_hours": 678.9,
+        "age_hours": 683.0,
         "stage": "NM Approval",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1652,7 +1669,7 @@
         "case_id": "201730246",
         "client_id": "981539000167044002",
         "created": "2026-03-30T14:55:18+11:00",
-        "age_hours": 680.2,
+        "age_hours": 684.4,
         "stage": "Waiting On Client",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1669,7 +1686,7 @@
         "case_id": "201730235",
         "client_id": "981539000274822004",
         "created": "2026-03-30T07:12:42+11:00",
-        "age_hours": 688.0,
+        "age_hours": 692.1,
         "stage": "Ready for Allocation",
         "assigned_priority": "No Priority",
         "suggested_priority": null,
@@ -1686,406 +1703,406 @@
         "case_id": "201730451",
         "client_id": "981539000278298007",
         "created": "2026-04-26T21:03:47+10:00",
-        "age_hours": 25.1,
+        "age_hours": 29.2,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
         "response_sla_status": "ok",
-        "response_sla_remaining": 46.9,
+        "response_sla_remaining": 42.8,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 310.9,
-        "ai_summary": "Domestic violence survivor living alone struggling with cost of living on bridging visa. Historical DV without current danger, general hardship situation. No caseworker interaction recorded."
+        "resolution_sla_remaining": 306.8,
+        "ai_summary": "Domestic violence victim living alone struggling with cost of living on bridging visa without Centrelink entitlement. Historical DV without current safety threat, general hardship. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278280006",
         "case_id": "201730450",
         "client_id": "981539000278269053",
         "created": "2026-04-26T16:18:43+10:00",
-        "age_hours": 29.9,
+        "age_hours": 34.0,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
         "response_sla_status": "ok",
-        "response_sla_remaining": 42.1,
+        "response_sla_remaining": 38.0,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 306.1,
-        "ai_summary": "Client unemployed due to visa conditions for over two years awaiting ministerial intervention. General financial hardship without immediate threats. No caseworker interaction recorded."
+        "resolution_sla_remaining": 302.0,
+        "ai_summary": "Client unemployed due to visa conditions preventing work, awaiting ministerial intervention for over two years. General financial hardship without immediate crisis. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278273001",
         "case_id": "201730449",
         "client_id": "981539000278269002",
         "created": "2026-04-26T11:14:54+10:00",
-        "age_hours": 34.9,
+        "age_hours": 39.0,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "unassigned",
         "flag_severity": "Medium",
         "response_sla_status": "ok",
-        "response_sla_remaining": 37.1,
+        "response_sla_remaining": 33.0,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 301.1,
-        "ai_summary": "Client seeking zakat assistance due to financial hardship and medical condition. No immediate crisis or emergency timeframes specified. No caseworker interaction recorded."
+        "resolution_sla_remaining": 297.0,
+        "ai_summary": "Client seeking zakat assistance due to financial hardship and medical condition. General request without immediate crisis indicators or timeframe. No caseworker interaction recorded."
       },
       {
-        "zoho_record_id": "981539000278323001",
-        "case_id": "201730455",
-        "client_id": "981539000278260005",
-        "created": "2026-04-27T20:42:00+10:00",
-        "age_hours": 1.5,
+        "zoho_record_id": "981539000278241043",
+        "case_id": "201730456",
+        "client_id": "981539000278291005",
+        "created": "2026-04-28T01:11:50+10:00",
+        "age_hours": 1.1,
         "stage": "Intake",
         "assigned_priority": "No Priority",
-        "suggested_priority": "P1",
+        "suggested_priority": "P3",
         "flag_type": "unassigned",
         "flag_severity": "Low",
         "response_sla_status": "ok",
-        "response_sla_remaining": 2.5,
+        "response_sla_remaining": 70.9,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 22.5,
-        "ai_summary": "Client discharged from hospital needing crisis accommodation due to domestic violence and health issues. Currently homeless and requires immediate housing assistance. No caseworker interaction recorded."
+        "resolution_sla_remaining": 334.9,
+        "ai_summary": "Single mother and carer on pension seeking help after losing partner and father of children. Description indicates desperate need but no immediate crisis timeframe specified. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278312006",
         "case_id": "201730454",
         "client_id": "981539000278234052",
         "created": "2026-04-27T14:05:57+10:00",
-        "age_hours": 8.1,
+        "age_hours": 12.2,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "unassigned",
         "flag_severity": "Low",
         "response_sla_status": "ok",
-        "response_sla_remaining": 63.9,
+        "response_sla_remaining": 59.8,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 327.9,
-        "ai_summary": "Single parent with two children unable to work due to teenager issues and mental health concerns. Experiencing general financial hardship without immediate threats. No caseworker interaction recorded."
+        "resolution_sla_remaining": 323.8,
+        "ai_summary": "Parent unable to work due to teenager issues and mental health concerns, struggling with monthly expenses with two children. General financial hardship without immediate crisis indicators. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278298071",
         "case_id": "201730453",
         "client_id": "981539000278319002",
         "created": "2026-04-27T14:00:23+10:00",
-        "age_hours": 8.2,
+        "age_hours": 12.3,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "unassigned",
         "flag_severity": "Low",
         "response_sla_status": "ok",
-        "response_sla_remaining": 63.8,
+        "response_sla_remaining": 59.7,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 327.8,
-        "ai_summary": "Third party application for bond assistance for client residing at current address for six months. No immediate housing threat indicated. No caseworker interaction recorded."
+        "resolution_sla_remaining": 323.7,
+        "ai_summary": "Third party application for bond assistance for client residing in room for six months. Standard housing support request without urgency indicators. No caseworker interaction recorded."
       },
       {
         "zoho_record_id": "981539000278241007",
         "case_id": "201730452",
         "client_id": "981539000278290004",
         "created": "2026-04-27T10:46:06+10:00",
-        "age_hours": 11.4,
+        "age_hours": 15.5,
         "stage": "Intake",
         "assigned_priority": "No Priority",
         "suggested_priority": "P3",
         "flag_type": "unassigned",
         "flag_severity": "Low",
         "response_sla_status": "ok",
-        "response_sla_remaining": 60.6,
+        "response_sla_remaining": 56.5,
         "resolution_sla_status": "ok",
-        "resolution_sla_remaining": 324.6,
-        "ai_summary": "Client experiencing significant financial hardship with essential living needs including rent and food. No immediate threats specified within framework timeframes. No caseworker interaction recorded."
+        "resolution_sla_remaining": 320.5,
+        "ai_summary": "Client experiencing significant financial hardship struggling with rent, food, and basic expenses. General hardship description without immediate crisis timeframe. No caseworker interaction recorded."
       }
     ],
     "ai_analysis": {
       "quality_score": "Poor",
-      "quality_summary": "Significant priority assignment issues identified. Multiple cases with clear urgency indicators (eviction notices, homelessness, children in crisis) remain unassigned or incorrectly prioritized. Most cases lack caseworker interaction despite being in intake for extended periods.",
+      "quality_summary": "Significant priority assignment issues identified. Multiple cases with clear urgency indicators (eviction notices, homelessness, domestic violence with housing crisis) remain unassigned or incorrectly prioritized. Most cases lack caseworker interaction despite containing urgent needs.",
       "total_reviewed": 40,
       "flags": [
         {
-          "case_id": "201730455",
-          "assigned_priority": "No Priority",
-          "suggested_priority": "P1",
+          "case_id": "201730421",
+          "assigned_priority": "P3",
+          "suggested_priority": "P2",
           "severity": "High",
-          "reason": "Active homelessness post-hospital discharge with ongoing health issues requires immediate accommodation assistance"
+          "reason": "Single mother served eviction notice should be P2 for imminent eviction, not P3"
         },
         {
           "case_id": "201730432",
           "assigned_priority": "No Priority",
           "suggested_priority": "P1",
           "severity": "High",
-          "reason": "Family violence victim facing immediate homelessness after uncle's departure requires urgent housing"
+          "reason": "Family violence with housing crisis and homelessness requires immediate P1 response"
+        },
+        {
+          "case_id": "201730455",
+          "assigned_priority": "No Priority",
+          "suggested_priority": "P1",
+          "severity": "High",
+          "reason": "Crisis accommodation due to domestic violence with health issues needs P1 priority"
         },
         {
           "case_id": "201730445",
           "assigned_priority": "No Priority",
           "suggested_priority": "P2",
           "severity": "High",
-          "reason": "Single parent with infant facing imminent eviction and unable to provide basic necessities"
+          "reason": "Rent arrears close to eviction with infant requires P2 for imminent housing loss"
         },
         {
-          "case_id": "201730421",
-          "assigned_priority": "P3",
-          "suggested_priority": "P2",
-          "severity": "High",
-          "reason": "Single mother with eviction notice served requires P2 priority for imminent housing threat"
+          "case_id": "201730456",
+          "assigned_priority": "No Priority",
+          "suggested_priority": "P3",
+          "severity": "Medium",
+          "reason": "Single mother in desperate need should have priority assignment for proper workflow"
         },
         {
           "case_id": "201730436",
           "assigned_priority": "No Priority",
-          "suggested_priority": "P2",
+          "suggested_priority": "P3",
           "severity": "Medium",
-          "reason": "Single mother with four young children including toddler in extremely difficult circumstances"
+          "reason": "Single mother with four children in difficult circumstances needs priority assignment"
         },
         {
           "case_id": "201730417",
           "assigned_priority": "No Priority",
-          "suggested_priority": "P2",
+          "suggested_priority": "P3",
           "severity": "Medium",
-          "reason": "Recently arrived refugee single mother with four children requiring emergency relief"
+          "reason": "Recently arrived refugee single mother with four children needs priority assignment"
         },
         {
-          "case_id": "201730425",
-          "assigned_priority": "No Priority",
-          "suggested_priority": "P2",
+          "case_id": "201730429",
+          "assigned_priority": "P2",
+          "suggested_priority": "P4",
           "severity": "Medium",
-          "reason": "New parents with special needs infant facing financial hardship require elevated priority"
-        },
-        {
-          "case_id": "201730438",
-          "assigned_priority": "No Priority",
-          "suggested_priority": "P2",
-          "severity": "Medium",
-          "reason": "Chronic anemia requiring urgent medical support that cannot wait for public health system"
+          "reason": "Debt settlement for deceased husband is long-term matter, not imminent crisis"
         },
         {
           "case_id": "201730419",
           "assigned_priority": "No Priority",
-          "suggested_priority": "P2",
-          "severity": "Medium",
-          "reason": "Previously homeless parent with son now needing immediate rent advance indicates housing instability"
+          "suggested_priority": "P3",
+          "severity": "Low",
+          "reason": "Previously homeless client now housed but needing assistance should have priority"
         },
         {
           "case_id": "201730420",
           "assigned_priority": "No Priority",
-          "suggested_priority": "P2",
-          "severity": "Medium",
-          "reason": "Parent unable to work due to child's hospitalization facing immediate financial crisis"
+          "suggested_priority": "P3",
+          "severity": "Low",
+          "reason": "Parent unable to work due to child's health condition needs priority assignment"
         }
       ],
       "patterns": [
-        "High volume of unassigned cases at intake stage without caseworker interaction",
-        "Multiple cases involving children in crisis situations not receiving appropriate priority",
-        "Domestic violence cases not properly assessed for current safety threats",
-        "Medical emergency cases not prioritized appropriately"
+        "Most cases remain unassigned despite clear need descriptions",
+        "Several urgent housing/domestic violence cases lack appropriate prioritization",
+        "Minimal caseworker interaction across all cases",
+        "Generic program participation requests mixed with genuine crisis situations"
       ],
       "per_case": {
+        "201730456": {
+          "recommended_priority": "P3",
+          "rationale": "Single mother in desperate need but no immediate crisis specified = P3 per framework.",
+          "summary": "Single mother and carer on pension seeking help after losing partner and father of children. Description indicates desperate need but no immediate crisis timeframe specified. No caseworker interaction recorded."
+        },
         "201730455": {
           "recommended_priority": "P1",
-          "rationale": "Active homelessness post-hospital discharge with ongoing health issues = P1 per framework.",
-          "summary": "Client discharged from hospital needing crisis accommodation due to domestic violence and health issues. Currently homeless and requires immediate housing assistance. No caseworker interaction recorded."
+          "rationale": "Crisis accommodation due to domestic violence with health issues = P1 per framework.",
+          "summary": "Client in crisis accommodation due to domestic violence with ongoing health issues requiring surgery and housing assistance. Discharged from hospital and needs accommodation to recover. No caseworker interaction recorded."
         },
         "201730454": {
           "recommended_priority": "P3",
-          "rationale": "General financial hardship with mental health issues but no immediate crisis = P3 per framework.",
-          "summary": "Single parent with two children unable to work due to teenager issues and mental health concerns. Experiencing general financial hardship without immediate threats. No caseworker interaction recorded."
+          "rationale": "General financial hardship, no immediate crisis = P3 per framework.",
+          "summary": "Parent unable to work due to teenager issues and mental health concerns, struggling with monthly expenses with two children. General financial hardship without immediate crisis indicators. No caseworker interaction recorded."
         },
         "201730453": {
           "recommended_priority": "P3",
-          "rationale": "Bond assistance request without urgency indicators = P3 per framework.",
-          "summary": "Third party application for bond assistance for client residing at current address for six months. No immediate housing threat indicated. No caseworker interaction recorded."
+          "rationale": "Bond assistance request, no immediate crisis = P3 per framework.",
+          "summary": "Third party application for bond assistance for client residing in room for six months. Standard housing support request without urgency indicators. No caseworker interaction recorded."
         },
         "201730452": {
           "recommended_priority": "P3",
-          "rationale": "General financial hardship without immediate crisis = P3 per framework.",
-          "summary": "Client experiencing significant financial hardship with essential living needs including rent and food. No immediate threats specified within framework timeframes. No caseworker interaction recorded."
+          "rationale": "General financial hardship, no immediate crisis = P3 per framework.",
+          "summary": "Client experiencing significant financial hardship struggling with rent, food, and basic expenses. General hardship description without immediate crisis timeframe. No caseworker interaction recorded."
         },
         "201730451": {
           "recommended_priority": "P3",
-          "rationale": "Historical domestic violence without current safety threat, general cost of living struggles = P3 per framework.",
-          "summary": "Domestic violence survivor living alone struggling with cost of living on bridging visa. Historical DV without current danger, general hardship situation. No caseworker interaction recorded."
+          "rationale": "Historical domestic violence, current need is cost of living = P3 per framework.",
+          "summary": "Domestic violence victim living alone struggling with cost of living on bridging visa without Centrelink entitlement. Historical DV without current safety threat, general hardship. No caseworker interaction recorded."
         },
         "201730450": {
           "recommended_priority": "P3",
-          "rationale": "Visa-related unemployment and general hardship without immediate crisis = P3 per framework.",
-          "summary": "Client unemployed due to visa conditions for over two years awaiting ministerial intervention. General financial hardship without immediate threats. No caseworker interaction recorded."
+          "rationale": "Unemployment due to visa restrictions, general hardship = P3 per framework.",
+          "summary": "Client unemployed due to visa conditions preventing work, awaiting ministerial intervention for over two years. General financial hardship without immediate crisis. No caseworker interaction recorded."
         },
         "201730449": {
           "recommended_priority": "P3",
-          "rationale": "Medical condition and financial hardship without immediate crisis = P3 per framework.",
-          "summary": "Client seeking zakat assistance due to financial hardship and medical condition. No immediate crisis or emergency timeframes specified. No caseworker interaction recorded."
+          "rationale": "Financial hardship with medical condition, no immediate crisis = P3 per framework.",
+          "summary": "Client seeking zakat assistance due to financial hardship and medical condition. General request without immediate crisis indicators or timeframe. No caseworker interaction recorded."
         },
         "201730448": {
           "recommended_priority": "P3",
-          "rationale": "Young person seeking employment and independence, general hardship = P3 per framework.",
-          "summary": "16-year-old revert struggling to find employment and gain financial independence. General hardship situation without immediate crisis. No caseworker interaction recorded."
+          "rationale": "Young person seeking financial independence, no immediate crisis = P3 per framework.",
+          "summary": "16-year-old revert struggling to find employment and gain financial independence to reduce burden on mother. General support need without immediate crisis. No caseworker interaction recorded."
         },
         "201730447": {
           "recommended_priority": "P3",
-          "rationale": "Historical domestic violence without current safety threat = P3 per framework.",
-          "summary": "Client abandoned by husband following family violence with daughter. Historical DV situation without current immediate danger specified. No caseworker interaction recorded."
+          "rationale": "Historical domestic violence, current single parenting = P3 per framework.",
+          "summary": "Single mother abandoned by husband following family violence incident. Historical DV without current safety threat, general single parent hardship. No caseworker interaction recorded."
         },
         "201730446": {
           "recommended_priority": "P4",
-          "rationale": "Program participation request without urgency = P4 per framework.",
-          "summary": "Client requesting to participate in programs. Non-urgent enquiry about services without immediate needs. No caseworker interaction recorded."
+          "rationale": "Program participation request, non-urgent = P4 per framework.",
+          "summary": "Client requesting to participate in foundation programs. General program inquiry without specific urgent needs described. No caseworker interaction recorded."
         },
         "201730445": {
           "recommended_priority": "P2",
-          "rationale": "Rent arrears close to eviction with infant child elevates to P2 per framework.",
-          "summary": "Single parent with 9-month-old son facing rent arrears and close to eviction, unable to afford food and basic necessities. Imminent housing threat with child in crisis. No caseworker interaction recorded."
+          "rationale": "Rent arrears close to eviction with infant = P2 per framework.",
+          "summary": "Single mother with 9-month-old son in rent arrears close to eviction, unable to afford food, petrol, and bills. Imminent housing loss with infant elevates to P2. No caseworker interaction recorded."
         },
         "201730444": {
           "recommended_priority": "P3",
-          "rationale": "Mental health issues preventing employment, general hardship = P3 per framework.",
-          "summary": "Client with mental health issues unable to find employment to support family financially. General hardship situation without immediate crisis timeframes. No caseworker interaction recorded."
+          "rationale": "Mental health preventing employment, general support need = P3 per framework.",
+          "summary": "Client with mental health issues unable to find employment to support family financially, seeking assistance for basic needs. General hardship without immediate crisis. No caseworker interaction recorded."
         },
         "201730443": {
           "recommended_priority": "P3",
-          "rationale": "Rent arrears request without immediate eviction threat = P3 per framework.",
-          "summary": "Client requesting zakat assistance for rental arrears clearance. No immediate eviction threat or timeline specified. No caseworker interaction recorded."
+          "rationale": "Rent arrears request, no immediate eviction threat = P3 per framework.",
+          "summary": "Client requesting zakat assistance to clear rental arrears. Standard rent assistance request without immediate eviction threat or timeline specified. No caseworker interaction recorded."
         },
         "201730442": {
           "recommended_priority": "P3",
-          "rationale": "Health issues and general living expenses without immediate crisis = P3 per framework.",
-          "summary": "Client with outstanding health issues struggling with daily living costs including medication and bills. General hardship without immediate threats. No caseworker interaction recorded."
+          "rationale": "Health issues with general living expenses, no immediate crisis = P3 per framework.",
+          "summary": "Client with outstanding health issues struggling to pay for medication, rent, energy bills, transport, and food. General hardship with health complications but no immediate crisis. No caseworker interaction recorded."
         },
         "201730441": {
           "recommended_priority": "P3",
           "rationale": "Health issues with Centrelink income, general hardship = P3 per framework.",
-          "summary": "Client with health issues on Centrelink struggling with rent and living expenses including medical costs. General financial hardship situation. No caseworker interaction recorded."
+          "summary": "Client with health issues on Centrelink income struggling with rent, energy bills, medication, and transport costs. General hardship without immediate crisis indicators. No caseworker interaction recorded."
         },
         "201730440": {
-          "recommended_priority": "P3",
-          "rationale": "General request for program participation and basic needs = P3 per framework.",
-          "summary": "Client requesting to participate in programs for financial support with basic needs including food and bills. General assistance request. No caseworker interaction recorded."
+          "recommended_priority": "P4",
+          "rationale": "Program participation request, non-urgent = P4 per framework.",
+          "summary": "Client requesting to participate in foundation programs for financial support with basic needs. General program inquiry without specific urgent needs. No caseworker interaction recorded."
         },
         "201730439": {
-          "recommended_priority": "P3",
-          "rationale": "General request for financial support with daily living = P3 per framework.",
-          "summary": "Client wanting to participate in foundation programs for financial support with basic needs and expensive daily living costs. General hardship. No caseworker interaction recorded."
+          "recommended_priority": "P4",
+          "rationale": "Program participation request, non-urgent = P4 per framework.",
+          "summary": "Client requesting to participate in foundation programs for financial support with basic needs and expensive living costs. General program inquiry without urgency. No caseworker interaction recorded."
         },
         "201730438": {
-          "recommended_priority": "P2",
-          "rationale": "Chronic anemia requiring urgent medical support that cannot wait = P2 per framework.",
-          "summary": "Client requiring medical support for chronic anemia unable to wait for public health system. Urgent medical need requiring immediate attention. No caseworker interaction recorded."
+          "recommended_priority": "P3",
+          "rationale": "Medical support need, chronic condition but no immediate crisis = P3 per framework.",
+          "summary": "Client seeking medical support for chronic anaemia, unable to wait for public health system. Medical need but not emergency level requiring immediate intervention. No caseworker interaction recorded."
         },
         "201730437": {
-          "recommended_priority": "P3",
-          "rationale": "Centrelink recipient unable to meet basic needs, general hardship = P3 per framework.",
-          "summary": "Client on Centrelink income unable to meet basic needs requesting financial support through foundation programs. General financial hardship situation. No caseworker interaction recorded."
+          "recommended_priority": "P4",
+          "rationale": "Program participation request, non-urgent = P4 per framework.",
+          "summary": "Client on Centrelink income requesting to participate in foundation programs for financial support with basic needs. General program inquiry without specific urgency. No caseworker interaction recorded."
         },
         "201730436": {
-          "recommended_priority": "P2",
-          "rationale": "Single mother with four young children including toddler in extremely difficult circumstances = P2 per framework.",
-          "summary": "Single mother and domestic violence survivor caring for four young children including toddler under extremely difficult circumstances. Children in crisis situation elevates priority. No caseworker interaction recorded."
+          "recommended_priority": "P3",
+          "rationale": "Single mother with four children in difficult circumstances = P3 per framework.",
+          "summary": "Single mother and refugee surviving domestic violence caring for four young children including toddler under extremely difficult circumstances. Complex family situation requiring support but no immediate crisis specified. No caseworker interaction recorded."
         },
         "201730435": {
           "recommended_priority": "P3",
-          "rationale": "Reduced work hours affecting finances but no immediate crisis = P3 per framework.",
-          "summary": "Nursing student with husband's reduced work hours affecting financial situation. General hardship without immediate crisis timeframes specified. No caseworker interaction recorded."
+          "rationale": "Reduced work hours affecting finances, general hardship = P3 per framework.",
+          "summary": "Nursing student whose husband's work hours have been significantly reduced affecting their financial situation. General financial hardship without immediate crisis indicators. No caseworker interaction recorded."
         },
         "201730434": {
           "recommended_priority": "P4",
-          "rationale": "Quran school program participation = P4 per framework.",
-          "summary": "Client allocated to P4 for Quran school program participation. Educational program request appropriately prioritized. No caseworker interaction recorded."
+          "rationale": "Quran school program, educational support = P4 per framework.",
+          "summary": "Client assigned to Quran school program. Educational/religious program participation which is non-urgent long-term support. No caseworker interaction recorded."
         },
         "201730433": {
           "recommended_priority": "P4",
-          "rationale": "Quran school program participation = P4 per framework.",
-          "summary": "Client allocated to P4 for Quran school program participation. Educational program request appropriately prioritized. No caseworker interaction recorded."
+          "rationale": "Quran school program, educational support = P4 per framework.",
+          "summary": "Client assigned to Quran school program. Educational/religious program participation which is non-urgent long-term support. No caseworker interaction recorded."
         },
         "201730432": {
           "recommended_priority": "P1",
-          "rationale": "Family violence victim facing immediate homelessness after uncle's departure = P1 per framework.",
-          "summary": "Family violence survivor who has been moving house to house, now facing immediate homelessness after uncle left property over a month ago. Active housing crisis requiring urgent intervention. No caseworker interaction recorded."
+          "rationale": "Family violence with housing crisis and homelessness = P1 per framework.",
+          "summary": "Client experienced family violence and has been moving house to house, currently at property where uncle left over a month ago without awareness. Housing crisis following family violence requires immediate intervention. No caseworker interaction recorded."
         },
         "201730431": {
           "recommended_priority": "P3",
-          "rationale": "Job loss and existing debt but no immediate crisis = P3 per framework.",
-          "summary": "Client lost job in February 2026 with existing lending obligations seeking employment assistance. General hardship situation without immediate threats. No caseworker interaction recorded."
+          "rationale": "Job loss with existing debt, general hardship = P3 per framework.",
+          "summary": "Client lost job in February 2026 with existing lending obligations, unable to find new employment. General financial hardship following job loss without immediate crisis. No caseworker interaction recorded."
         },
         "201730430": {
           "recommended_priority": "P3",
-          "rationale": "Spouse visa applicant with general hardship = P3 per framework.",
-          "summary": "Client arrived in 2023, married and applied for spouse visa, currently in fourth year experiencing general hardship. No immediate crisis specified. No caseworker interaction recorded."
+          "rationale": "Recent arrival with spouse visa application, general hardship = P3 per framework.",
+          "summary": "Client arrived in 2023, married and applied for spouse visa, currently in fourth year in Australia seeking assistance. General support need for recent arrival without immediate crisis. No caseworker interaction recorded."
         },
         "201730429": {
-          "recommended_priority": "P3",
-          "rationale": "Deceased husband's debt settlement without urgency = P3 per framework.",
-          "summary": "Client seeking assistance to settle late husband's outstanding debt. Debt settlement request without immediate crisis timeframes. Caseworker has made contact and assessment is in progress."
+          "recommended_priority": "P4",
+          "rationale": "Debt settlement for deceased husband, long-term matter = P4 per framework.",
+          "summary": "Client seeking assistance to settle outstanding debt of late husband. Long-term debt settlement matter not requiring immediate intervention. Caseworker has made contact and assessment is in progress."
         },
         "201730427": {
           "recommended_priority": "P3",
-          "rationale": "Health issues preventing work with daily living struggles = P3 per framework.",
-          "summary": "Client with heart problems and spinal issues unable to work, struggling with daily living costs including medical expenses. General hardship due to health conditions. No caseworker interaction recorded."
+          "rationale": "Health issues preventing work, general hardship = P3 per framework.",
+          "summary": "Client with heart problems and spinal/neck disc issues preventing work, struggling with daily living expenses including specialists and medication. Health-related hardship without immediate crisis. No caseworker interaction recorded."
         },
         "201730426": {
           "recommended_priority": "P3",
-          "rationale": "Domestic violence victim seeking support without current safety threat = P3 per framework.",
-          "summary": "Domestic violence victim referred by psychologist seeking financial support and counseling. Historical DV without current immediate danger specified. No caseworker interaction recorded."
+          "rationale": "Domestic violence victim seeking support, no current safety threat = P3 per framework.",
+          "summary": "Domestic violence victim seeking financial support and counseling, referred by psychologist. Historical DV without current safety threat, general support need. No caseworker interaction recorded."
         },
         "201730425": {
-          "recommended_priority": "P2",
-          "rationale": "New parents with special needs infant facing financial hardship = P2 per framework.",
-          "summary": "Married couple on student visa with 6-month-old baby with Triple X syndrome facing financial hardship following unplanned birth. Children with special needs in crisis elevates priority. No caseworker interaction recorded."
+          "recommended_priority": "P3",
+          "rationale": "Student visa couple with baby, financial hardship = P3 per framework.",
+          "summary": "Married couple on student visa with 6-month-old baby with Triple X syndrome, experiencing financial hardship following unplanned birth. General hardship without immediate crisis. No caseworker interaction recorded."
         },
         "201730423": {
           "recommended_priority": "P3",
-          "rationale": "Bond assistance request without immediate housing threat = P3 per framework.",
-          "summary": "Client requesting help with rental bond payment of $2360. Bond assistance without immediate homelessness threat. Caseworker has made contact and client has provided additional information."
+          "rationale": "Bond assistance request, no immediate crisis = P3 per framework.",
+          "summary": "Client needs help paying rental bond of $2360. Standard housing support request without immediate crisis indicators. Caseworker has made contact and assessment is in progress."
         },
         "201730422": {
           "recommended_priority": "P3",
-          "rationale": "Job loss with new employment starting, temporary hardship = P3 per framework.",
-          "summary": "Client lost warehouse job with family on protection visa 866, Centrelink not providing support but new job starting next week. Temporary hardship with resolution in sight. No caseworker interaction recorded."
+          "rationale": "Job loss with family, starting new work soon = P3 per framework.",
+          "summary": "Client was working in warehouse but was terminated, has family and is on protection visa 866, Centrelink will not provide payments, starting new job next week but has current difficulties. General hardship with near-term employment solution. No caseworker interaction recorded."
         },
         "201730421": {
           "recommended_priority": "P2",
           "rationale": "Single mother served eviction notice = P2 per framework.",
-          "summary": "Single mother with two children served eviction notice due to late rent requiring urgent support. Imminent eviction threat with children involved. Caseworker has made contact and recommended approval for imminent eviction assistance."
+          "summary": "Single mother of two children served eviction notice due to late rent, seeking help with rent and bills in desperate need. Imminent eviction with children elevates to P2 priority. Caseworker has made contact and case is at NM Approval stage."
         },
         "201730420": {
-          "recommended_priority": "P2",
-          "rationale": "Parent unable to work due to child's frequent hospitalization = P2 per framework.",
-          "summary": "Client left job two months ago due to son's ongoing health conditions requiring frequent hospitalization, now unable to work and facing immediate financial crisis. Child's medical crisis affecting family stability. No caseworker interaction recorded."
+          "recommended_priority": "P3",
+          "rationale": "Left job due to child's health, general hardship = P3 per framework.",
+          "summary": "Parent had to leave job two months ago due to son's ongoing health conditions requiring frequent hospitalization, unable to work and not receiving income support. General hardship following employment loss for family care. No caseworker interaction recorded."
         },
         "201730419": {
-          "recommended_priority": "P2",
-          "rationale": "Previously homeless parent needing immediate rent advance = P2 per framework.",
-          "summary": "Client previously homeless with son now needing 2 weeks advance rent and appliances. Recent homelessness history with immediate housing needs indicates instability. No caseworker interaction recorded."
+          "recommended_priority": "P3",
+          "rationale": "Advance rent and appliance needs, no immediate crisis = P3 per framework.",
+          "summary": "Client needs two weeks advance rent and washing machine/dryer, previously homeless with son but now housed. Standard housing support needs without immediate crisis. No caseworker interaction recorded."
         },
         "201730417": {
-          "recommended_priority": "P2",
-          "rationale": "Recently arrived refugee single mother with four children needing emergency relief = P2 per framework.",
-          "summary": "Third party application for recently arrived refugee single mother with four children requiring emergency relief while adjusting to life in Australia. Multiple children in crisis situation. No caseworker interaction recorded."
+          "recommended_priority": "P3",
+          "rationale": "Recently arrived refugee family, general support need = P3 per framework.",
+          "summary": "Third party application for emergency relief for recently arrived refugee single mother with four children adjusting to life in Australia. General support for new arrival family without immediate crisis. No caseworker interaction recorded."
         },
         "201730416": {
           "recommended_priority": "P3",
-          "rationale": "Large family with high expenses but no immediate crisis = P3 per framework.",
-          "summary": "Family with six children where only husband works facing serious financial hardship with high expenses. General hardship without immediate crisis timeframes. No caseworker interaction recorded."
+          "rationale": "Large family with high expenses, general hardship = P3 per framework.",
+          "summary": "Family with six children facing serious financial hardship with only husband working and very high expenses. General family hardship without immediate crisis indicators. No caseworker interaction recorded."
         },
         "201730415": {
           "recommended_priority": "P3",
-          "rationale": "Food and fuel voucher request without urgency = P3 per framework.",
-          "summary": "Client requesting food voucher and fuel voucher assistance. Basic needs request without immediate crisis indicators. No caseworker interaction recorded."
+          "rationale": "Food and fuel voucher request, basic needs = P3 per framework.",
+          "summary": "Client requesting food voucher and fuel voucher assistance. Basic needs support request without immediate crisis indicators. No caseworker interaction recorded."
         },
         "201730413": {
           "recommended_priority": "P3",
-          "rationale": "Single mother with adult children and elderly mother, general support = P3 per framework.",
-          "summary": "Case manager assisting single mother with three adult children caring for elderly mother seeking general support. Family support situation without immediate crisis. No caseworker interaction recorded."
-        },
-        "201730412": {
-          "recommended_priority": "P3",
-          "rationale": "Client with language barrier requiring representation, general assistance = P3 per framework.",
-          "summary": "Client Basira authorized representative due to language barriers, reported struggling financially and referred by reliable source. Caseworker has approved fridge funding after review and assessment."
+          "rationale": "Single mother with three children and elderly mother, general support = P3 per framework.",
+          "summary": "Case manager assisting single mother with three children (ages 25-21-16) who is also caring for elderly mother. Complex family support situation without immediate crisis. No caseworker interaction recorded."
         }
       },
-      "generated_at": "2026-04-27T12:10:03.111968+00:00"
+      "generated_at": "2026-04-27T16:17:28.979705+00:00"
     }
   }
 }
