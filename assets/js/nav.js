@@ -86,31 +86,57 @@ function renderNav(pageTitle) {
       </div>
     </aside>`;
 
-  const lastUpdated = getLastUpdated();
   const topbar = `
     <header class="topbar">
       <span class="topbar-title">${pageTitle}</span>
       <div class="topbar-meta">
-        <span class="last-updated">Data refreshed: ${lastUpdated}</span>
+        <span class="last-updated" id="topbar-last-updated">Data refreshed: loading...</span>
       </div>
     </header>`;
 
   // Inject into page
   document.getElementById('sidebar-mount').innerHTML = sidebar;
   document.getElementById('topbar-mount').innerHTML  = topbar;
+
+  // Fetch the timestamp from /data/meta.json after navigation has rendered.
+  // This runs async — the topbar shows "loading..." for a brief moment then
+  // updates. Single source of truth: meta.last_updated is written by the
+  // refresh workflow, in UTC ISO 8601, and rendered here in Melbourne time.
+  populateLastUpdated();
 }
 
-function getLastUpdated() {
-  // Will be populated from data JSON files (meta.last_updated)
-  // Falls back to a placeholder
-  try {
-    const meta = window.__NZF_META;
-    if (meta && meta.last_updated) {
-      return new Date(meta.last_updated).toLocaleString('en-NZ', {
-        day: 'numeric', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
+function populateLastUpdated() {
+  const el = document.getElementById('topbar-last-updated');
+  if (!el) return;
+
+  // Prefer the shared formatter if datetime.js is loaded; fall back gracefully.
+  const fmt = (iso) => {
+    if (typeof window.fmtDateTime === 'function') {
+      return window.fmtDateTime(iso);
     }
-  } catch(e) {}
-  return 'Not yet available';
+    // Defensive fallback — should never run in production since datetime.js
+    // is included on every dashboard. Still anchor to Melbourne explicitly.
+    try {
+      return new Intl.DateTimeFormat('en-AU', {
+        timeZone: 'Australia/Melbourne',
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false,
+      }).format(new Date(iso)) + ' AEST';
+    } catch (e) {
+      return iso;
+    }
+  };
+
+  fetch('/data/meta.json', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(meta => {
+      if (meta && meta.last_updated) {
+        el.textContent = `Data refreshed: ${fmt(meta.last_updated)}`;
+      } else {
+        el.textContent = 'Data refreshed: Not yet available';
+      }
+    })
+    .catch(() => {
+      el.textContent = 'Data refreshed: Not yet available';
+    });
 }
