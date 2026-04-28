@@ -269,6 +269,7 @@
 </div><!-- /layout -->
 
 <script src="/assets/js/auth.js"></script>
+<script src="/assets/js/datetime.js"></script>
 <script src="/assets/js/nav.js"></script>
 <script>
 const C = {
@@ -314,7 +315,7 @@ function fmtAge(hours) {
   if (data.meta?.last_updated) {
     document.getElementById('refreshed-label').innerHTML = `
       <div style="font-family:'Cambay';font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Data as of</div>
-      <div style="font-family:'Bree Serif';font-size:0.9rem;color:var(--text-primary)">${new Date(data.meta.last_updated).toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`;
+      <div style="font-family:'Bree Serif';font-size:0.9rem;color:var(--text-primary)">${fmtDateTime(data.meta.last_updated, {short: true})}</div>`;
   }
 
   const pi = data.priority_intelligence;
@@ -432,10 +433,7 @@ function renderAIAnalysis(analysis, combinedCases, pi = {}) {
     ${flagNote}
     <div class="generated-note">
       Analysis of ${analysis.total_reviewed || 0} cases from the last 30 days (live CRM) &mdash;
-      Generated: ${analysis.generated_at
-        ? new Date(analysis.generated_at).toLocaleString('en-AU',
-            {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
-        : 'unknown'}
+      Generated: ${analysis.generated_at ? fmtDateTime(analysis.generated_at) : 'unknown'}
       ${pi.rules_version ? ` &mdash; Rules v${pi.rules_version}${pi.pipeline_version ? ` &middot; Pipeline v${pi.pipeline_version}` : ''}${pi.temperature !== undefined ? ` &middot; temp=${pi.temperature}` : ''}${pi.notes_diagnostic ? ` &middot; ${pi.notes_diagnostic.notes_total||0} notes / ${pi.notes_diagnostic.cases_with_notes||0} cases` : ''}` : ''}
     </div>`;
 }
@@ -760,7 +758,7 @@ function renderTableRows(cases) {
       <td>
         <div style="white-space:nowrap">${caseLink(c)}</div>
         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">
-          ${c.created ? new Date(c.created).toLocaleDateString('en-AU',{day:'numeric',month:'short'}) : '—'}
+          ${c.created ? fmtDate(c.created, {short: true}) : '—'}
           <span class="age-chip${ageUrgent?' urgent':''}">${ageStr}</span>
         </div>
       </td>

@@ -386,6 +386,7 @@
 
 <script src="/assets/js/table-filter.js"></script>
 <script src="/assets/js/auth.js"></script>
+<script src="/assets/js/datetime.js"></script>
 <script src="/assets/js/nav.js"></script>
 <script>
 // ── State ─────────────────────────────────────────────────────────
@@ -439,7 +440,7 @@ const monthFull = ym => {
     document.getElementById('sync-label').innerHTML =
       '<div style="font-family:Cambay;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Data as of</div>' +
       '<div style="font-family:\'Bree Serif\';font-size:.9rem;color:var(--text-primary)">' +
-      new Date(_data.meta.last_updated).toLocaleString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) +
+      fmtDateTime(_data.meta.last_updated, {short: true}) +
       '</div>';
   }
 
